@@ -2,11 +2,15 @@
 
 `crap4rust` computes CRAP scores for Rust functions by combining complexity and test coverage.
 
+## Definition
+What is a CRAP score?
+CRAP (Change Risk Anti-Patterns) combines cyclomatic complexity and test coverage: CRAP(m) = comp(m)² × (1 − cov(m))³ + comp(m). Functions above a score of 30 are flagged as crappy — they are complex enough that their lack of test coverage makes them a maintenance risk.
+
 It is published as the Cargo subcommand package `cargo-crap4rust`, so the command is `cargo crap4rust`.
 
 Current status and release notes:
 
-- [IMPLEMENTED-FEATURES.md](IMPLEMENTED-FEATURES.md) documents what `0.2.x` supports today
+- [IMPLEMENTED-FEATURES.md](IMPLEMENTED-FEATURES.md) documents what `0.2.0` supports today
 - [ROADMAP.md](ROADMAP.md) tracks planned capabilities beyond the first release
 - [CHANGELOG.md](CHANGELOG.md) records released versions
 
@@ -83,6 +87,7 @@ Report excerpt:
 | `etheram-node` | `exec_sha3` | `tiny_evm_engine.rs` | 345 | 12 | 30.3% | 60.7 | `crappy` |
 
 Summary: `total_functions=388`, `crappy_functions=12`, `crappy_percent=3.1%`, `threshold=30.0`, `project_threshold=5.0%`, `verdict=warn`.
+Production functions only — test code and generated code excluded by default.
 
 The report above is abbreviated to the highest-scoring rows, with function names and file paths shortened for readability. When coverage is generated automatically, `cargo llvm-cov` also emits normal build and test output before the final crap4rust report.
 

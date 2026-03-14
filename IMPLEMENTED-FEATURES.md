@@ -2,7 +2,7 @@
 
 This document describes the feature set currently shipped by `cargo-crap4rust`.
 
-## Version 0.1.x
+## Version 0.2.0
 
 The first release focuses on a minimal, usable CRAP workflow for Rust workspaces.
 
