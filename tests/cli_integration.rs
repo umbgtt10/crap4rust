@@ -29,6 +29,7 @@ fn single_package_with_precomputed_coverage_prints_report() {
     command
         .assert()
         .success()
+        .stderr(predicate::str::is_empty())
         .stdout(predicate::str::contains(
             "crap4rust report for single-fixture",
         ))
@@ -248,6 +249,41 @@ fn test_targets_are_excluded_from_discovery_by_default() {
 }
 
 #[test]
+fn cfg_test_modules_inside_src_are_excluded_from_discovery() {
+    let fixture_dir = fixture_path(&["inline_test_module_fixture"]);
+    let manifest_path = fixture_dir.join("Cargo.toml");
+    let source_path = fixture_dir.join("src").join("lib.rs");
+    let shipped_line = named_function_line(&source_path, "shipped_risky");
+    let helper_line = named_function_line(&source_path, "test_only_helper");
+    let temp_dir = TempDir::new().expect("temp dir");
+    let coverage_path = write_coverage_file(
+        temp_dir.path(),
+        &[
+            (source_path.clone(), shipped_line, 0),
+            (source_path, helper_line, 0),
+        ],
+    );
+
+    let mut command = Command::cargo_bin("cargo-crap4rust").expect("binary");
+    command
+        .arg("--manifest-path")
+        .arg(&manifest_path)
+        .arg("--coverage")
+        .arg(&coverage_path);
+
+    command
+        .assert()
+        .success()
+        .stderr(predicate::str::is_empty())
+        .stdout(predicate::str::contains(
+            "crap4rust report for inline-test-module-fixture",
+        ))
+        .stdout(predicate::str::contains("shipped_risky"))
+        .stdout(predicate::str::contains("test_only_helper").not())
+        .stdout(predicate::str::contains("summary: total_functions=1"));
+}
+
+#[test]
 fn coverage_that_does_not_match_any_function_returns_error() {
     let fixture_dir = fixture_path(&["single_fixture"]);
     let manifest_path = fixture_dir.join("Cargo.toml");
@@ -432,6 +468,17 @@ fn first_function_line(path: &Path) -> usize {
                 .then_some(index + 1)
         })
         .expect("fixture source contains a public function")
+}
+
+fn named_function_line(path: &Path, function_name: &str) -> usize {
+    let needle = format!("pub fn {function_name}");
+
+    fs::read_to_string(path)
+        .expect("read fixture source")
+        .lines()
+        .enumerate()
+        .find_map(|(index, line)| line.trim_start().starts_with(&needle).then_some(index + 1))
+        .expect("fixture source contains the named public function")
 }
 
 fn write_coverage_file(temp_dir: &Path, entries: &[(PathBuf, usize, u64)]) -> PathBuf {

@@ -9,9 +9,9 @@ use anyhow::{Context, Result};
 use proc_macro2::Span;
 use syn::spanned::Spanned;
 use syn::{
-    Arm, Block, Expr, ExprBinary, ExprBlock, ExprForLoop, ExprIf, ExprLoop, ExprMatch, ExprWhile,
-    File, ImplItem, Item, ItemEnum, ItemFn, ItemImpl, ItemMod, ItemStruct, LocalInit, Pat, Stmt,
-    Type, parse_file,
+    Arm, Attribute, Block, Expr, ExprBinary, ExprBlock, ExprForLoop, ExprIf, ExprLoop, ExprMatch,
+    ExprWhile, File, ImplItem, Item, ItemEnum, ItemFn, ItemImpl, ItemMod, ItemStruct, LocalInit,
+    Pat, Path as SynPath, Stmt, Type, parse_file,
 };
 use walkdir::WalkDir;
 
@@ -38,11 +38,9 @@ pub fn discover_functions(package: &PackageContext) -> Result<Vec<SourceFunction
         {
             let file_path = entry.path();
             let relative_file = relative_file(&package.manifest_dir, file_path);
-            eprintln!("candidate={relative_file}");
             if !is_production_relative_file(&relative_file)
                 || !is_production_source_file(&package.manifest_dir, file_path)
             {
-                eprintln!("skip={relative_file}");
                 continue;
             }
             let module_prefix = module_prefix(source_root, file_path);
@@ -180,24 +178,36 @@ fn visit_item(
                 functions.push(function);
             }
         }
-        Item::Impl(item_impl) => visit_impl(
-            package,
-            item_impl,
-            path_key,
-            relative_file,
-            module_prefix,
-            inline_modules,
-            functions,
-        ),
-        Item::Mod(item_mod) => visit_module(
-            package,
-            item_mod,
-            path_key,
-            relative_file,
-            module_prefix,
-            inline_modules,
-            functions,
-        ),
+        Item::Impl(item_impl) => {
+            if is_test_attrs(&item_impl.attrs) {
+                return;
+            }
+
+            visit_impl(
+                package,
+                item_impl,
+                path_key,
+                relative_file,
+                module_prefix,
+                inline_modules,
+                functions,
+            )
+        }
+        Item::Mod(item_mod) => {
+            if is_test_attrs(&item_mod.attrs) {
+                return;
+            }
+
+            visit_module(
+                package,
+                item_mod,
+                path_key,
+                relative_file,
+                module_prefix,
+                inline_modules,
+                functions,
+            )
+        }
         Item::Enum(ItemEnum { .. }) | Item::Struct(ItemStruct { .. }) => {}
         _ => {}
     }
@@ -325,7 +335,39 @@ fn qualified_name(
 }
 
 fn is_test_attrs(attrs: &[syn::Attribute]) -> bool {
-    attrs.iter().any(|attr| attr.path().is_ident("test"))
+    attrs.iter().any(is_test_attr)
+}
+
+fn is_test_attr(attr: &Attribute) -> bool {
+    if is_test_path(attr.path()) {
+        return true;
+    }
+
+    let mut found = false;
+    let _ = attr.parse_nested_meta(|meta| {
+        if is_test_path(&meta.path) {
+            found = true;
+        }
+
+        let _ = meta.parse_nested_meta(|nested| {
+            if is_test_path(&nested.path) {
+                found = true;
+            }
+            Ok(())
+        });
+
+        Ok(())
+    });
+
+    found
+}
+
+fn is_test_path(path: &SynPath) -> bool {
+    path.is_ident("test")
+        || path
+            .segments
+            .last()
+            .is_some_and(|segment| segment.ident == "test")
 }
 
 fn start_line(span: Span) -> usize {
