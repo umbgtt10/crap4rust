@@ -14,6 +14,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Broader coverage-source support
 - A stable public library API
 
+## [0.2.0] - 2026-03-14
+
+Second public release.
+
+### Added
+
+- Regression coverage for root-package-only automatic coverage generation
+- Regression coverage ensuring non-production test targets are excluded by default
+- Regression coverage ensuring `#[cfg(test)]` modules inside `src/` are excluded from discovery
+- Regression coverage ensuring normal successful runs remain silent on stderr
+
+### Changed
+
+- Automatic `cargo llvm-cov` generation now follows the resolved package selection instead of raw CLI package flags
+- Coverage matching now falls back from exact function start-line matches to the nearest matching line within the discovered function span
+- Source discovery now filters out non-production targets and excludes test-only code paths more aggressively
+
 ## [0.1.0] - 2026-03-14
 
 First public release.
@@ -34,5 +51,6 @@ First public release.
 
 - Initial crates.io release of `cargo-crap4rust`
 
-[Unreleased]: https://github.com/umbgtt10/crap4rust/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/umbgtt10/crap4rust/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/umbgtt10/crap4rust/releases/tag/v0.2.0
 [0.1.0]: https://github.com/umbgtt10/crap4rust/releases/tag/v0.1.0
