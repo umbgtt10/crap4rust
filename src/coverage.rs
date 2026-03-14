@@ -65,9 +65,9 @@ pub fn ensure_coverage_path(config: &Config, packages: &[PackageContext]) -> Res
         command.arg(manifest_path);
     }
 
-    for package_name in &config.packages {
+    for package in packages {
         command.arg("--package");
-        command.arg(package_name);
+        command.arg(&package.name);
     }
 
     let status = command

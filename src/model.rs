@@ -31,6 +31,7 @@ pub struct SourceFunction {
     pub path_key: String,
     pub relative_file: String,
     pub line: usize,
+    pub end_line: usize,
     pub complexity: u32,
 }
 

@@ -7,6 +7,7 @@ use std::path::Path;
 
 use anyhow::{Context, Result};
 use proc_macro2::Span;
+use syn::spanned::Spanned;
 use syn::{
     Arm, Block, Expr, ExprBinary, ExprBlock, ExprForLoop, ExprIf, ExprLoop, ExprMatch, ExprWhile,
     File, ImplItem, Item, ItemEnum, ItemFn, ItemImpl, ItemMod, ItemStruct, LocalInit, Pat, Stmt,
@@ -37,6 +38,13 @@ pub fn discover_functions(package: &PackageContext) -> Result<Vec<SourceFunction
         {
             let file_path = entry.path();
             let relative_file = relative_file(&package.manifest_dir, file_path);
+            eprintln!("candidate={relative_file}");
+            if !is_production_relative_file(&relative_file)
+                || !is_production_source_file(&package.manifest_dir, file_path)
+            {
+                eprintln!("skip={relative_file}");
+                continue;
+            }
             let module_prefix = module_prefix(source_root, file_path);
             let source = fs::read_to_string(file_path)
                 .with_context(|| format!("failed to read source file {}", file_path.display()))?;
@@ -77,6 +85,33 @@ fn relative_file(base_dir: &Path, file_path: &Path) -> String {
         .unwrap_or(file_path)
         .to_string_lossy()
         .replace('\\', "/")
+}
+
+fn is_production_source_file(base_dir: &Path, file_path: &Path) -> bool {
+    let base_dir = normalize_path(base_dir);
+    let file_path = normalize_path(file_path);
+    let Some(relative) = file_path.strip_prefix(&base_dir) else {
+        return true;
+    };
+    let relative = relative.strip_prefix('/').unwrap_or(relative);
+
+    let mut components = relative.split('/');
+    let Some(first) = components.next() else {
+        return true;
+    };
+
+    if matches!(first, "tests" | "examples" | "benches") {
+        return false;
+    }
+
+    !relative.ends_with("/build.rs") && relative != "build.rs"
+}
+
+fn is_production_relative_file(relative_file: &str) -> bool {
+    !relative_file.starts_with("tests/")
+        && !relative_file.starts_with("examples/")
+        && !relative_file.starts_with("benches/")
+        && relative_file != "build.rs"
 }
 
 fn module_prefix(source_root: &Path, file_path: &Path) -> Vec<String> {
@@ -223,6 +258,7 @@ fn visit_impl(
                 path_key: path_key.to_string(),
                 relative_file: relative_file.to_string(),
                 line: start_line(method.sig.ident.span()),
+                end_line: end_line(method.span()),
                 complexity: cognitive_complexity(&method.block),
             });
         }
@@ -254,6 +290,7 @@ fn record_function(
         path_key: path_key.to_string(),
         relative_file: relative_file.to_string(),
         line: start_line(item_fn.sig.ident.span()),
+        end_line: end_line(item_fn.span()),
         complexity: cognitive_complexity(&item_fn.block),
     })
 }
@@ -293,6 +330,10 @@ fn is_test_attrs(attrs: &[syn::Attribute]) -> bool {
 
 fn start_line(span: Span) -> usize {
     span.start().line
+}
+
+fn end_line(span: Span) -> usize {
+    span.end().line
 }
 
 fn cognitive_complexity(block: &Block) -> u32 {

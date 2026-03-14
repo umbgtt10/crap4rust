@@ -38,6 +38,10 @@ fn build_package_context(package: &Package, workspace_root: &Path) -> Result<Pac
 
     let mut source_roots = BTreeSet::new();
     for target in &package.targets {
+        if !is_production_target(target) {
+            continue;
+        }
+
         if target
             .src_path
             .extension()
@@ -59,6 +63,28 @@ fn build_package_context(package: &Package, workspace_root: &Path) -> Result<Pac
         manifest_dir,
         workspace_root: workspace_root.to_path_buf(),
         source_roots: source_roots.into_iter().collect(),
+    })
+}
+
+fn is_production_target(target: &cargo_metadata::Target) -> bool {
+    let kinds = target
+        .kind
+        .iter()
+        .map(|kind| kind.to_string())
+        .collect::<Vec<_>>();
+
+    if kinds
+        .iter()
+        .any(|kind| matches!(kind.as_str(), "test" | "bench" | "example" | "custom-build"))
+    {
+        return false;
+    }
+
+    kinds.iter().any(|kind| {
+        matches!(
+            kind.as_str(),
+            "lib" | "bin" | "proc-macro" | "rlib" | "dylib" | "cdylib" | "staticlib"
+        )
     })
 }
 

@@ -2,7 +2,7 @@
 // Licensed under the MIT License or Apache License, Version 2.0
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
-pub fn helper_risky(a: bool, b: bool, c: bool, d: bool, e: bool) -> u32 {
+pub fn test_support_risky(a: bool, b: bool, c: bool, d: bool, e: bool) -> u32 {
     let mut score = 0;
     if a {
         score += 1;
@@ -20,12 +20,4 @@ pub fn helper_risky(a: bool, b: bool, c: bool, d: bool, e: bool) -> u32 {
         score += 1;
     }
     score
-}
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn helper_member_test_should_not_run_for_root_only_analysis() {
-        panic!("helper-member tests should not run during root-only automatic coverage");
-    }
 }

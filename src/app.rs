@@ -57,7 +57,7 @@ pub fn run(args: Args) -> Result<ExitCode> {
 
     let matched_count = functions
         .iter()
-        .filter(|function| coverage_index.contains_key(&(function.path_key.clone(), function.line)))
+        .filter(|function| match_function_coverage(function, &coverage_index).is_some())
         .count();
     if matched_count == 0 {
         bail!(
@@ -68,8 +68,7 @@ pub fn run(args: Args) -> Result<ExitCode> {
     let mut reports = functions
         .into_iter()
         .map(|function| {
-            let coverage = coverage_index
-                .get(&(function.path_key.clone(), function.line))
+            let coverage = match_function_coverage(&function, &coverage_index)
                 .map_or(0.0, |record| record.coverage_ratio());
             let crap_score = compute_crap_score(function.complexity, coverage);
             let verdict = classify(crap_score, config.threshold, config.warn_threshold);
@@ -143,6 +142,23 @@ fn classify(score: f64, threshold: f64, warn_threshold: f64) -> Verdict {
     } else {
         Verdict::Clean
     }
+}
+
+fn match_function_coverage(
+    function: &crate::model::SourceFunction,
+    coverage_index: &HashMap<(String, usize), crate::model::CoverageRecord>,
+) -> Option<crate::model::CoverageRecord> {
+    if let Some(record) = coverage_index.get(&(function.path_key.clone(), function.line)) {
+        return Some(record.clone());
+    }
+
+    coverage_index
+        .iter()
+        .filter(|((path_key, line), _)| {
+            path_key == &function.path_key && *line >= function.line && *line <= function.end_line
+        })
+        .min_by_key(|((_, line), _)| *line - function.line)
+        .map(|(_, record)| record.clone())
 }
 
 fn compute_crap_score(complexity: u32, coverage: f64) -> f64 {
