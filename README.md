@@ -4,11 +4,31 @@
 
 It is published as the Cargo subcommand package `cargo-crap4rust`, so the command is `cargo crap4rust`.
 
+Current status and release notes:
+
+- [IMPLEMENTED-FEATURES.md](IMPLEMENTED-FEATURES.md) documents what `0.1.x` supports today
+- [ROADMAP.md](ROADMAP.md) tracks planned capabilities beyond the first release
+- [CHANGELOG.md](CHANGELOG.md) records released versions
+
+## Documentation Map
+
+- Start with this README for installation and basic usage
+- Read [IMPLEMENTED-FEATURES.md](IMPLEMENTED-FEATURES.md) for the current shipped scope
+- Read [ROADMAP.md](ROADMAP.md) for planned phases and longer-term direction
+- Read [CHANGELOG.md](CHANGELOG.md) for release history
+
 ## Install
 
 ```powershell
 cargo install cargo-crap4rust
 ```
+
+## License
+
+Licensed under either of:
+
+- [LICENSE-APACHE.md](LICENSE-APACHE.md)
+- [LICENSE-MIT.md](LICENSE-MIT.md)
 
 ## What It Does
 
@@ -58,4 +78,4 @@ The current implementation focuses on:
 - internal cognitive-complexity scoring
 - workspace package selection and aggregation
 
-See [Phase1.md](Phase1.md) and [crap4rust_specification.md](crap4rust_specification.md) for the broader roadmap.
+See [IMPLEMENTED-FEATURES.md](IMPLEMENTED-FEATURES.md) for the shipped feature set and [ROADMAP.md](ROADMAP.md) for the broader plan.
