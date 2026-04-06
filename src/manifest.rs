@@ -23,11 +23,23 @@ pub fn resolve_packages(config: &Config) -> Result<Vec<PackageContext>> {
 
     packages
         .into_iter()
-        .map(|package| build_package_context(package, &workspace_root))
+        .map(|package| {
+            build_package_context(
+                package,
+                &workspace_root,
+                config.include_test_targets,
+                config.exclude_paths.clone(),
+            )
+        })
         .collect()
 }
 
-fn build_package_context(package: &Package, workspace_root: &Path) -> Result<PackageContext> {
+fn build_package_context(
+    package: &Package,
+    workspace_root: &Path,
+    include_test_targets: bool,
+    exclude_paths: Vec<String>,
+) -> Result<PackageContext> {
     let manifest_dir = package
         .manifest_path
         .clone()
@@ -38,7 +50,7 @@ fn build_package_context(package: &Package, workspace_root: &Path) -> Result<Pac
 
     let mut source_roots = BTreeSet::new();
     for target in &package.targets {
-        if !is_production_target(target) {
+        if !is_selected_target(target, include_test_targets) {
             continue;
         }
 
@@ -63,19 +75,34 @@ fn build_package_context(package: &Package, workspace_root: &Path) -> Result<Pac
         manifest_dir,
         workspace_root: workspace_root.to_path_buf(),
         source_roots: source_roots.into_iter().collect(),
+        include_test_targets,
+        exclude_paths,
     })
 }
 
-fn is_production_target(target: &cargo_metadata::Target) -> bool {
+fn is_selected_target(target: &cargo_metadata::Target, include_test_targets: bool) -> bool {
     let kinds = target
         .kind
         .iter()
         .map(|kind| kind.to_string())
         .collect::<Vec<_>>();
 
+    if kinds.iter().any(|kind| kind == "custom-build") {
+        return false;
+    }
+
+    if include_test_targets {
+        return kinds.iter().any(|kind| {
+            matches!(
+                kind.as_str(),
+                "lib" | "bin" | "proc-macro" | "rlib" | "dylib" | "cdylib" | "staticlib" | "test"
+            )
+        });
+    }
+
     if kinds
         .iter()
-        .any(|kind| matches!(kind.as_str(), "test" | "bench" | "example" | "custom-build"))
+        .any(|kind| matches!(kind.as_str(), "test" | "bench" | "example"))
     {
         return false;
     }

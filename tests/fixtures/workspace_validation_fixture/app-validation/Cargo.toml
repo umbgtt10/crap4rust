@@ -1,0 +1,11 @@
+[package]
+name = "app-validation"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+path = "src/lib.rs"
+
+[[test]]
+name = "validation_support"
+path = "tests/validation_support.rs"

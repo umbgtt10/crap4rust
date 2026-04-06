@@ -14,6 +14,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Broader coverage-source support
 - A stable public library API
 
+## [0.3.0] - 2026-04-06
+
+Third public release.
+
+### Added
+
+- `--features` flag for passing Cargo feature flags to the coverage build
+- `--all-features` flag to activate all features during the coverage build
+- `--no-default-features` flag to disable default features during the coverage build
+- `--include-test-targets` flag to include test targets in function discovery
+- `--exclude-path` flag (repeatable) to omit specific source paths from analysis
+
 ## [0.2.0] - 2026-03-14
 
 Second public release.
@@ -51,6 +63,7 @@ First public release.
 
 - Initial crates.io release of `cargo-crap4rust`
 
-[Unreleased]: https://github.com/umbgtt10/crap4rust/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/umbgtt10/crap4rust/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/umbgtt10/crap4rust/releases/tag/v0.3.0
 [0.2.0]: https://github.com/umbgtt10/crap4rust/releases/tag/v0.2.0
 [0.1.0]: https://github.com/umbgtt10/crap4rust/releases/tag/v0.1.0

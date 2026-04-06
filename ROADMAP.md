@@ -1,6 +1,6 @@
 # crap4rust Roadmap
 
-This document tracks the planned evolution of `cargo-crap4rust` beyond the currently shipped `0.1.x` release.
+This document tracks the planned evolution of `cargo-crap4rust` beyond the currently shipped `0.3.x` release.
 
 For what is available today, see [IMPLEMENTED-FEATURES.md](IMPLEMENTED-FEATURES.md). For released versions, see [CHANGELOG.md](CHANGELOG.md).
 
@@ -26,7 +26,7 @@ The long-term direction is:
 
 ## Current Baseline
 
-The shipped `0.1.x` line already provides:
+The shipped `0.3.x` line already provides:
 
 - `cargo crap4rust` as a published Cargo subcommand
 - per-function CRAP scoring

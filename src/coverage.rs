@@ -65,6 +65,19 @@ pub fn ensure_coverage_path(config: &Config, packages: &[PackageContext]) -> Res
         command.arg(manifest_path);
     }
 
+    if let Some(features) = &config.features {
+        command.arg("--features");
+        command.arg(features);
+    }
+
+    if config.all_features {
+        command.arg("--all-features");
+    }
+
+    if config.no_default_features {
+        command.arg("--no-default-features");
+    }
+
     for package in packages {
         command.arg("--package");
         command.arg(&package.name);

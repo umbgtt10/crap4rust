@@ -4,13 +4,13 @@
 
 ## Definition
 What is a CRAP score?
-CRAP (Change Risk Anti-Patterns) combines cyclomatic complexity and test coverage: CRAP(m) = comp(m)² × (1 − cov(m))³ + comp(m). Functions above a score of 30 are flagged as crappy — they are complex enough that their lack of test coverage makes them a maintenance risk.
+CRAP (Change Risk Anti-Patterns) combines cognitive complexity and test coverage: CRAP(m) = comp(m)² × (1 − cov(m))³ + comp(m). Functions above a score of 30 are flagged as crappy — they are complex enough that their lack of test coverage makes them a maintenance risk.
 
 It is published as the Cargo subcommand package `cargo-crap4rust`, so the command is `cargo crap4rust`.
 
 Current status and release notes:
 
-- [IMPLEMENTED-FEATURES.md](IMPLEMENTED-FEATURES.md) documents what `0.2.0` supports today
+- [IMPLEMENTED-FEATURES.md](IMPLEMENTED-FEATURES.md) documents what `0.3.0` supports today
 - [ROADMAP.md](ROADMAP.md) tracks planned capabilities beyond the first release
 - [CHANGELOG.md](CHANGELOG.md) records released versions
 
@@ -64,6 +64,30 @@ Use stricter project thresholds:
 
 ```powershell
 cargo crap4rust --manifest-path C:\Projects\my-workspace\Cargo.toml --threshold 25 --project-threshold 3.0 --strict
+```
+
+Pass Cargo feature flags to the coverage build:
+
+```powershell
+cargo crap4rust --manifest-path C:\Projects\my-workspace\Cargo.toml --package app-core --features host-tests
+```
+
+Disable default features and enable specific ones:
+
+```powershell
+cargo crap4rust --manifest-path C:\Projects\my-workspace\Cargo.toml --package app-core --no-default-features --features host-analysis
+```
+
+Include test targets in the analysis:
+
+```powershell
+cargo crap4rust --manifest-path C:\Projects\my-workspace\Cargo.toml --package app-validation --include-test-targets
+```
+
+Exclude specific source paths from analysis:
+
+```powershell
+cargo crap4rust --manifest-path C:\Projects\my-workspace\Cargo.toml --package app-core --exclude-path src/scenarios
 ```
 
 ## Real Workspace Example

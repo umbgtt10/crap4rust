@@ -9,6 +9,11 @@ pub struct Config {
     pub coverage_path: Option<PathBuf>,
     pub manifest_path: Option<PathBuf>,
     pub packages: Vec<String>,
+    pub features: Option<String>,
+    pub all_features: bool,
+    pub no_default_features: bool,
+    pub include_test_targets: bool,
+    pub exclude_paths: Vec<String>,
     pub threshold: f64,
     pub warn_threshold: f64,
     pub project_threshold: f64,
@@ -22,6 +27,8 @@ pub struct PackageContext {
     pub manifest_dir: PathBuf,
     pub workspace_root: PathBuf,
     pub source_roots: Vec<PathBuf>,
+    pub include_test_targets: bool,
+    pub exclude_paths: Vec<String>,
 }
 
 #[derive(Debug, Clone)]

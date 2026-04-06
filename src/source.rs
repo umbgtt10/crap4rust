@@ -19,6 +19,8 @@ use crate::model::{PackageContext, SourceFunction};
 
 pub fn discover_functions(package: &PackageContext) -> Result<Vec<SourceFunction>> {
     let mut functions = Vec::new();
+    let include_test_targets = package.include_test_targets;
+    let exclude_paths = &package.exclude_paths;
 
     for source_root in &package.source_roots {
         if !source_root.exists() {
@@ -38,8 +40,9 @@ pub fn discover_functions(package: &PackageContext) -> Result<Vec<SourceFunction
         {
             let file_path = entry.path();
             let relative_file = relative_file(&package.manifest_dir, file_path);
-            if !is_production_relative_file(&relative_file)
-                || !is_production_source_file(&package.manifest_dir, file_path)
+            if !is_selected_relative_file(&relative_file, include_test_targets)
+                || !is_selected_source_file(&package.manifest_dir, file_path, include_test_targets)
+                || is_excluded_relative_file(&relative_file, exclude_paths)
             {
                 continue;
             }
@@ -85,7 +88,7 @@ fn relative_file(base_dir: &Path, file_path: &Path) -> String {
         .replace('\\', "/")
 }
 
-fn is_production_source_file(base_dir: &Path, file_path: &Path) -> bool {
+fn is_selected_source_file(base_dir: &Path, file_path: &Path, include_test_targets: bool) -> bool {
     let base_dir = normalize_path(base_dir);
     let file_path = normalize_path(file_path);
     let Some(relative) = file_path.strip_prefix(&base_dir) else {
@@ -98,18 +101,34 @@ fn is_production_source_file(base_dir: &Path, file_path: &Path) -> bool {
         return true;
     };
 
-    if matches!(first, "tests" | "examples" | "benches") {
+    if matches!(first, "examples" | "benches") {
         return false;
+    }
+
+    if first == "tests" {
+        return include_test_targets;
     }
 
     !relative.ends_with("/build.rs") && relative != "build.rs"
 }
 
-fn is_production_relative_file(relative_file: &str) -> bool {
-    !relative_file.starts_with("tests/")
-        && !relative_file.starts_with("examples/")
+fn is_excluded_relative_file(relative_file: &str, exclude_paths: &[String]) -> bool {
+    exclude_paths.iter().any(|prefix| {
+        let normalised = prefix.replace('\\', "/");
+        let prefix_with_slash = if normalised.ends_with('/') {
+            normalised.clone()
+        } else {
+            format!("{}/", normalised)
+        };
+        relative_file.starts_with(&prefix_with_slash) || relative_file == normalised
+    })
+}
+
+fn is_selected_relative_file(relative_file: &str, include_test_targets: bool) -> bool {
+    !relative_file.starts_with("examples/")
         && !relative_file.starts_with("benches/")
         && relative_file != "build.rs"
+        && (include_test_targets || !relative_file.starts_with("tests/"))
 }
 
 fn module_prefix(source_root: &Path, file_path: &Path) -> Vec<String> {

@@ -11,6 +11,122 @@ use serde_json::json;
 use tempfile::TempDir;
 
 #[test]
+fn validation_only_package_with_optional_test_target_discovery_prints_report() {
+    let fixture_dir = fixture_path(&["workspace_validation_fixture"]);
+    let manifest_path = fixture_dir.join("Cargo.toml");
+    let source_path = fixture_dir
+        .join("app-validation")
+        .join("tests")
+        .join("validation_support.rs");
+    let function_line = first_function_line(&source_path);
+    let temp_dir = TempDir::new().expect("temp dir");
+    let coverage_path = write_coverage_file(temp_dir.path(), &[(source_path, function_line, 0)]);
+
+    let mut command = Command::cargo_bin("cargo-crap4rust").expect("binary");
+    command
+        .arg("--manifest-path")
+        .arg(&manifest_path)
+        .arg("--package")
+        .arg("app-validation")
+        .arg("--coverage")
+        .arg(&coverage_path)
+        .arg("--include-test-targets");
+
+    command
+        .assert()
+        .success()
+        .stderr(predicate::str::is_empty())
+        .stdout(predicate::str::contains(
+            "crap4rust report for app-validation",
+        ))
+        .stdout(predicate::str::contains("validation_only_risky"))
+        .stdout(predicate::str::contains("summary: total_functions=2"));
+}
+
+#[test]
+fn exclude_path_omits_matching_files_from_report() {
+    let fixture_dir = fixture_path(&["workspace_validation_fixture"]);
+    let manifest_path = fixture_dir.join("Cargo.toml");
+    let source_path = fixture_dir
+        .join("app-validation")
+        .join("tests")
+        .join("validation_support.rs");
+    let function_line = first_function_line(&source_path);
+    let temp_dir = TempDir::new().expect("temp dir");
+    let coverage_path = write_coverage_file(temp_dir.path(), &[(source_path, function_line, 0)]);
+
+    let mut command = Command::cargo_bin("cargo-crap4rust").expect("binary");
+    command
+        .arg("--manifest-path")
+        .arg(&manifest_path)
+        .arg("--package")
+        .arg("app-validation")
+        .arg("--coverage")
+        .arg(&coverage_path)
+        .arg("--include-test-targets")
+        .arg("--exclude-path")
+        .arg("tests");
+
+    command.assert().failure().stderr(predicate::str::contains(
+        "coverage data could not be matched to any discovered function by file path and line",
+    ));
+}
+
+#[test]
+fn exclude_path_only_omits_matching_prefix_leaving_other_files_intact() {
+    let fixture_dir = fixture_path(&["test_target_fixture"]);
+    let manifest_path = fixture_dir.join("Cargo.toml");
+    let source_path = fixture_dir.join("src").join("lib.rs");
+    let source_line = first_function_line(&source_path);
+    let temp_dir = TempDir::new().expect("temp dir");
+    let coverage_path = write_coverage_file(temp_dir.path(), &[(source_path, source_line, 0)]);
+
+    let mut command = Command::cargo_bin("cargo-crap4rust").expect("binary");
+    command
+        .arg("--manifest-path")
+        .arg(&manifest_path)
+        .arg("--coverage")
+        .arg(&coverage_path)
+        .arg("--exclude-path")
+        .arg("tests");
+
+    command
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("shipped_risky"))
+        .stdout(predicate::str::contains("summary: total_functions=1"));
+}
+
+#[test]
+fn cargo_subcommand_forwards_arguments_to_crap4rust_binary() {
+    let fixture_dir = fixture_path(&["single_fixture"]);
+    let manifest_path = fixture_dir.join("Cargo.toml");
+    let source_path = fixture_dir.join("src").join("lib.rs");
+    let function_line = first_function_line(&source_path);
+    let temp_dir = TempDir::new().expect("temp dir");
+    let coverage_path = write_coverage_file(temp_dir.path(), &[(source_path, function_line, 0)]);
+
+    let mut command = Command::cargo_bin("cargo-crap4rust").expect("binary");
+    command
+        .arg("crap4rust")
+        .arg("--manifest-path")
+        .arg(&manifest_path)
+        .arg("--coverage")
+        .arg(&coverage_path)
+        .arg("--features")
+        .arg("demo-feature");
+
+    command
+        .assert()
+        .success()
+        .stderr(predicate::str::is_empty())
+        .stdout(predicate::str::contains(
+            "crap4rust report for single-fixture",
+        ))
+        .stdout(predicate::str::contains("summary: total_functions=1"));
+}
+
+#[test]
 fn single_package_with_precomputed_coverage_prints_report() {
     let fixture_dir = fixture_path(&["single_fixture"]);
     let manifest_path = fixture_dir.join("Cargo.toml");
@@ -214,6 +330,88 @@ fn root_package_without_coverage_generates_coverage_for_root_only() {
 }
 
 #[test]
+fn features_flag_is_accepted_with_precomputed_coverage() {
+    let fixture_dir = fixture_path(&["single_fixture"]);
+    let manifest_path = fixture_dir.join("Cargo.toml");
+    let source_path = fixture_dir.join("src").join("lib.rs");
+    let function_line = first_function_line(&source_path);
+    let temp_dir = TempDir::new().expect("temp dir");
+    let coverage_path = write_coverage_file(temp_dir.path(), &[(source_path, function_line, 0)]);
+
+    let mut command = Command::cargo_bin("cargo-crap4rust").expect("binary");
+    command
+        .arg("--manifest-path")
+        .arg(&manifest_path)
+        .arg("--coverage")
+        .arg(&coverage_path)
+        .arg("--features")
+        .arg("demo-feature");
+
+    command
+        .assert()
+        .success()
+        .stderr(predicate::str::is_empty())
+        .stdout(predicate::str::contains(
+            "crap4rust report for single-fixture",
+        ))
+        .stdout(predicate::str::contains("summary: total_functions=1"));
+}
+
+#[test]
+fn all_features_flag_is_accepted_with_precomputed_coverage() {
+    let fixture_dir = fixture_path(&["single_fixture"]);
+    let manifest_path = fixture_dir.join("Cargo.toml");
+    let source_path = fixture_dir.join("src").join("lib.rs");
+    let function_line = first_function_line(&source_path);
+    let temp_dir = TempDir::new().expect("temp dir");
+    let coverage_path = write_coverage_file(temp_dir.path(), &[(source_path, function_line, 0)]);
+
+    let mut command = Command::cargo_bin("cargo-crap4rust").expect("binary");
+    command
+        .arg("--manifest-path")
+        .arg(&manifest_path)
+        .arg("--coverage")
+        .arg(&coverage_path)
+        .arg("--all-features");
+
+    command
+        .assert()
+        .success()
+        .stderr(predicate::str::is_empty())
+        .stdout(predicate::str::contains(
+            "crap4rust report for single-fixture",
+        ))
+        .stdout(predicate::str::contains("summary: total_functions=1"));
+}
+
+#[test]
+fn no_default_features_flag_is_accepted_with_precomputed_coverage() {
+    let fixture_dir = fixture_path(&["single_fixture"]);
+    let manifest_path = fixture_dir.join("Cargo.toml");
+    let source_path = fixture_dir.join("src").join("lib.rs");
+    let function_line = first_function_line(&source_path);
+    let temp_dir = TempDir::new().expect("temp dir");
+    let coverage_path = write_coverage_file(temp_dir.path(), &[(source_path, function_line, 0)]);
+
+    let mut command = Command::cargo_bin("cargo-crap4rust").expect("binary");
+    command
+        .arg("--manifest-path")
+        .arg(&manifest_path)
+        .arg("--coverage")
+        .arg(&coverage_path)
+        .arg("--no-default-features");
+
+    command
+        .assert()
+        .success()
+        .stderr(predicate::str::is_empty())
+        .stdout(predicate::str::contains(
+            "crap4rust report for single-fixture",
+        ))
+        .stdout(predicate::str::contains("summary: total_functions=1"));
+}
+
+#[test]
 fn test_targets_are_excluded_from_discovery_by_default() {
     let fixture_dir = fixture_path(&["test_target_fixture"]);
     let manifest_path = fixture_dir.join("Cargo.toml");
@@ -393,6 +591,62 @@ fn threshold_boundary_at_thirty_is_warn_not_crappy() {
         .arg(&coverage_path)
         .arg("--threshold")
         .arg("30")
+        .arg("--project-threshold")
+        .arg("100.0");
+
+    command
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("30.0  warn"))
+        .stdout(predicate::str::contains("verdict=warn"));
+}
+
+#[test]
+fn full_coverage_keeps_crap_score_below_warning_threshold() {
+    let fixture_dir = fixture_path(&["single_fixture"]);
+    let manifest_path = fixture_dir.join("Cargo.toml");
+    let source_path = fixture_dir.join("src").join("lib.rs");
+    let function_line = first_function_line(&source_path);
+    let temp_dir = TempDir::new().expect("temp dir");
+    let coverage_path = write_coverage_file(temp_dir.path(), &[(source_path, function_line, 1)]);
+
+    let mut command = Command::cargo_bin("cargo-crap4rust").expect("binary");
+    command
+        .arg("--manifest-path")
+        .arg(&manifest_path)
+        .arg("--coverage")
+        .arg(&coverage_path)
+        .arg("--threshold")
+        .arg("10")
+        .arg("--project-threshold")
+        .arg("100.0");
+
+    command
+        .assert()
+        .success()
+        .stdout(predicate::str::contains(
+            "No functions at or above the warning threshold of 20.0.",
+        ))
+        .stdout(predicate::str::contains("verdict=clean"));
+}
+
+#[test]
+fn zero_coverage_produces_fixture_expected_crap_score() {
+    let fixture_dir = fixture_path(&["single_fixture"]);
+    let manifest_path = fixture_dir.join("Cargo.toml");
+    let source_path = fixture_dir.join("src").join("lib.rs");
+    let function_line = first_function_line(&source_path);
+    let temp_dir = TempDir::new().expect("temp dir");
+    let coverage_path = write_coverage_file(temp_dir.path(), &[(source_path, function_line, 0)]);
+
+    let mut command = Command::cargo_bin("cargo-crap4rust").expect("binary");
+    command
+        .arg("--manifest-path")
+        .arg(&manifest_path)
+        .arg("--coverage")
+        .arg(&coverage_path)
+        .arg("--threshold")
+        .arg("200")
         .arg("--project-threshold")
         .arg("100.0");
 

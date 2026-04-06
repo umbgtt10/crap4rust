@@ -2,7 +2,7 @@
 
 This document describes the feature set currently shipped by `cargo-crap4rust`.
 
-## Version 0.2.0
+## Version 0.3.0
 
 The first release focuses on a minimal, usable CRAP workflow for Rust workspaces.
 
@@ -12,6 +12,9 @@ The first release focuses on a minimal, usable CRAP workflow for Rust workspaces
 - Invoked as `cargo crap4rust`
 - Supports `--manifest-path` for analysing a specific workspace or package manifest
 - Supports repeated `--package` flags for selecting one or more workspace packages
+- Supports `--features` for passing Cargo feature flags to the coverage build
+- Supports `--all-features` to activate all features during the coverage build
+- Supports `--no-default-features` to disable default features during the coverage build
 
 ### Metric Computation
 
@@ -26,6 +29,11 @@ The first release focuses on a minimal, usable CRAP workflow for Rust workspaces
 - Automatically runs `cargo llvm-cov --json` when `--coverage` is omitted
 - Accepts a precomputed coverage file through `--coverage`
 - Produces one combined coverage input when multiple packages are requested
+
+### Source Filtering
+
+- Supports `--include-test-targets` to include test targets in function discovery (excluded by default)
+- Supports repeatable `--exclude-path` to omit specific source paths from analysis
 
 ### Reporting
 
@@ -48,7 +56,7 @@ The first release focuses on a minimal, usable CRAP workflow for Rust workspaces
 
 ## Not Yet Implemented
 
-These capabilities are planned but are not part of `0.1.x`:
+These capabilities are planned but are not part of `0.2.x`:
 
 - Additional output formats such as JSON, HTML, Markdown, XML, or SARIF
 - Configuration file support
