@@ -226,16 +226,41 @@ fn duplicate_coverage_entries_are_aggregated() {
 }
 
 #[test]
-fn workspace_without_selected_package_returns_error() {
+fn workspace_without_selected_package_selects_all_workspace_members() {
     let fixture_dir = fixture_path(&["workspace_fixture"]);
     let manifest_path = fixture_dir.join("Cargo.toml");
+    let core_source = fixture_dir.join("app-core").join("src").join("lib.rs");
+    let validation_source = fixture_dir
+        .join("app-validation")
+        .join("src")
+        .join("lib.rs");
+    let core_function_line = first_function_line(&core_source);
+    let validation_function_line = first_function_line(&validation_source);
+    let temp_dir = TempDir::new().expect("temp dir");
+    let coverage_path = write_coverage_file(
+        temp_dir.path(),
+        &[
+            (core_source, core_function_line, 0),
+            (validation_source, validation_function_line, 0),
+        ],
+    );
 
     let mut command = Command::cargo_bin("cargo-crap4rust").expect("binary");
-    command.arg("--manifest-path").arg(&manifest_path);
+    command
+        .arg("--manifest-path")
+        .arg(&manifest_path)
+        .arg("--coverage")
+        .arg(&coverage_path);
 
-    command.assert().failure().stderr(predicate::str::contains(
-        "manifest contains multiple packages; pass --package <name>",
-    ));
+    command
+        .assert()
+        .success()
+        .stdout(
+            predicate::str::contains("crap4rust report for ")
+                .and(predicate::str::contains("app-core"))
+                .and(predicate::str::contains("app-validation")),
+        )
+        .stdout(predicate::str::contains("summary: total_functions=2"));
 }
 
 #[test]
@@ -303,15 +328,24 @@ fn multiple_packages_without_coverage_generate_aggregate_coverage_automatically(
 }
 
 #[test]
-fn root_package_without_coverage_generates_coverage_for_root_only() {
+fn root_workspace_without_coverage_generates_coverage_for_all_workspace_members() {
     let fixture_dir = fixture_path(&["root_workspace_fixture"]);
     let manifest_path = fixture_dir.join("Cargo.toml");
-    let generated_coverage_path = fixture_dir
+    let generated_coverage_path_a = fixture_dir
         .join("target")
         .join("crap4rust")
-        .join("root_app-coverage.json");
-    if generated_coverage_path.exists() {
-        fs::remove_file(&generated_coverage_path).expect("remove stale root coverage file");
+        .join("root_app__helper_member-coverage.json");
+    let generated_coverage_path_b = fixture_dir
+        .join("target")
+        .join("crap4rust")
+        .join("helper_member__root_app-coverage.json");
+    if generated_coverage_path_a.exists() {
+        fs::remove_file(&generated_coverage_path_a)
+            .expect("remove stale workspace coverage file (a)");
+    }
+    if generated_coverage_path_b.exists() {
+        fs::remove_file(&generated_coverage_path_b)
+            .expect("remove stale workspace coverage file (b)");
     }
 
     let mut command = Command::cargo_bin("cargo-crap4rust").expect("binary");
@@ -319,13 +353,13 @@ fn root_package_without_coverage_generates_coverage_for_root_only() {
 
     command
         .assert()
-        .success()
-        .stdout(predicate::str::contains("crap4rust report for root-app"))
-        .stdout(predicate::str::contains("helper-member").not());
+        .failure()
+        .stderr(predicate::str::contains("cargo llvm-cov failed"))
+        .stderr(predicate::str::contains("helper-member"));
 
     assert!(
-        generated_coverage_path.exists(),
-        "automatic root-package coverage file was not generated"
+        !generated_coverage_path_a.exists() && !generated_coverage_path_b.exists(),
+        "automatic workspace-member coverage file should not be generated when a workspace member test fails"
     );
 }
 
@@ -658,13 +692,21 @@ fn zero_coverage_produces_fixture_expected_crap_score() {
 }
 
 #[test]
-fn root_package_is_selected_by_default_when_present() {
+fn root_workspace_defaults_to_all_workspace_members_when_no_package_is_provided() {
     let fixture_dir = fixture_path(&["root_workspace_fixture"]);
     let manifest_path = fixture_dir.join("Cargo.toml");
-    let source_path = fixture_dir.join("src").join("lib.rs");
-    let function_line = first_function_line(&source_path);
+    let root_source_path = fixture_dir.join("src").join("lib.rs");
+    let helper_source_path = fixture_dir.join("helper-member").join("src").join("lib.rs");
+    let root_function_line = first_function_line(&root_source_path);
+    let helper_function_line = first_function_line(&helper_source_path);
     let temp_dir = TempDir::new().expect("temp dir");
-    let coverage_path = write_coverage_file(temp_dir.path(), &[(source_path, function_line, 0)]);
+    let coverage_path = write_coverage_file(
+        temp_dir.path(),
+        &[
+            (root_source_path, root_function_line, 0),
+            (helper_source_path, helper_function_line, 0),
+        ],
+    );
 
     let mut command = Command::cargo_bin("cargo-crap4rust").expect("binary");
     command
@@ -676,8 +718,36 @@ fn root_package_is_selected_by_default_when_present() {
     command
         .assert()
         .success()
+        .stdout(
+            predicate::str::contains("crap4rust report for ")
+                .and(predicate::str::contains("root-app"))
+                .and(predicate::str::contains("helper-member")),
+        )
+        .stdout(predicate::str::contains("summary: total_functions=2"));
+}
+
+#[test]
+fn explicit_package_in_root_workspace_overrides_all_members_default() {
+    let fixture_dir = fixture_path(&["root_workspace_fixture"]);
+    let manifest_path = fixture_dir.join("Cargo.toml");
+    let source_path = fixture_dir.join("src").join("lib.rs");
+    let function_line = first_function_line(&source_path);
+    let temp_dir = TempDir::new().expect("temp dir");
+    let coverage_path = write_coverage_file(temp_dir.path(), &[(source_path, function_line, 0)]);
+
+    let mut command = Command::cargo_bin("cargo-crap4rust").expect("binary");
+    command
+        .arg("--manifest-path")
+        .arg(&manifest_path)
+        .arg("--package")
+        .arg("root-app")
+        .arg("--coverage")
+        .arg(&coverage_path);
+
+    command
+        .assert()
+        .success()
         .stdout(predicate::str::contains("crap4rust report for root-app"))
-        .stdout(predicate::str::contains("root-app"))
         .stdout(predicate::str::contains("summary: total_functions=1"))
         .stdout(predicate::str::contains("helper-member").not());
 }

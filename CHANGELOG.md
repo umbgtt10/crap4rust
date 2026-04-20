@@ -14,6 +14,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Broader coverage-source support
 - A stable public library API
 
+## [0.4.0] - 2026-04-20
+
+Fourth public release.
+
+### Added
+
+- Regression coverage ensuring workspace manifests default to analysing all workspace members when `--package` is omitted
+- Regression coverage ensuring explicit `--package` selection still overrides the all-members workspace default
+- Regression coverage for aggregate workspace reporting and automatic coverage generation under the new default package-selection behavior
+
+### Changed
+
+- Default package resolution now selects all workspace members for multi-package workspaces when `--package` is not provided
+- Workspace-scope reporting and automatic coverage generation now follow the resolved all-members default instead of requiring explicit package selection
+
 ## [0.3.0] - 2026-04-06
 
 Third public release.
@@ -63,7 +78,8 @@ First public release.
 
 - Initial crates.io release of `cargo-crap4rust`
 
-[Unreleased]: https://github.com/umbgtt10/crap4rust/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/umbgtt10/crap4rust/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/umbgtt10/crap4rust/releases/tag/v0.4.0
 [0.3.0]: https://github.com/umbgtt10/crap4rust/releases/tag/v0.3.0
 [0.2.0]: https://github.com/umbgtt10/crap4rust/releases/tag/v0.2.0
 [0.1.0]: https://github.com/umbgtt10/crap4rust/releases/tag/v0.1.0

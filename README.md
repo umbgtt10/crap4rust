@@ -10,7 +10,7 @@ It is published as the Cargo subcommand package `cargo-crap4rust`, so the comman
 
 Current status and release notes:
 
-- [IMPLEMENTED-FEATURES.md](IMPLEMENTED-FEATURES.md) documents what `0.3.0` supports today
+- [IMPLEMENTED-FEATURES.md](IMPLEMENTED-FEATURES.md) documents what `0.4.0` supports today
 - [ROADMAP.md](ROADMAP.md) tracks planned capabilities beyond the first release
 - [CHANGELOG.md](CHANGELOG.md) records released versions
 
@@ -33,16 +33,20 @@ Licensed under either of:
 - Generates coverage automatically with `cargo llvm-cov` when `--coverage` is omitted
 - Prints a single report to the console
 - Supports multiple `--package` flags for one aggregated report
+- Defaults to analysing all workspace members when `--package` is omitted in a multi-package workspace
 
 ## Examples
 
-Analyse the default package for a manifest:
+Analyse the default scope for a manifest:
+
+- single-package manifest: analyses the root package
+- multi-package workspace: analyses all workspace members unless `--package` is provided
 
 ```powershell
 cargo crap4rust --manifest-path C:\Projects\my-workspace\Cargo.toml
 ```
 
-Analyse one specific package in a workspace:
+Analyse one specific package in a workspace and override the default all-members selection:
 
 ```powershell
 cargo crap4rust --manifest-path C:\Projects\my-workspace\Cargo.toml --package app-core
@@ -123,5 +127,6 @@ The current implementation focuses on:
 - automatic `cargo llvm-cov` integration
 - internal cognitive-complexity scoring
 - workspace package selection and aggregation
+- all-workspace-member default selection when `--package` is omitted in multi-package workspaces
 
 See [IMPLEMENTED-FEATURES.md](IMPLEMENTED-FEATURES.md) for the shipped feature set and [ROADMAP.md](ROADMAP.md) for the broader plan.

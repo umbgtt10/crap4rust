@@ -130,8 +130,24 @@ fn select_packages<'a>(metadata: &'a Metadata, requested: &[String]) -> Result<V
     }
 
     if let Some(root) = metadata.root_package() {
-        return Ok(vec![root]);
+        if metadata.workspace_members.len() <= 1 {
+            return Ok(vec![root]);
+        }
     }
 
-    bail!("manifest contains multiple packages; pass --package <name>")
+    let workspace_member_ids = metadata
+        .workspace_members
+        .iter()
+        .cloned()
+        .collect::<std::collections::BTreeSet<_>>();
+    let selected = metadata
+        .packages
+        .iter()
+        .filter(|package| workspace_member_ids.contains(&package.id))
+        .collect::<Vec<_>>();
+    if selected.is_empty() {
+        bail!("manifest contains no workspace member packages");
+    }
+
+    Ok(selected)
 }
