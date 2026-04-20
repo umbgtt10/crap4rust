@@ -490,7 +490,7 @@ fn score_expr(expr: &Expr, nesting: u32) -> u32 {
         Expr::Closure(expr_closure) => score_expr(&expr_closure.body, nesting),
         Expr::Async(expr_async) => score_block(&expr_async.block, nesting),
         Expr::Await(expr_await) => score_expr(&expr_await.base, nesting),
-        Expr::Try(expr_try) => 1 + nesting + score_expr(&expr_try.expr, nesting),
+        Expr::Try(expr_try) => score_expr(&expr_try.expr, nesting),
         Expr::TryBlock(expr_try_block) => {
             1 + nesting + score_block(&expr_try_block.block, nesting + 1)
         }

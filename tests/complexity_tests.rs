@@ -140,7 +140,7 @@ fn full_coverage_report_runs_successfully_and_contains_expected_functions() {
     assert!(output.contains("match_three_arms"));
     assert!(output.contains("for_loop"));
     assert!(output.contains("logical_and_or"));
-    assert!(output.contains("try_operator"));
+    assert!(!output.contains("try_operator"));
 }
 
 #[test]
@@ -257,7 +257,7 @@ fn logical_and_or_has_complexity_two() {
 }
 
 #[test]
-fn try_operator_has_complexity_one() {
+fn try_operator_excluded_from_report_when_complexity_becomes_zero() {
     // Arrange
     let source_path = fixture_dir().join("src").join("lib.rs");
     let temp_dir = TempDir::new().expect("temp dir");
@@ -268,10 +268,9 @@ fn try_operator_has_complexity_one() {
     let output = run_report(&coverage_path, "0");
 
     // Assert
-    assert_eq!(
-        extract_complexity(&output, "try_operator"),
-        Some(1),
-        "? operator at nesting 0 should score complexity 1"
+    assert!(
+        extract_report_line(&output, "try_operator").is_none(),
+        "try_operator should not appear in report when ? no longer contributes to complexity"
     );
 }
 
