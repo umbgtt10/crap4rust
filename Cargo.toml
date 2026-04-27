@@ -3,12 +3,18 @@ name = "cargo-crap4rust"
 version = "0.5.1"
 edition = "2024"
 description = "Cargo subcommand for computing CRAP scores across Rust crates"
-license = "MIT OR Apache-2.0"
+license = "MIT"
 repository = "https://github.com/umbgtt10/crap4rust"
 documentation = "https://docs.rs/cargo-crap4rust"
 
+autotests = false
+
 [lib]
 name = "crap4rust"
+
+[[test]]
+name = "all_tests"
+path = "tests/all_tests.rs"
 
 [dependencies]
 anyhow = "1.0.98"
