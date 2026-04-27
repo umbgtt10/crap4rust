@@ -8,11 +8,36 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Planned
 
-- Additional output formats such as JSON, HTML, Markdown, XML, and SARIF
+- Additional output formats such as HTML, Markdown, XML, or SARIF
 - Baseline and regression comparison support
 - Configuration file support
 - Broader coverage-source support
 - A stable public library API
+
+## [0.6.0] - 2025-04-26
+
+### Added
+
+- `--output-format json` for structured CI-friendly output
+- `--warn-threshold` CLI argument to set the warning threshold independently (default 20.0)
+- `src/complexity.rs` — cognitive complexity scoring extracted from `source.rs` into its own module
+- `tests/complexity_tests.rs` — 10 direct tests parsing Rust code via `syn`
+- `tests/app_tests.rs` — 20 pure logic tests with AAA structure
+- `tests/source_tests.rs` — full-stack complexity integration tests (renamed from `complexity_tests.rs`)
+- `tests/all_tests.rs` plumbing with `autotests = false`, following `faction` conventions
+- `tests/fixtures/mod.rs` — CLI fixture tests organized under `tests/fixtures/`
+
+### Changed
+
+- JSON output format via `--output-format json` produces structured report with all fields
+- `source.rs` reduced from 34 to ~20 functions after complexity extraction
+- Test files follow `<source>_tests.rs` naming convention
+- All tests follow AAA (Arrange / Act / Assert) structure
+- 69 tests total: 28 fixture + 20 app logic + 11 source + 10 complexity
+
+### Fixed
+
+- License link in README (was broken `LICENS`, now `LICENSE`)
 
 ## [0.5.1] - 2025-04-26
 
@@ -102,7 +127,8 @@ First public release.
 
 - Initial crates.io release of `cargo-crap4rust`
 
-[Unreleased]: https://github.com/umbgtt10/crap4rust/compare/v0.5.1...HEAD
+[Unreleased]: https://github.com/umbgtt10/crap4rust/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/umbgtt10/crap4rust/releases/tag/v0.6.0
 [0.5.1]: https://github.com/umbgtt10/crap4rust/releases/tag/v0.5.1
 [0.5.0]: https://github.com/umbgtt10/crap4rust/releases/tag/v0.5.0
 [0.4.0]: https://github.com/umbgtt10/crap4rust/releases/tag/v0.4.0
