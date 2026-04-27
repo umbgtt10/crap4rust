@@ -4,6 +4,8 @@
 
 use std::path::PathBuf;
 
+use serde::Serialize;
+
 #[derive(Debug, Clone)]
 pub struct Config {
     pub coverage_path: Option<PathBuf>,
@@ -19,6 +21,7 @@ pub struct Config {
     pub project_threshold: f64,
     pub strict: bool,
     pub warn_only: bool,
+    pub output_format: String,
 }
 
 #[derive(Debug, Clone)]
@@ -60,7 +63,7 @@ impl CoverageRecord {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 pub enum Verdict {
     Clean,
     Warn,
@@ -77,7 +80,7 @@ impl Verdict {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct FunctionReport {
     pub package_name: String,
     pub name: String,
@@ -89,7 +92,7 @@ pub struct FunctionReport {
     pub verdict: Verdict,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct ProjectReport {
     pub scope_name: String,
     pub total_functions: usize,

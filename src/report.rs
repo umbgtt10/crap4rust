@@ -5,6 +5,13 @@
 use crate::model::{Config, ProjectReport, Verdict};
 
 pub fn print_report(report: &ProjectReport, config: &Config) {
+    match config.output_format.as_str() {
+        "json" => print_json_report(report),
+        _ => print_human_report(report, config),
+    }
+}
+
+fn print_human_report(report: &ProjectReport, config: &Config) {
     println!("crap4rust report for {}", report.scope_name);
     println!();
 
@@ -80,4 +87,10 @@ pub fn print_report(report: &ProjectReport, config: &Config) {
         config.project_threshold,
         report.verdict.as_str(),
     );
+}
+
+fn print_json_report(report: &ProjectReport) {
+    let json = serde_json::to_string_pretty(report)
+        .expect("serialization of report to JSON should never fail");
+    println!("{json}");
 }

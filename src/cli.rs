@@ -36,6 +36,8 @@ pub struct Args {
     pub warn_only: bool,
     #[arg(long, default_value_t = 20.0)]
     pub warn_threshold: f64,
+    #[arg(long, default_value_t = String::from("human"))]
+    pub output_format: String,
 }
 
 impl Args {

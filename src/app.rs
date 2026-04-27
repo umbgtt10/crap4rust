@@ -29,6 +29,7 @@ pub fn run(args: Args) -> Result<ExitCode> {
         project_threshold: args.project_threshold,
         strict: args.strict,
         warn_only: args.warn_only,
+        output_format: args.output_format,
     };
 
     let packages = manifest::resolve_packages(&config)?;
@@ -381,6 +382,7 @@ mod tests {
             project_threshold: 5.0,
             strict: true,
             warn_only: false,
+            output_format: String::from("human"),
         };
         assert!(project_fails(1, 0.5, &config));
     }
@@ -401,6 +403,7 @@ mod tests {
             project_threshold: 5.0,
             strict: false,
             warn_only: false,
+            output_format: String::from("human"),
         };
         assert!(!project_fails(1, 4.9, &config));
     }
@@ -421,6 +424,7 @@ mod tests {
             project_threshold: 5.0,
             strict: false,
             warn_only: false,
+            output_format: String::from("human"),
         };
         assert!(project_fails(2, 5.1, &config));
     }

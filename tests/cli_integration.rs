@@ -802,6 +802,34 @@ fn package_without_functions_returns_error() {
     ));
 }
 
+#[test]
+fn json_output_format_produces_valid_json() {
+    let fixture_dir = fixture_path(&["single_fixture"]);
+    let manifest_path = fixture_dir.join("Cargo.toml");
+    let source_path = fixture_dir.join("src").join("lib.rs");
+    let function_line = first_function_line(&source_path);
+    let temp_dir = TempDir::new().expect("temp dir");
+    let coverage_path = write_coverage_file(temp_dir.path(), &[(source_path, function_line, 0)]);
+
+    let mut command = Command::cargo_bin("cargo-crap4rust").expect("binary");
+    command
+        .arg("--manifest-path")
+        .arg(&manifest_path)
+        .arg("--coverage")
+        .arg(&coverage_path)
+        .arg("--output-format")
+        .arg("json");
+
+    command
+        .assert()
+        .success()
+        .stdout(predicate::str::starts_with("{"))
+        .stdout(predicate::str::contains(
+            r#""scope_name": "single-fixture""#,
+        ))
+        .stdout(predicate::str::contains(r#""verdict": "Warn""#));
+}
+
 fn fixture_path(segments: &[&str]) -> PathBuf {
     let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     path.push("tests");
