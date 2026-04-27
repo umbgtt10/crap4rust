@@ -4,7 +4,7 @@
 
 use syn::{
     Arm, Block, Expr, ExprBinary, ExprBlock, ExprForLoop, ExprIf, ExprLoop, ExprMatch, ExprWhile,
-    ImplItem, Item, ItemFn, ItemImpl, ItemMod, LocalInit, Pat, Stmt,
+    ImplItem, Item, LocalInit, Pat, Stmt,
 };
 
 #[must_use]
