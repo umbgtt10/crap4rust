@@ -6,7 +6,7 @@ pub mod app;
 pub mod cli;
 mod coverage;
 mod manifest;
-mod model;
+pub mod model;
 mod report;
 mod source;
 
