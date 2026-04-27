@@ -7,6 +7,8 @@ use std::process::ExitCode;
 
 use anyhow::{Context, Result, bail};
 
+use crate::cli::OutputFormat;
+
 use crate::cli::Args;
 use crate::coverage;
 use crate::manifest;
@@ -382,7 +384,7 @@ mod tests {
             project_threshold: 5.0,
             strict: true,
             warn_only: false,
-            output_format: String::from("human"),
+            output_format: OutputFormat::Human,
         };
         assert!(project_fails(1, 0.5, &config));
     }
@@ -403,7 +405,7 @@ mod tests {
             project_threshold: 5.0,
             strict: false,
             warn_only: false,
-            output_format: String::from("human"),
+            output_format: OutputFormat::Human,
         };
         assert!(!project_fails(1, 4.9, &config));
     }
@@ -424,7 +426,7 @@ mod tests {
             project_threshold: 5.0,
             strict: false,
             warn_only: false,
-            output_format: String::from("human"),
+            output_format: OutputFormat::Human,
         };
         assert!(project_fails(2, 5.1, &config));
     }

@@ -6,6 +6,8 @@ use std::path::PathBuf;
 
 use serde::Serialize;
 
+use crate::cli::OutputFormat;
+
 #[derive(Debug, Clone)]
 pub struct Config {
     pub coverage_path: Option<PathBuf>,
@@ -21,7 +23,7 @@ pub struct Config {
     pub project_threshold: f64,
     pub strict: bool,
     pub warn_only: bool,
-    pub output_format: String,
+    pub output_format: OutputFormat,
 }
 
 #[derive(Debug, Clone)]

@@ -2,12 +2,13 @@
 // Licensed under the MIT License or Apache License, Version 2.0
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
+use crate::cli::OutputFormat;
 use crate::model::{Config, ProjectReport, Verdict};
 
 pub fn print_report(report: &ProjectReport, config: &Config) {
-    match config.output_format.as_str() {
-        "json" => print_json_report(report),
-        _ => print_human_report(report, config),
+    match config.output_format {
+        OutputFormat::Json => print_json_report(report),
+        OutputFormat::Human => print_human_report(report, config),
     }
 }
 

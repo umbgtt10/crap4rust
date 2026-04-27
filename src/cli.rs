@@ -4,7 +4,7 @@
 
 use std::path::PathBuf;
 
-use clap::Parser;
+use clap::{Parser, ValueEnum};
 
 #[derive(Debug, Clone, Parser)]
 #[command(name = "crap4rust")]
@@ -36,8 +36,14 @@ pub struct Args {
     pub warn_only: bool,
     #[arg(long, default_value_t = 20.0)]
     pub warn_threshold: f64,
-    #[arg(long, default_value_t = String::from("human"))]
-    pub output_format: String,
+    #[arg(long, default_value_t = OutputFormat::Human, value_enum)]
+    pub output_format: OutputFormat,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum)]
+pub enum OutputFormat {
+    Human,
+    Json,
 }
 
 impl Args {
