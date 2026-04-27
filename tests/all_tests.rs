@@ -4,3 +4,4 @@
 
 pub mod app_tests;
 pub mod fixtures;
+pub mod source_tests;
