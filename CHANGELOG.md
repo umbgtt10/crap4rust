@@ -14,6 +14,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Broader coverage-source support
 - A stable public library API
 
+## [0.5.1] - 2025-04-26
+
+### Added
+
+- `--warn-threshold` CLI argument to set the warning threshold independently of the crappy threshold
+- Integration test verifying custom `--warn-threshold` value appears in the output message
+
+### Changed
+
+- `--warn-threshold` is no longer hardcoded at 20.0; defaults to 20.0 but is now configurable via CLI
+
 ## [0.5.0] - 2026-04-20
 
 Fifth public release.
@@ -91,7 +102,8 @@ First public release.
 
 - Initial crates.io release of `cargo-crap4rust`
 
-[Unreleased]: https://github.com/umbgtt10/crap4rust/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/umbgtt10/crap4rust/compare/v0.5.1...HEAD
+[0.5.1]: https://github.com/umbgtt10/crap4rust/releases/tag/v0.5.1
 [0.5.0]: https://github.com/umbgtt10/crap4rust/releases/tag/v0.5.0
 [0.4.0]: https://github.com/umbgtt10/crap4rust/releases/tag/v0.4.0
 [0.3.0]: https://github.com/umbgtt10/crap4rust/releases/tag/v0.3.0
