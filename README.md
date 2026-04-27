@@ -10,7 +10,7 @@ It is published as the Cargo subcommand package `cargo-crap4rust`, so the comman
 
 Current status and release notes:
 
-- [IMPLEMENTED-FEATURES.md](IMPLEMENTED-FEATURES.md) documents what `0.5.0` supports today
+- [IMPLEMENTED-FEATURES.md](IMPLEMENTED-FEATURES.md) documents what `0.6.0` supports today
 - [ROADMAP.md](ROADMAP.md) tracks planned capabilities beyond the first release
 - [CHANGELOG.md](CHANGELOG.md) records released versions
 
@@ -24,7 +24,7 @@ cargo install cargo-crap4rust
 
 Licensed under:
 
-- [LICENSE](LICENS)
+- [LICENSE](LICENSE)
 
 ## What It Does
 
@@ -34,6 +34,9 @@ Licensed under:
 - Supports multiple `--package` flags for one aggregated report
 - Defaults to analysing all workspace members when `--package` is omitted in a multi-package workspace
 - Does not count try-operator propagation with `?` as cognitive complexity
+- Supports `--output-format json` for structured CI-friendly output
+- Supports `--warn-threshold` to set the warning level independently from the crappy threshold
+- Cognitive complexity scoring lives in its own dedicated module
 
 ## Examples
 
@@ -94,6 +97,18 @@ Exclude specific source paths from analysis:
 cargo crap4rust --manifest-path C:\Projects\my-workspace\Cargo.toml --package app-core --exclude-path src/scenarios
 ```
 
+Output as JSON for CI pipelines:
+
+```powershell
+cargo crap4rust --manifest-path C:\Projects\my-workspace\Cargo.toml --output-format json
+```
+
+Set a custom warning threshold:
+
+```powershell
+cargo crap4rust --manifest-path C:\Projects\my-workspace\Cargo.toml --warn-threshold 15
+```
+
 ## Real Workspace Example
 
 Example run against the Etheram workspace:
@@ -125,11 +140,12 @@ Try-operator propagation with `?` is treated as error forwarding rather than dec
 
 The current implementation focuses on:
 
-- console reporting
+- console and JSON reporting
 - automatic `cargo llvm-cov` integration
-- internal cognitive-complexity scoring
+- internal cognitive-complexity scoring in a dedicated module
 - workspace package selection and aggregation
 - all-workspace-member default selection when `--package` is omitted in multi-package workspaces
 - try-operator propagation excluded from cognitive-complexity scoring
+- configurable warning threshold independent from the crappy threshold
 
 See [IMPLEMENTED-FEATURES.md](IMPLEMENTED-FEATURES.md) for the shipped feature set and [ROADMAP.md](ROADMAP.md) for the broader plan.
