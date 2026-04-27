@@ -24,7 +24,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - `tests/complexity_tests.rs` — 10 direct tests parsing Rust code via `syn`
 - `tests/app_tests.rs` — 20 pure logic tests with AAA structure
 - `tests/source_tests.rs` — full-stack complexity integration tests (renamed from `complexity_tests.rs`)
-- `tests/all_tests.rs` plumbing with `autotests = false`, following `faction` conventions
+- `tests/all_tests.rs` plumbing with `autotests = false`
 - `tests/fixtures/mod.rs` — CLI fixture tests organized under `tests/fixtures/`
 
 ### Changed
