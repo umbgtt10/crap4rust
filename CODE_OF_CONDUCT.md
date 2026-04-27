@@ -1,4 +1,4 @@
-# EtheRAM Code of Conduct
+# Crap4Rust Code of Conduct
 
 ## Purpose
 

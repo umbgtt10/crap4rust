@@ -665,6 +665,37 @@ fn full_coverage_keeps_crap_score_below_warning_threshold() {
 }
 
 #[test]
+fn custom_warn_threshold_appears_in_output_message() {
+    let fixture_dir = fixture_path(&["single_fixture"]);
+    let manifest_path = fixture_dir.join("Cargo.toml");
+    let source_path = fixture_dir.join("src").join("lib.rs");
+    let function_line = first_function_line(&source_path);
+    let temp_dir = TempDir::new().expect("temp dir");
+    let coverage_path = write_coverage_file(temp_dir.path(), &[(source_path, function_line, 1)]);
+
+    let mut command = Command::cargo_bin("cargo-crap4rust").expect("binary");
+    command
+        .arg("--manifest-path")
+        .arg(&manifest_path)
+        .arg("--coverage")
+        .arg(&coverage_path)
+        .arg("--warn-threshold")
+        .arg("6.0")
+        .arg("--threshold")
+        .arg("10")
+        .arg("--project-threshold")
+        .arg("100.0");
+
+    command
+        .assert()
+        .success()
+        .stdout(predicate::str::contains(
+            "No functions at or above the warning threshold of 6.0.",
+        ))
+        .stdout(predicate::str::contains("verdict=clean"));
+}
+
+#[test]
 fn zero_coverage_produces_fixture_expected_crap_score() {
     let fixture_dir = fixture_path(&["single_fixture"]);
     let manifest_path = fixture_dir.join("Cargo.toml");

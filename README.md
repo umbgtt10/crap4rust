@@ -22,10 +22,9 @@ cargo install cargo-crap4rust
 
 ## License
 
-Licensed under either of:
+Licensed under:
 
-- [LICENSE-APACHE](LICENSE-APACHE)
-- [LICENSE-MIT](LICENSE-MIT)
+- [LICENSE](LICENS)
 
 ## What It Does
 

@@ -25,7 +25,7 @@ pub fn run(args: Args) -> Result<ExitCode> {
         include_test_targets: args.include_test_targets,
         exclude_paths: args.exclude_path,
         threshold: args.threshold,
-        warn_threshold: 20.0,
+        warn_threshold: args.warn_threshold,
         project_threshold: args.project_threshold,
         strict: args.strict,
         warn_only: args.warn_only,

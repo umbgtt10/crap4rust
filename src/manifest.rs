@@ -129,10 +129,10 @@ fn select_packages<'a>(metadata: &'a Metadata, requested: &[String]) -> Result<V
         return Ok(selected);
     }
 
-    if let Some(root) = metadata.root_package() {
-        if metadata.workspace_members.len() <= 1 {
-            return Ok(vec![root]);
-        }
+    if let Some(root) = metadata.root_package()
+        && metadata.workspace_members.len() <= 1
+    {
+        return Ok(vec![root]);
     }
 
     let workspace_member_ids = metadata

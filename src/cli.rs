@@ -34,6 +34,8 @@ pub struct Args {
     pub strict: bool,
     #[arg(long, default_value_t = false)]
     pub warn_only: bool,
+    #[arg(long, default_value_t = 20.0)]
+    pub warn_threshold: f64,
 }
 
 impl Args {
