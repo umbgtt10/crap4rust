@@ -4,6 +4,7 @@
 
 pub mod app;
 pub mod cli;
+pub mod complexity;
 mod coverage;
 mod manifest;
 pub mod model;
