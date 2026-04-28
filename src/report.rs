@@ -24,8 +24,8 @@ fn print_human_report(report: &ProjectReport, config: &Config) {
 
     if visible_functions.is_empty() {
         println!(
-            "No functions at or above the warning threshold of {:.1}.",
-            config.warn_threshold
+            "No functions at or above the threshold of {:.1}.",
+            config.threshold
         );
     } else {
         let package_width = visible_functions

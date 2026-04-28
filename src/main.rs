@@ -20,7 +20,7 @@ fn main() -> ExitCode {
     match crap4rust::run_from_args(forwarded_args) {
         Ok(code) => code,
         Err(error) => {
-            eprintln!("error: {error:#}");
+            println!("error: {error:#}");
             ExitCode::from(2)
         }
     }

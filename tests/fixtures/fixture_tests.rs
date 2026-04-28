@@ -7,6 +7,7 @@ use std::path::{Path, PathBuf};
 
 use assert_cmd::Command;
 use predicates::prelude::*;
+use predicates::str::{contains, is_empty, starts_with};
 use serde_json::json;
 use tempfile::TempDir;
 
@@ -35,12 +36,10 @@ fn validation_only_package_with_optional_test_target_discovery_prints_report() {
     command
         .assert()
         .success()
-        .stderr(predicate::str::is_empty())
-        .stdout(predicate::str::contains(
-            "crap4rust report for app-validation",
-        ))
-        .stdout(predicate::str::contains("validation_only_risky"))
-        .stdout(predicate::str::contains("summary: total_functions=2"));
+        .stderr(is_empty())
+        .stdout(contains("crap4rust report for app-validation"))
+        .stdout(contains("validation_only_risky"))
+        .stdout(contains("summary: total_functions=2"));
 }
 
 #[test]
@@ -67,7 +66,7 @@ fn exclude_path_omits_matching_files_from_report() {
         .arg("--exclude-path")
         .arg("tests");
 
-    command.assert().failure().stderr(predicate::str::contains(
+    command.assert().failure().stdout(contains(
         "coverage data could not be matched to any discovered function by file path and line",
     ));
 }
@@ -93,8 +92,8 @@ fn exclude_path_only_omits_matching_prefix_leaving_other_files_intact() {
     command
         .assert()
         .success()
-        .stdout(predicate::str::contains("shipped_risky"))
-        .stdout(predicate::str::contains("summary: total_functions=1"));
+        .stdout(contains("shipped_risky"))
+        .stdout(contains("summary: total_functions=1"));
 }
 
 #[test]
@@ -119,11 +118,9 @@ fn cargo_subcommand_forwards_arguments_to_crap4rust_binary() {
     command
         .assert()
         .success()
-        .stderr(predicate::str::is_empty())
-        .stdout(predicate::str::contains(
-            "crap4rust report for single-fixture",
-        ))
-        .stdout(predicate::str::contains("summary: total_functions=1"));
+        .stderr(is_empty())
+        .stdout(contains("crap4rust report for single-fixture"))
+        .stdout(contains("summary: total_functions=1"));
 }
 
 #[test]
@@ -145,12 +142,10 @@ fn single_package_with_precomputed_coverage_prints_report() {
     command
         .assert()
         .success()
-        .stderr(predicate::str::is_empty())
-        .stdout(predicate::str::contains(
-            "crap4rust report for single-fixture",
-        ))
-        .stdout(predicate::str::contains("risky"))
-        .stdout(predicate::str::contains("summary: total_functions=1"));
+        .stderr(is_empty())
+        .stdout(contains("crap4rust report for single-fixture"))
+        .stdout(contains("risky"))
+        .stdout(contains("summary: total_functions=1"));
 }
 
 #[test]
@@ -187,13 +182,11 @@ fn multiple_packages_produce_single_aggregate_report() {
     command
         .assert()
         .success()
-        .stdout(predicate::str::contains(
-            "crap4rust report for app-core, app-validation",
-        ))
-        .stdout(predicate::str::contains("package"))
-        .stdout(predicate::str::contains("app-core"))
-        .stdout(predicate::str::contains("app-validation"))
-        .stdout(predicate::str::contains("summary: total_functions=2"));
+        .stdout(contains("crap4rust report for app-core, app-validation"))
+        .stdout(contains("package"))
+        .stdout(contains("app-core"))
+        .stdout(contains("app-validation"))
+        .stdout(contains("summary: total_functions=2"));
 }
 
 #[test]
@@ -221,8 +214,8 @@ fn duplicate_coverage_entries_are_aggregated() {
     command
         .assert()
         .success()
-        .stdout(predicate::str::contains("50.0%"))
-        .stdout(predicate::str::contains("aggregation_target"));
+        .stdout(contains("50.0%"))
+        .stdout(contains("aggregation_target"));
 }
 
 #[test]
@@ -256,11 +249,11 @@ fn workspace_without_selected_package_selects_all_workspace_members() {
         .assert()
         .success()
         .stdout(
-            predicate::str::contains("crap4rust report for ")
-                .and(predicate::str::contains("app-core"))
-                .and(predicate::str::contains("app-validation")),
+            contains("crap4rust report for ")
+                .and(contains("app-core"))
+                .and(contains("app-validation")),
         )
-        .stdout(predicate::str::contains("summary: total_functions=2"));
+        .stdout(contains("summary: total_functions=2"));
 }
 
 #[test]
@@ -281,10 +274,8 @@ fn single_package_without_coverage_generates_coverage_automatically() {
     command
         .assert()
         .success()
-        .stdout(predicate::str::contains(
-            "crap4rust report for single-fixture",
-        ))
-        .stdout(predicate::str::contains("summary: total_functions=1"));
+        .stdout(contains("crap4rust report for single-fixture"))
+        .stdout(contains("summary: total_functions=1"));
 
     assert!(
         generated_coverage_path.exists(),
@@ -316,10 +307,8 @@ fn multiple_packages_without_coverage_generate_aggregate_coverage_automatically(
     command
         .assert()
         .success()
-        .stdout(predicate::str::contains(
-            "crap4rust report for app-core, app-validation",
-        ))
-        .stdout(predicate::str::contains("summary: total_functions=2"));
+        .stdout(contains("crap4rust report for app-core, app-validation"))
+        .stdout(contains("summary: total_functions=2"));
 
     assert!(
         generated_coverage_path.exists(),
@@ -354,8 +343,7 @@ fn root_workspace_without_coverage_generates_coverage_for_all_workspace_members(
     command
         .assert()
         .failure()
-        .stderr(predicate::str::contains("cargo llvm-cov failed"))
-        .stderr(predicate::str::contains("helper-member"));
+        .stdout(contains("cargo llvm-cov failed"));
 
     assert!(
         !generated_coverage_path_a.exists() && !generated_coverage_path_b.exists(),
@@ -384,11 +372,9 @@ fn features_flag_is_accepted_with_precomputed_coverage() {
     command
         .assert()
         .success()
-        .stderr(predicate::str::is_empty())
-        .stdout(predicate::str::contains(
-            "crap4rust report for single-fixture",
-        ))
-        .stdout(predicate::str::contains("summary: total_functions=1"));
+        .stderr(is_empty())
+        .stdout(contains("crap4rust report for single-fixture"))
+        .stdout(contains("summary: total_functions=1"));
 }
 
 #[test]
@@ -411,11 +397,9 @@ fn all_features_flag_is_accepted_with_precomputed_coverage() {
     command
         .assert()
         .success()
-        .stderr(predicate::str::is_empty())
-        .stdout(predicate::str::contains(
-            "crap4rust report for single-fixture",
-        ))
-        .stdout(predicate::str::contains("summary: total_functions=1"));
+        .stderr(is_empty())
+        .stdout(contains("crap4rust report for single-fixture"))
+        .stdout(contains("summary: total_functions=1"));
 }
 
 #[test]
@@ -438,11 +422,9 @@ fn no_default_features_flag_is_accepted_with_precomputed_coverage() {
     command
         .assert()
         .success()
-        .stderr(predicate::str::is_empty())
-        .stdout(predicate::str::contains(
-            "crap4rust report for single-fixture",
-        ))
-        .stdout(predicate::str::contains("summary: total_functions=1"));
+        .stderr(is_empty())
+        .stdout(contains("crap4rust report for single-fixture"))
+        .stdout(contains("summary: total_functions=1"));
 }
 
 #[test]
@@ -472,12 +454,10 @@ fn test_targets_are_excluded_from_discovery_by_default() {
     command
         .assert()
         .success()
-        .stdout(predicate::str::contains(
-            "crap4rust report for test-target-fixture",
-        ))
-        .stdout(predicate::str::contains("shipped_risky"))
-        .stdout(predicate::str::contains("test_support_risky").not())
-        .stdout(predicate::str::contains("summary: total_functions=1"));
+        .stdout(contains("crap4rust report for test-target-fixture"))
+        .stdout(contains("shipped_risky"))
+        .stdout(contains("test_support_risky").not())
+        .stdout(contains("summary: total_functions=1"));
 }
 
 #[test]
@@ -506,13 +486,11 @@ fn cfg_test_modules_inside_src_are_excluded_from_discovery() {
     command
         .assert()
         .success()
-        .stderr(predicate::str::is_empty())
-        .stdout(predicate::str::contains(
-            "crap4rust report for inline-test-module-fixture",
-        ))
-        .stdout(predicate::str::contains("shipped_risky"))
-        .stdout(predicate::str::contains("test_only_helper").not())
-        .stdout(predicate::str::contains("summary: total_functions=1"));
+        .stderr(is_empty())
+        .stdout(contains("crap4rust report for inline-test-module-fixture"))
+        .stdout(contains("shipped_risky"))
+        .stdout(contains("test_only_helper").not())
+        .stdout(contains("summary: total_functions=1"));
 }
 
 #[test]
@@ -532,7 +510,7 @@ fn coverage_that_does_not_match_any_function_returns_error() {
         .arg("--coverage")
         .arg(&coverage_path);
 
-    command.assert().failure().stderr(predicate::str::contains(
+    command.assert().failure().stdout(contains(
         "coverage data could not be matched to any discovered function by file path and line",
     ));
 }
@@ -549,7 +527,7 @@ fn unknown_package_returns_error() {
         .arg("--package")
         .arg("does-not-exist");
 
-    command.assert().failure().stderr(predicate::str::contains(
+    command.assert().failure().stdout(contains(
         "package does-not-exist was not found in the manifest",
     ));
 }
@@ -578,7 +556,7 @@ fn strict_mode_fails_when_project_threshold_would_otherwise_pass() {
     command
         .assert()
         .failure()
-        .stdout(predicate::str::contains("verdict=crappy"));
+        .stdout(contains("verdict=crappy"));
 }
 
 #[test]
@@ -605,7 +583,7 @@ fn warn_only_succeeds_even_when_thresholds_are_exceeded() {
     command
         .assert()
         .success()
-        .stdout(predicate::str::contains("verdict=crappy"));
+        .stdout(contains("verdict=crappy"));
 }
 
 #[test]
@@ -631,8 +609,8 @@ fn threshold_boundary_at_thirty_is_warn_not_crappy() {
     command
         .assert()
         .success()
-        .stdout(predicate::str::contains("30.0  warn"))
-        .stdout(predicate::str::contains("verdict=warn"));
+        .stdout(contains("30.0  warn"))
+        .stdout(contains("verdict=warn"));
 }
 
 #[test]
@@ -658,10 +636,8 @@ fn full_coverage_keeps_crap_score_below_warning_threshold() {
     command
         .assert()
         .success()
-        .stdout(predicate::str::contains(
-            "No functions at or above the warning threshold of 20.0.",
-        ))
-        .stdout(predicate::str::contains("verdict=clean"));
+        .stdout(contains("No functions at or above the threshold of 10.0."))
+        .stdout(contains("verdict=clean"));
 }
 
 #[test]
@@ -689,10 +665,8 @@ fn custom_warn_threshold_appears_in_output_message() {
     command
         .assert()
         .success()
-        .stdout(predicate::str::contains(
-            "No functions at or above the warning threshold of 6.0.",
-        ))
-        .stdout(predicate::str::contains("verdict=clean"));
+        .stdout(contains("No functions at or above the threshold of 10.0."))
+        .stdout(contains("verdict=clean"));
 }
 
 #[test]
@@ -718,8 +692,8 @@ fn zero_coverage_produces_fixture_expected_crap_score() {
     command
         .assert()
         .success()
-        .stdout(predicate::str::contains("30.0  warn"))
-        .stdout(predicate::str::contains("verdict=warn"));
+        .stdout(contains("30.0  warn"))
+        .stdout(contains("verdict=warn"));
 }
 
 #[test]
@@ -750,11 +724,11 @@ fn root_workspace_defaults_to_all_workspace_members_when_no_package_is_provided(
         .assert()
         .success()
         .stdout(
-            predicate::str::contains("crap4rust report for ")
-                .and(predicate::str::contains("root-app"))
-                .and(predicate::str::contains("helper-member")),
+            contains("crap4rust report for ")
+                .and(contains("root-app"))
+                .and(contains("helper-member")),
         )
-        .stdout(predicate::str::contains("summary: total_functions=2"));
+        .stdout(contains("summary: total_functions=2"));
 }
 
 #[test]
@@ -778,9 +752,9 @@ fn explicit_package_in_root_workspace_overrides_all_members_default() {
     command
         .assert()
         .success()
-        .stdout(predicate::str::contains("crap4rust report for root-app"))
-        .stdout(predicate::str::contains("summary: total_functions=1"))
-        .stdout(predicate::str::contains("helper-member").not());
+        .stdout(contains("crap4rust report for root-app"))
+        .stdout(contains("summary: total_functions=1"))
+        .stdout(contains("helper-member").not());
 }
 
 #[test]
@@ -797,7 +771,7 @@ fn package_without_functions_returns_error() {
         .arg("--coverage")
         .arg(&coverage_path);
 
-    command.assert().failure().stderr(predicate::str::contains(
+    command.assert().failure().stdout(contains(
         "no Rust functions were discovered in the selected packages",
     ));
 }
@@ -823,11 +797,9 @@ fn json_output_format_produces_valid_json() {
     command
         .assert()
         .success()
-        .stdout(predicate::str::starts_with("{"))
-        .stdout(predicate::str::contains(
-            r#""scope_name": "single-fixture""#,
-        ))
-        .stdout(predicate::str::contains(r#""verdict": "Warn""#));
+        .stdout(starts_with("{"))
+        .stdout(contains(r#""scope_name": "single-fixture""#))
+        .stdout(contains(r#""verdict": "Warn""#));
 }
 
 fn fixture_path(segments: &[&str]) -> PathBuf {

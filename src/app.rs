@@ -2,7 +2,6 @@
 // Licensed under the MIT License or Apache License, Version 2.0
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
-use std::collections::HashMap;
 use std::process::ExitCode;
 
 use anyhow::{Context, Result, bail};
@@ -13,6 +12,9 @@ use crate::manifest;
 use crate::model::{Config, FunctionReport, ProjectReport, Verdict};
 use crate::report;
 use crate::source;
+
+use crate::coverage_index::CoverageIndex;
+pub use crate::coverage_index::match_function_coverage;
 
 pub fn run(args: Args) -> Result<ExitCode> {
     let config = Config {
@@ -49,21 +51,11 @@ pub fn run(args: Args) -> Result<ExitCode> {
         bail!("coverage file did not contain any function records");
     }
 
-    let mut coverage_index: HashMap<(String, usize), crate::model::CoverageRecord> = HashMap::new();
-    for record in coverage_records {
-        let key = (record.path_key.clone(), record.line);
-        coverage_index
-            .entry(key)
-            .and_modify(|existing| {
-                existing.covered_regions += record.covered_regions;
-                existing.total_regions += record.total_regions;
-            })
-            .or_insert(record);
-    }
+    let coverage_index = CoverageIndex::from_records(coverage_records);
 
     let matched_count = functions
         .iter()
-        .filter(|function| match_function_coverage(function, &coverage_index).is_some())
+        .filter(|function| coverage_index.match_function(function).is_some())
         .count();
     if matched_count == 0 {
         bail!(
@@ -74,8 +66,7 @@ pub fn run(args: Args) -> Result<ExitCode> {
     let mut reports = functions
         .into_iter()
         .map(|function| {
-            let coverage = match_function_coverage(&function, &coverage_index)
-                .map_or(0.0, |record| record.coverage_ratio());
+            let coverage = coverage_index.match_function(&function).unwrap_or(0.0);
             let crap_score = compute_crap_score(function.complexity, coverage);
             let verdict = classify(crap_score, config.threshold, config.warn_threshold);
 
@@ -100,27 +91,8 @@ pub fn run(args: Args) -> Result<ExitCode> {
             .then_with(|| left.name.cmp(&right.name))
     });
 
-    let crappy_functions = reports
-        .iter()
-        .filter(|function| function.verdict == Verdict::Crappy)
-        .count();
-    let total_functions = reports.len();
-    let crappy_percent = if total_functions == 0 {
-        0.0
-    } else {
-        (crappy_functions as f64 / total_functions as f64) * 100.0
-    };
-    let project_verdict = if project_fails(crappy_functions, crappy_percent, &config) {
-        Verdict::Crappy
-    } else if crappy_functions > 0
-        || reports
-            .iter()
-            .any(|function| function.verdict == Verdict::Warn)
-    {
-        Verdict::Warn
-    } else {
-        Verdict::Clean
-    };
+    let (project_verdict, crappy_functions, total_functions, crappy_percent) =
+        compute_project_metrics(&reports, &config);
 
     let report_data = ProjectReport {
         scope_name: packages
@@ -150,23 +122,6 @@ pub fn classify(score: f64, threshold: f64, warn_threshold: f64) -> Verdict {
     }
 }
 
-pub fn match_function_coverage(
-    function: &crate::model::SourceFunction,
-    coverage_index: &HashMap<(String, usize), crate::model::CoverageRecord>,
-) -> Option<crate::model::CoverageRecord> {
-    if let Some(record) = coverage_index.get(&(function.path_key.clone(), function.line)) {
-        return Some(record.clone());
-    }
-
-    coverage_index
-        .iter()
-        .filter(|((path_key, line), _)| {
-            path_key == &function.path_key && *line >= function.line && *line <= function.end_line
-        })
-        .min_by_key(|((_, line), _)| *line - function.line)
-        .map(|(_, record)| record.clone())
-}
-
 pub fn compute_crap_score(complexity: u32, coverage: f64) -> f64 {
     let complexity = f64::from(complexity);
     complexity.powi(2) * (1.0 - coverage).powi(3) + complexity
@@ -190,4 +145,32 @@ pub fn project_fails(crappy_functions: usize, crappy_percent: f64, config: &Conf
     } else {
         crappy_percent > config.project_threshold
     }
+}
+
+fn compute_project_metrics(
+    reports: &[FunctionReport],
+    config: &Config,
+) -> (Verdict, usize, usize, f64) {
+    let crappy_functions = reports
+        .iter()
+        .filter(|function| function.verdict == Verdict::Crappy)
+        .count();
+    let total_functions = reports.len();
+    let crappy_percent = if total_functions == 0 {
+        0.0
+    } else {
+        (crappy_functions as f64 / total_functions as f64) * 100.0
+    };
+    let verdict = if project_fails(crappy_functions, crappy_percent, config) {
+        Verdict::Crappy
+    } else if crappy_functions > 0
+        || reports
+            .iter()
+            .any(|function| function.verdict == Verdict::Warn)
+    {
+        Verdict::Warn
+    } else {
+        Verdict::Clean
+    };
+    (verdict, crappy_functions, total_functions, crappy_percent)
 }

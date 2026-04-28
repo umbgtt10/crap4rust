@@ -5,11 +5,17 @@
 pub mod app;
 pub mod cli;
 pub mod complexity;
-mod coverage;
-mod manifest;
+pub mod coverage;
+pub mod coverage_index;
+mod export;
+pub mod file_walker;
+pub mod impl_collector;
+pub mod llvm_cov_builder;
+pub mod manifest;
 pub mod model;
-mod report;
+pub mod report;
 mod source;
+pub mod source_root_collector;
 
 use std::process::ExitCode;
 

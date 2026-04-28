@@ -1,0 +1,300 @@
+// Copyright 2025 Umberto Gotti <umberto.gotti@umbertogotti.dev>
+// Licensed under the MIT License or Apache License, Version 2.0
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
+use std::fs;
+use std::path::Path;
+
+use anyhow::{Context, Result};
+use syn::spanned::Spanned;
+use syn::{File, Item, ItemEnum, ItemFn, ItemMod, ItemStruct};
+use walkdir::{DirEntry, WalkDir};
+
+use crate::complexity::cognitive_complexity;
+use crate::impl_collector::{end_line, is_test_attrs, qualified_name, start_line, visit_impl};
+use crate::model::{PackageContext, SourceFunction};
+
+pub(crate) struct FileWalker<'a> {
+    package: &'a PackageContext,
+    include_test_targets: bool,
+    exclude_paths: &'a [String],
+}
+
+impl<'a> FileWalker<'a> {
+    pub(crate) fn new(package: &'a PackageContext) -> Self {
+        Self {
+            package,
+            include_test_targets: package.include_test_targets,
+            exclude_paths: &package.exclude_paths,
+        }
+    }
+
+    pub(crate) fn process_source_root(&self, source_root: &Path) -> Result<Vec<SourceFunction>> {
+        if !source_root.exists() {
+            return Ok(Vec::new());
+        }
+
+        let mut functions = Vec::new();
+        for entry in WalkDir::new(source_root)
+            .into_iter()
+            .filter_map(|entry| entry.ok())
+            .filter(|entry| entry.file_type().is_file())
+            .filter(|entry| {
+                entry
+                    .path()
+                    .extension()
+                    .is_some_and(|extension| extension == "rs")
+            })
+        {
+            functions.extend(self.process_entry(source_root, &entry)?);
+        }
+        Ok(functions)
+    }
+
+    fn process_entry(&self, source_root: &Path, entry: &DirEntry) -> Result<Vec<SourceFunction>> {
+        let file_path = entry.path();
+        let relative_file = relative_file(&self.package.manifest_dir, file_path);
+        if !is_selected_relative_file(&relative_file, self.include_test_targets)
+            || !is_selected_source_file(
+                &self.package.manifest_dir,
+                file_path,
+                self.include_test_targets,
+            )
+            || is_excluded_relative_file(&relative_file, self.exclude_paths)
+        {
+            return Ok(Vec::new());
+        }
+        let module_prefix = module_prefix(source_root, file_path);
+        let source = fs::read_to_string(file_path)
+            .with_context(|| format!("failed to read source file {}", file_path.display()))?;
+        let syntax = syn::parse_file(&source)
+            .with_context(|| format!("failed to parse source file {}", file_path.display()))?;
+
+        let mut functions = Vec::new();
+        visit_items(
+            self.package,
+            &syntax,
+            &normalize_path(file_path),
+            &relative_file,
+            &module_prefix,
+            &mut Vec::new(),
+            &mut functions,
+        );
+        Ok(functions)
+    }
+}
+
+pub fn normalize_path(path: &Path) -> String {
+    let normalized = path
+        .canonicalize()
+        .unwrap_or_else(|_| path.to_path_buf())
+        .to_string_lossy()
+        .replace('\\', "/");
+    if cfg!(windows) {
+        normalized.to_lowercase()
+    } else {
+        normalized
+    }
+}
+
+pub fn relative_file(base_dir: &Path, file_path: &Path) -> String {
+    file_path
+        .strip_prefix(base_dir)
+        .unwrap_or(file_path)
+        .to_string_lossy()
+        .replace('\\', "/")
+}
+
+pub(crate) fn is_selected_source_file(
+    base_dir: &Path,
+    file_path: &Path,
+    include_test_targets: bool,
+) -> bool {
+    let base_dir = normalize_path(base_dir);
+    let file_path = normalize_path(file_path);
+    let Some(relative) = file_path.strip_prefix(&base_dir) else {
+        return true;
+    };
+    let relative = relative.strip_prefix('/').unwrap_or(relative);
+
+    let mut components = relative.split('/');
+    let Some(first) = components.next() else {
+        return true;
+    };
+
+    if matches!(first, "examples" | "benches") {
+        return false;
+    }
+
+    if first == "tests" {
+        return include_test_targets;
+    }
+
+    !relative.ends_with("/build.rs") && relative != "build.rs"
+}
+
+pub fn is_excluded_relative_file(relative_file: &str, exclude_paths: &[String]) -> bool {
+    exclude_paths.iter().any(|prefix| {
+        let normalised = prefix.replace('\\', "/");
+        let prefix_with_slash = if normalised.ends_with('/') {
+            normalised.clone()
+        } else {
+            format!("{}/", normalised)
+        };
+        relative_file.starts_with(&prefix_with_slash) || relative_file == normalised
+    })
+}
+
+pub fn is_selected_relative_file(relative_file: &str, include_test_targets: bool) -> bool {
+    !relative_file.starts_with("examples/")
+        && !relative_file.starts_with("benches/")
+        && relative_file != "build.rs"
+        && (include_test_targets || !relative_file.starts_with("tests/"))
+}
+
+pub(crate) fn module_prefix(source_root: &Path, file_path: &Path) -> Vec<String> {
+    let relative = file_path.strip_prefix(source_root).unwrap_or(file_path);
+    let mut prefix = relative
+        .parent()
+        .map(|parent| {
+            parent
+                .components()
+                .map(|component| component.as_os_str().to_string_lossy().to_string())
+                .collect::<Vec<_>>()
+        })
+        .unwrap_or_default();
+    let file_stem = file_path
+        .file_stem()
+        .and_then(|stem| stem.to_str())
+        .unwrap_or_default();
+    if !matches!(file_stem, "lib" | "main" | "mod") {
+        prefix.push(file_stem.to_string());
+    }
+    prefix
+}
+
+pub(crate) fn visit_items(
+    package: &PackageContext,
+    syntax: &File,
+    path_key: &str,
+    relative_file: &str,
+    module_prefix: &[String],
+    inline_modules: &mut Vec<String>,
+    functions: &mut Vec<SourceFunction>,
+) {
+    for item in &syntax.items {
+        visit_item(
+            package,
+            item,
+            path_key,
+            relative_file,
+            module_prefix,
+            inline_modules,
+            functions,
+        );
+    }
+}
+
+pub(crate) fn visit_item(
+    package: &PackageContext,
+    item: &Item,
+    path_key: &str,
+    relative_file: &str,
+    module_prefix: &[String],
+    inline_modules: &mut Vec<String>,
+    functions: &mut Vec<SourceFunction>,
+) {
+    match item {
+        Item::Fn(item_fn) => {
+            if let Some(function) = record_function(
+                package,
+                item_fn,
+                None,
+                path_key,
+                relative_file,
+                module_prefix,
+                inline_modules,
+            ) {
+                functions.push(function);
+            }
+        }
+        Item::Impl(item_impl) if !is_test_attrs(&item_impl.attrs) => visit_impl(
+            package,
+            item_impl,
+            path_key,
+            relative_file,
+            module_prefix,
+            inline_modules,
+            functions,
+        ),
+        Item::Mod(item_mod) if !is_test_attrs(&item_mod.attrs) => visit_module(
+            package,
+            item_mod,
+            path_key,
+            relative_file,
+            module_prefix,
+            inline_modules,
+            functions,
+        ),
+        Item::Enum(ItemEnum { .. }) | Item::Struct(ItemStruct { .. }) => {}
+        _ => {}
+    }
+}
+
+pub(crate) fn visit_module(
+    package: &PackageContext,
+    item_mod: &ItemMod,
+    path_key: &str,
+    relative_file: &str,
+    module_prefix: &[String],
+    inline_modules: &mut Vec<String>,
+    functions: &mut Vec<SourceFunction>,
+) {
+    let Some((_, items)) = &item_mod.content else {
+        return;
+    };
+
+    inline_modules.push(item_mod.ident.to_string());
+    for item in items {
+        visit_item(
+            package,
+            item,
+            path_key,
+            relative_file,
+            module_prefix,
+            inline_modules,
+            functions,
+        );
+    }
+    inline_modules.pop();
+}
+
+pub(crate) fn record_function(
+    package: &PackageContext,
+    item_fn: &ItemFn,
+    receiver: Option<&str>,
+    path_key: &str,
+    relative_file: &str,
+    module_prefix: &[String],
+    inline_modules: &[String],
+) -> Option<SourceFunction> {
+    if is_test_attrs(&item_fn.attrs) {
+        return None;
+    }
+
+    let name = qualified_name(
+        module_prefix,
+        inline_modules,
+        receiver,
+        &item_fn.sig.ident.to_string(),
+    );
+    Some(SourceFunction {
+        package_name: package.name.clone(),
+        name,
+        path_key: path_key.to_string(),
+        relative_file: relative_file.to_string(),
+        line: start_line(item_fn.sig.ident.span()),
+        end_line: end_line(item_fn.span()),
+        complexity: cognitive_complexity(&item_fn.block),
+    })
+}

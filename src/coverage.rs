@@ -2,31 +2,15 @@
 // Licensed under the MIT License or Apache License, Version 2.0
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
+use crate::llvm_cov_builder::LlvmCovBuilder;
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::process::Command;
 
-use anyhow::{Context, Result, bail};
-use serde::Deserialize;
+use crate::export::Export;
+use anyhow::{Context, Result};
 
 use crate::model::{Config, CoverageRecord, PackageContext};
 use crate::source::normalize_path;
-
-#[derive(Debug, Deserialize)]
-struct Export {
-    data: Vec<ExportChunk>,
-}
-
-#[derive(Debug, Deserialize)]
-struct ExportChunk {
-    functions: Vec<ExportFunction>,
-}
-
-#[derive(Debug, Deserialize)]
-struct ExportFunction {
-    filenames: Vec<String>,
-    regions: Vec<Vec<u64>>,
-}
 
 pub fn ensure_coverage_path(config: &Config, packages: &[PackageContext]) -> Result<PathBuf> {
     if let Some(path) = &config.coverage_path {
@@ -54,41 +38,10 @@ pub fn ensure_coverage_path(config: &Config, packages: &[PackageContext]) -> Res
             .collect::<Vec<_>>()
             .join("__")
     ));
-    let mut command = Command::new("cargo");
-    command.arg("llvm-cov");
-    command.arg("--json");
-    command.arg("--output-path");
-    command.arg(&output_path);
-
-    if let Some(manifest_path) = &config.manifest_path {
-        command.arg("--manifest-path");
-        command.arg(manifest_path);
-    }
-
-    if let Some(features) = &config.features {
-        command.arg("--features");
-        command.arg(features);
-    }
-
-    if config.all_features {
-        command.arg("--all-features");
-    }
-
-    if config.no_default_features {
-        command.arg("--no-default-features");
-    }
-
-    for package in packages {
-        command.arg("--package");
-        command.arg(&package.name);
-    }
-
-    let status = command
-        .status()
-        .context("failed to invoke cargo llvm-cov; ensure cargo-llvm-cov is installed")?;
-    if !status.success() {
-        bail!("cargo llvm-cov failed with exit code {:?}", status.code());
-    }
+    LlvmCovBuilder::new(&output_path)
+        .apply_config(config)
+        .add_packages(packages)
+        .execute()?;
 
     Ok(output_path)
 }
