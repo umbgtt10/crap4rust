@@ -17,70 +17,120 @@ fn parse_fn_block(source: &str) -> syn::Block {
 
 #[test]
 fn empty_function_returns_zero() {
+    // Arrange
     let block = parse_fn_block("");
+
+    // Act
     let score = cognitive_complexity(&block);
+
+    // Assert
     assert_eq!(score, 0);
 }
 
 #[test]
 fn single_if_scores_one() {
+    // Arrange
     let block = parse_fn_block("if x { }");
+
+    // Act
     let score = cognitive_complexity(&block);
+
+    // Assert
     assert_eq!(score, 1);
 }
 
 #[test]
 fn nested_if_scores_three() {
+    // Arrange
     let block = parse_fn_block("if x { if y { } }");
+
+    // Act
     let score = cognitive_complexity(&block);
+
+    // Assert
     assert_eq!(score, 3);
 }
 
 #[test]
 fn match_three_arms_scores_one() {
+    // Arrange
     let block = parse_fn_block("match x { 1 => {}, 2 => {}, 3 => {} }");
+
+    // Act
     let score = cognitive_complexity(&block);
+
+    // Assert
     assert_eq!(score, 1);
 }
 
 #[test]
 fn for_loop_scores_one() {
+    // Arrange
     let block = parse_fn_block("for _ in 0..10 { }");
+
+    // Act
     let score = cognitive_complexity(&block);
+
+    // Assert
     assert_eq!(score, 1);
 }
 
 #[test]
 fn while_loop_scores_one() {
+    // Arrange
     let block = parse_fn_block("while true { }");
+
+    // Act
     let score = cognitive_complexity(&block);
+
+    // Assert
     assert_eq!(score, 1);
 }
 
 #[test]
 fn logical_and_scores_one() {
+    // Arrange
     let block = parse_fn_block("if a && b { }");
+
+    // Act
     let score = cognitive_complexity(&block);
+
+    // Assert
     assert_eq!(score, 2);
 }
 
 #[test]
 fn logical_and_or_scores_two() {
+    // Arrange
     let block = parse_fn_block("if a && b || c { }");
+
+    // Act
     let score = cognitive_complexity(&block);
+
+    // Assert
     assert_eq!(score, 3);
 }
 
 #[test]
 fn try_block_scores_one() {
+    // Arrange
     let block = parse_fn_block("let _ = try { 1 };");
+
+    // Act
     let score = cognitive_complexity(&block);
+
+    // Assert
     assert_eq!(score, 1);
 }
 
 #[test]
 fn loop_scores_one() {
+    // Arrange
     let block = parse_fn_block("loop { break; }");
+
+    // Act
     let score = cognitive_complexity(&block);
+
+    // Assert
     assert_eq!(score, 1);
 }

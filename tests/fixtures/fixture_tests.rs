@@ -13,6 +13,7 @@ use tempfile::TempDir;
 
 #[test]
 fn validation_only_package_with_optional_test_target_discovery_prints_report() {
+    // Arrange
     let fixture_dir = fixture_path(&["workspace_validation_fixture"]);
     let manifest_path = fixture_dir.join("Cargo.toml");
     let source_path = fixture_dir
@@ -33,6 +34,7 @@ fn validation_only_package_with_optional_test_target_discovery_prints_report() {
         .arg(&coverage_path)
         .arg("--include-test-targets");
 
+    // Act & Assert
     command
         .assert()
         .success()
@@ -44,6 +46,7 @@ fn validation_only_package_with_optional_test_target_discovery_prints_report() {
 
 #[test]
 fn exclude_path_omits_matching_files_from_report() {
+    // Arrange
     let fixture_dir = fixture_path(&["workspace_validation_fixture"]);
     let manifest_path = fixture_dir.join("Cargo.toml");
     let source_path = fixture_dir
@@ -73,6 +76,7 @@ fn exclude_path_omits_matching_files_from_report() {
 
 #[test]
 fn exclude_path_only_omits_matching_prefix_leaving_other_files_intact() {
+    // Arrange
     let fixture_dir = fixture_path(&["test_target_fixture"]);
     let manifest_path = fixture_dir.join("Cargo.toml");
     let source_path = fixture_dir.join("src").join("lib.rs");
@@ -89,6 +93,7 @@ fn exclude_path_only_omits_matching_prefix_leaving_other_files_intact() {
         .arg("--exclude-path")
         .arg("tests");
 
+    // Act & Assert
     command
         .assert()
         .success()
@@ -98,6 +103,7 @@ fn exclude_path_only_omits_matching_prefix_leaving_other_files_intact() {
 
 #[test]
 fn cargo_subcommand_forwards_arguments_to_crap4rust_binary() {
+    // Arrange
     let fixture_dir = fixture_path(&["single_fixture"]);
     let manifest_path = fixture_dir.join("Cargo.toml");
     let source_path = fixture_dir.join("src").join("lib.rs");
@@ -115,6 +121,7 @@ fn cargo_subcommand_forwards_arguments_to_crap4rust_binary() {
         .arg("--features")
         .arg("demo-feature");
 
+    // Act & Assert
     command
         .assert()
         .success()
@@ -125,6 +132,7 @@ fn cargo_subcommand_forwards_arguments_to_crap4rust_binary() {
 
 #[test]
 fn single_package_with_precomputed_coverage_prints_report() {
+    // Arrange
     let fixture_dir = fixture_path(&["single_fixture"]);
     let manifest_path = fixture_dir.join("Cargo.toml");
     let source_path = fixture_dir.join("src").join("lib.rs");
@@ -139,6 +147,7 @@ fn single_package_with_precomputed_coverage_prints_report() {
         .arg("--coverage")
         .arg(&coverage_path);
 
+    // Act & Assert
     command
         .assert()
         .success()
@@ -150,6 +159,7 @@ fn single_package_with_precomputed_coverage_prints_report() {
 
 #[test]
 fn multiple_packages_produce_single_aggregate_report() {
+    // Arrange
     let fixture_dir = fixture_path(&["workspace_fixture"]);
     let manifest_path = fixture_dir.join("Cargo.toml");
     let core_source = fixture_dir.join("app-core").join("src").join("lib.rs");
@@ -179,6 +189,7 @@ fn multiple_packages_produce_single_aggregate_report() {
         .arg("--coverage")
         .arg(&coverage_path);
 
+    // Act & Assert
     command
         .assert()
         .success()
@@ -191,6 +202,7 @@ fn multiple_packages_produce_single_aggregate_report() {
 
 #[test]
 fn duplicate_coverage_entries_are_aggregated() {
+    // Arrange
     let fixture_dir = fixture_path(&["aggregation_fixture"]);
     let manifest_path = fixture_dir.join("Cargo.toml");
     let source_path = fixture_dir.join("src").join("lib.rs");
@@ -211,6 +223,7 @@ fn duplicate_coverage_entries_are_aggregated() {
         .arg("--coverage")
         .arg(&coverage_path);
 
+    // Act & Assert
     command
         .assert()
         .success()
@@ -220,6 +233,7 @@ fn duplicate_coverage_entries_are_aggregated() {
 
 #[test]
 fn workspace_without_selected_package_selects_all_workspace_members() {
+    // Arrange
     let fixture_dir = fixture_path(&["workspace_fixture"]);
     let manifest_path = fixture_dir.join("Cargo.toml");
     let core_source = fixture_dir.join("app-core").join("src").join("lib.rs");
@@ -245,6 +259,7 @@ fn workspace_without_selected_package_selects_all_workspace_members() {
         .arg("--coverage")
         .arg(&coverage_path);
 
+    // Act & Assert
     command
         .assert()
         .success()
@@ -258,6 +273,7 @@ fn workspace_without_selected_package_selects_all_workspace_members() {
 
 #[test]
 fn single_package_without_coverage_generates_coverage_automatically() {
+    // Arrange
     let fixture_dir = fixture_path(&["single_fixture"]);
     let manifest_path = fixture_dir.join("Cargo.toml");
     let generated_coverage_path = fixture_dir
@@ -271,6 +287,7 @@ fn single_package_without_coverage_generates_coverage_automatically() {
     let mut command = Command::cargo_bin("cargo-crap4rust").expect("binary");
     command.arg("--manifest-path").arg(&manifest_path);
 
+    // Act & Assert
     command
         .assert()
         .success()
@@ -285,6 +302,7 @@ fn single_package_without_coverage_generates_coverage_automatically() {
 
 #[test]
 fn multiple_packages_without_coverage_generate_aggregate_coverage_automatically() {
+    // Arrange
     let fixture_dir = fixture_path(&["workspace_fixture"]);
     let manifest_path = fixture_dir.join("Cargo.toml");
     let generated_coverage_path = fixture_dir
@@ -304,6 +322,7 @@ fn multiple_packages_without_coverage_generate_aggregate_coverage_automatically(
         .arg("--package")
         .arg("app-validation");
 
+    // Act & Assert
     command
         .assert()
         .success()
@@ -318,6 +337,7 @@ fn multiple_packages_without_coverage_generate_aggregate_coverage_automatically(
 
 #[test]
 fn root_workspace_without_coverage_generates_coverage_for_all_workspace_members() {
+    // Arrange
     let fixture_dir = fixture_path(&["root_workspace_fixture"]);
     let manifest_path = fixture_dir.join("Cargo.toml");
     let generated_coverage_path_a = fixture_dir
@@ -340,6 +360,7 @@ fn root_workspace_without_coverage_generates_coverage_for_all_workspace_members(
     let mut command = Command::cargo_bin("cargo-crap4rust").expect("binary");
     command.arg("--manifest-path").arg(&manifest_path);
 
+    // Act & Assert
     command
         .assert()
         .failure()
@@ -353,6 +374,7 @@ fn root_workspace_without_coverage_generates_coverage_for_all_workspace_members(
 
 #[test]
 fn features_flag_is_accepted_with_precomputed_coverage() {
+    // Arrange
     let fixture_dir = fixture_path(&["single_fixture"]);
     let manifest_path = fixture_dir.join("Cargo.toml");
     let source_path = fixture_dir.join("src").join("lib.rs");
@@ -369,6 +391,7 @@ fn features_flag_is_accepted_with_precomputed_coverage() {
         .arg("--features")
         .arg("demo-feature");
 
+    // Act & Assert
     command
         .assert()
         .success()
@@ -379,6 +402,7 @@ fn features_flag_is_accepted_with_precomputed_coverage() {
 
 #[test]
 fn all_features_flag_is_accepted_with_precomputed_coverage() {
+    // Arrange
     let fixture_dir = fixture_path(&["single_fixture"]);
     let manifest_path = fixture_dir.join("Cargo.toml");
     let source_path = fixture_dir.join("src").join("lib.rs");
@@ -394,6 +418,7 @@ fn all_features_flag_is_accepted_with_precomputed_coverage() {
         .arg(&coverage_path)
         .arg("--all-features");
 
+    // Act & Assert
     command
         .assert()
         .success()
@@ -404,6 +429,7 @@ fn all_features_flag_is_accepted_with_precomputed_coverage() {
 
 #[test]
 fn no_default_features_flag_is_accepted_with_precomputed_coverage() {
+    // Arrange
     let fixture_dir = fixture_path(&["single_fixture"]);
     let manifest_path = fixture_dir.join("Cargo.toml");
     let source_path = fixture_dir.join("src").join("lib.rs");
@@ -419,6 +445,7 @@ fn no_default_features_flag_is_accepted_with_precomputed_coverage() {
         .arg(&coverage_path)
         .arg("--no-default-features");
 
+    // Act & Assert
     command
         .assert()
         .success()
@@ -429,6 +456,7 @@ fn no_default_features_flag_is_accepted_with_precomputed_coverage() {
 
 #[test]
 fn test_targets_are_excluded_from_discovery_by_default() {
+    // Arrange
     let fixture_dir = fixture_path(&["test_target_fixture"]);
     let manifest_path = fixture_dir.join("Cargo.toml");
     let source_path = fixture_dir.join("src").join("lib.rs");
@@ -451,6 +479,7 @@ fn test_targets_are_excluded_from_discovery_by_default() {
         .arg("--coverage")
         .arg(&coverage_path);
 
+    // Act & Assert
     command
         .assert()
         .success()
@@ -462,6 +491,7 @@ fn test_targets_are_excluded_from_discovery_by_default() {
 
 #[test]
 fn cfg_test_modules_inside_src_are_excluded_from_discovery() {
+    // Arrange
     let fixture_dir = fixture_path(&["inline_test_module_fixture"]);
     let manifest_path = fixture_dir.join("Cargo.toml");
     let source_path = fixture_dir.join("src").join("lib.rs");
@@ -483,6 +513,7 @@ fn cfg_test_modules_inside_src_are_excluded_from_discovery() {
         .arg("--coverage")
         .arg(&coverage_path);
 
+    // Act & Assert
     command
         .assert()
         .success()
@@ -495,6 +526,7 @@ fn cfg_test_modules_inside_src_are_excluded_from_discovery() {
 
 #[test]
 fn coverage_that_does_not_match_any_function_returns_error() {
+    // Arrange
     let fixture_dir = fixture_path(&["single_fixture"]);
     let manifest_path = fixture_dir.join("Cargo.toml");
     let source_path = fixture_dir.join("src").join("lib.rs");
@@ -517,6 +549,7 @@ fn coverage_that_does_not_match_any_function_returns_error() {
 
 #[test]
 fn unknown_package_returns_error() {
+    // Arrange
     let fixture_dir = fixture_path(&["workspace_fixture"]);
     let manifest_path = fixture_dir.join("Cargo.toml");
 
@@ -534,6 +567,7 @@ fn unknown_package_returns_error() {
 
 #[test]
 fn strict_mode_fails_when_project_threshold_would_otherwise_pass() {
+    // Arrange
     let fixture_dir = fixture_path(&["single_fixture"]);
     let manifest_path = fixture_dir.join("Cargo.toml");
     let source_path = fixture_dir.join("src").join("lib.rs");
@@ -553,6 +587,7 @@ fn strict_mode_fails_when_project_threshold_would_otherwise_pass() {
         .arg("100.0")
         .arg("--strict");
 
+    // Act & Assert
     command
         .assert()
         .failure()
@@ -561,6 +596,7 @@ fn strict_mode_fails_when_project_threshold_would_otherwise_pass() {
 
 #[test]
 fn warn_only_succeeds_even_when_thresholds_are_exceeded() {
+    // Arrange
     let fixture_dir = fixture_path(&["single_fixture"]);
     let manifest_path = fixture_dir.join("Cargo.toml");
     let source_path = fixture_dir.join("src").join("lib.rs");
@@ -580,6 +616,7 @@ fn warn_only_succeeds_even_when_thresholds_are_exceeded() {
         .arg("0.0")
         .arg("--warn-only");
 
+    // Act & Assert
     command
         .assert()
         .success()
@@ -588,6 +625,7 @@ fn warn_only_succeeds_even_when_thresholds_are_exceeded() {
 
 #[test]
 fn threshold_boundary_at_thirty_is_warn_not_crappy() {
+    // Arrange
     let fixture_dir = fixture_path(&["single_fixture"]);
     let manifest_path = fixture_dir.join("Cargo.toml");
     let source_path = fixture_dir.join("src").join("lib.rs");
@@ -606,6 +644,7 @@ fn threshold_boundary_at_thirty_is_warn_not_crappy() {
         .arg("--project-threshold")
         .arg("100.0");
 
+    // Act & Assert
     command
         .assert()
         .success()
@@ -615,6 +654,7 @@ fn threshold_boundary_at_thirty_is_warn_not_crappy() {
 
 #[test]
 fn full_coverage_keeps_crap_score_below_warning_threshold() {
+    // Arrange
     let fixture_dir = fixture_path(&["single_fixture"]);
     let manifest_path = fixture_dir.join("Cargo.toml");
     let source_path = fixture_dir.join("src").join("lib.rs");
@@ -633,6 +673,7 @@ fn full_coverage_keeps_crap_score_below_warning_threshold() {
         .arg("--project-threshold")
         .arg("100.0");
 
+    // Act & Assert
     command
         .assert()
         .success()
@@ -642,6 +683,7 @@ fn full_coverage_keeps_crap_score_below_warning_threshold() {
 
 #[test]
 fn custom_warn_threshold_appears_in_output_message() {
+    // Arrange
     let fixture_dir = fixture_path(&["single_fixture"]);
     let manifest_path = fixture_dir.join("Cargo.toml");
     let source_path = fixture_dir.join("src").join("lib.rs");
@@ -662,6 +704,7 @@ fn custom_warn_threshold_appears_in_output_message() {
         .arg("--project-threshold")
         .arg("100.0");
 
+    // Act & Assert
     command
         .assert()
         .success()
@@ -671,6 +714,7 @@ fn custom_warn_threshold_appears_in_output_message() {
 
 #[test]
 fn zero_coverage_produces_fixture_expected_crap_score() {
+    // Arrange
     let fixture_dir = fixture_path(&["single_fixture"]);
     let manifest_path = fixture_dir.join("Cargo.toml");
     let source_path = fixture_dir.join("src").join("lib.rs");
@@ -689,6 +733,7 @@ fn zero_coverage_produces_fixture_expected_crap_score() {
         .arg("--project-threshold")
         .arg("100.0");
 
+    // Act & Assert
     command
         .assert()
         .success()
@@ -698,6 +743,7 @@ fn zero_coverage_produces_fixture_expected_crap_score() {
 
 #[test]
 fn root_workspace_defaults_to_all_workspace_members_when_no_package_is_provided() {
+    // Arrange
     let fixture_dir = fixture_path(&["root_workspace_fixture"]);
     let manifest_path = fixture_dir.join("Cargo.toml");
     let root_source_path = fixture_dir.join("src").join("lib.rs");
@@ -720,6 +766,7 @@ fn root_workspace_defaults_to_all_workspace_members_when_no_package_is_provided(
         .arg("--coverage")
         .arg(&coverage_path);
 
+    // Act & Assert
     command
         .assert()
         .success()
@@ -733,6 +780,7 @@ fn root_workspace_defaults_to_all_workspace_members_when_no_package_is_provided(
 
 #[test]
 fn explicit_package_in_root_workspace_overrides_all_members_default() {
+    // Arrange
     let fixture_dir = fixture_path(&["root_workspace_fixture"]);
     let manifest_path = fixture_dir.join("Cargo.toml");
     let source_path = fixture_dir.join("src").join("lib.rs");
@@ -749,6 +797,7 @@ fn explicit_package_in_root_workspace_overrides_all_members_default() {
         .arg("--coverage")
         .arg(&coverage_path);
 
+    // Act & Assert
     command
         .assert()
         .success()
@@ -759,6 +808,7 @@ fn explicit_package_in_root_workspace_overrides_all_members_default() {
 
 #[test]
 fn package_without_functions_returns_error() {
+    // Arrange
     let fixture_dir = fixture_path(&["no_function_fixture"]);
     let manifest_path = fixture_dir.join("Cargo.toml");
     let temp_dir = TempDir::new().expect("temp dir");
@@ -778,6 +828,7 @@ fn package_without_functions_returns_error() {
 
 #[test]
 fn json_output_format_produces_valid_json() {
+    // Arrange
     let fixture_dir = fixture_path(&["single_fixture"]);
     let manifest_path = fixture_dir.join("Cargo.toml");
     let source_path = fixture_dir.join("src").join("lib.rs");
@@ -794,6 +845,7 @@ fn json_output_format_produces_valid_json() {
         .arg("--output-format")
         .arg("json");
 
+    // Act & Assert
     command
         .assert()
         .success()
