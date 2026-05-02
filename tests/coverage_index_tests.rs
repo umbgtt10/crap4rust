@@ -100,6 +100,48 @@ fn match_function_coverage_no_match_returns_none() {
 }
 
 #[test]
+fn match_function_coverage_aggregates_all_regions_within_span() {
+    // Arrange
+    let mut index = HashMap::new();
+    index.insert(
+        (String::from("src/lib.rs"), 12),
+        CoverageRecord {
+            path_key: String::from("src/lib.rs"),
+            line: 12,
+            covered_regions: 2,
+            total_regions: 4,
+        },
+    );
+    index.insert(
+        (String::from("src/lib.rs"), 15),
+        CoverageRecord {
+            path_key: String::from("src/lib.rs"),
+            line: 15,
+            covered_regions: 3,
+            total_regions: 6,
+        },
+    );
+    let function = SourceFunction {
+        package_name: String::from("test"),
+        name: String::from("foo"),
+        path_key: String::from("src/lib.rs"),
+        relative_file: String::from("src/lib.rs"),
+        line: 10,
+        end_line: 20,
+        complexity: 1,
+    };
+
+    // Act
+    let result = match_function_coverage(&function, &index);
+
+    // Assert
+    assert!(result.is_some());
+    let record = result.unwrap();
+    assert_eq!(record.covered_regions, 5);
+    assert_eq!(record.total_regions, 10);
+}
+
+#[test]
 fn from_records_aggregates_duplicate_entries() {
     // Arrange
     use crap4rust::coverage_index::CoverageIndex;

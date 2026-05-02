@@ -35,15 +35,25 @@ pub fn match_function_coverage(
     function: &SourceFunction,
     coverage_index: &HashMap<(String, usize), CoverageRecord>,
 ) -> Option<CoverageRecord> {
-    if let Some(record) = coverage_index.get(&(function.path_key.clone(), function.line)) {
-        return Some(record.clone());
-    }
-
-    coverage_index
+    let matching: Vec<&CoverageRecord> = coverage_index
         .iter()
         .filter(|((path_key, line), _)| {
             path_key == &function.path_key && *line >= function.line && *line <= function.end_line
         })
-        .min_by_key(|((_, line), _)| *line - function.line)
-        .map(|(_, record)| record.clone())
+        .map(|(_, record)| record)
+        .collect();
+
+    if matching.is_empty() {
+        return None;
+    }
+
+    let covered_regions = matching.iter().map(|r| r.covered_regions).sum();
+    let total_regions = matching.iter().map(|r| r.total_regions).sum();
+
+    Some(CoverageRecord {
+        path_key: function.path_key.clone(),
+        line: function.line,
+        covered_regions,
+        total_regions,
+    })
 }
