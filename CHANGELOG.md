@@ -14,12 +14,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Broader coverage-source support
 - A stable public library API
 
+## [0.6.2] - 2026-05-02
+
+### Fixed
+
+- `from_records` now skips zero-coverage duplicate function records when a
+  non-zero record already exists for the same (path, line) key. LLVM coverage
+  can emit multiple function records for the same source — one with actual
+  execution counts and one with all-zero counts. Previously both were
+  aggregated, halving the coverage ratio (e.g., 50% for `Protocol::decide`
+  despite full branch coverage). The zero-count ghost record is now discarded.
+
 ## [0.6.1] - 2026-05-02
 
 ### Fixed
 
-- `match_function_coverage` now aggregates all coverage regions within a   function's line span instead of returning only the single nearest region.
-  Previously, functions with multiple coverage regions (e.g., `if let` /   `else if` / `else` chains) had inaccurate coverage ratios because only
+- `match_function_coverage` now aggregates all coverage regions within a
+  function's line span instead of returning only the single nearest region.
+  Previously, functions with multiple coverage regions (e.g., `if let` /
+  `else if` / `else` chains) had inaccurate coverage ratios because only
   one region was counted.
 
 ## [0.6.0] - 2025-04-26
@@ -135,7 +148,8 @@ First public release.
 
 - Initial crates.io release of `cargo-crap4rust`
 
-[Unreleased]: https://github.com/umbgtt10/crap4rust/compare/v0.6.1...HEAD
+[Unreleased]: https://github.com/umbgtt10/crap4rust/compare/v0.6.2...HEAD
+[0.6.2]: https://github.com/umbgtt10/crap4rust/releases/tag/v0.6.2
 [0.6.1]: https://github.com/umbgtt10/crap4rust/releases/tag/v0.6.1
 [0.6.0]: https://github.com/umbgtt10/crap4rust/releases/tag/v0.6.0
 [0.5.1]: https://github.com/umbgtt10/crap4rust/releases/tag/v0.5.1

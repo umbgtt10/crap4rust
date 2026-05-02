@@ -18,8 +18,10 @@ impl CoverageIndex {
             inner
                 .entry(key)
                 .and_modify(|existing: &mut CoverageRecord| {
-                    existing.covered_regions += record.covered_regions;
-                    existing.total_regions += record.total_regions;
+                    if record.covered_regions > 0 || existing.covered_regions == 0 {
+                        existing.covered_regions += record.covered_regions;
+                        existing.total_regions += record.total_regions;
+                    }
                 })
                 .or_insert(record);
         }
@@ -28,6 +30,10 @@ impl CoverageIndex {
 
     pub fn match_function(&self, function: &SourceFunction) -> Option<f64> {
         match_function_coverage(function, &self.inner).map(|record| record.coverage_ratio())
+    }
+
+    pub fn get(&self, path_key: &str, line: usize) -> Option<&CoverageRecord> {
+        self.inner.get(&(path_key.to_string(), line))
     }
 }
 
