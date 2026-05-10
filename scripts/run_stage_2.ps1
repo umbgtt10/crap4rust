@@ -82,15 +82,76 @@ function Invoke-Crap4RustGate {
     }
 }
 
+function Invoke-GripGate {
+    param(
+        [string]$Label = "grip4rust self-analysis",
+        [int]$Threshold = 50
+    )
+
+    Write-Host "$Label..." -ForegroundColor Cyan
+
+    $previousErrorActionPreference = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    $output = & cargo grip4rust --json 2>&1
+    $ErrorActionPreference = $previousErrorActionPreference
+    $exitCode = $LASTEXITCODE
+
+    if ($exitCode -ne 0) {
+        Write-Host "`nFailed: $Label (exit code $exitCode)" -ForegroundColor Red
+        $output | ForEach-Object { Write-Host $_ }
+        Pop-Location
+        exit 1
+    }
+
+    $scoreLine = $output | Select-String -Pattern '"grip_score": (\d+)'
+    if (-not $scoreLine) {
+        Write-Host "`nFailed: $Label (could not parse grip score)" -ForegroundColor Red
+        Pop-Location
+        exit 1
+    }
+
+    $score = [int]$scoreLine.Matches[0].Groups[1].Value
+    Write-Host "  grip score: $score / 100" -ForegroundColor Yellow
+
+    # Extract the offenders array from JSON output (join lines first)
+    $outputText = $output -join "`n"
+    if ($outputText -match '"offenders": \[(.*?)\]') {
+        $offendersSection = $matches[1]
+        $offenderMatches = [regex]::Matches($offendersSection, '"path":"([^"]+)","grip_score":(\d+)')
+        if ($offenderMatches.Count -gt 0) {
+            Write-Host ""
+            Write-Host "  Offenders:" -ForegroundColor Red
+            foreach ($match in $offenderMatches) {
+                $offenderPath = $match.Groups[1].Value
+                $offenderScore = $match.Groups[2].Value
+                Write-Host "    $offenderPath (score: $offenderScore)" -ForegroundColor Red
+            }
+        } else {
+            Write-Host "  No offenders." -ForegroundColor Green
+        }
+    }
+
+    if ($score -lt $Threshold) {
+        Write-Host "`nFailed: $Label (score $score is below threshold $Threshold)" -ForegroundColor Red
+        Pop-Location
+        exit 1
+    }
+}
+
 # ---------------------------------------------------------------------------
-# CRAP gates
+# CRAP gate
 # ---------------------------------------------------------------------------
 
-Invoke-Crap4RustGate "CRAP cargo-crap4rust" @("cargo-crap4rust") -ExcludePaths @("tests/fixtures")
+Invoke-Crap4RustGate "CRAP crap4rust" @("cargo-crap4rust") -ExcludePaths @("tests/fixtures")
 
+# ---------------------------------------------------------------------------
+# Grip gate
+# ---------------------------------------------------------------------------
+
+Invoke-GripGate -Label "grip4rust self-analysis" -Threshold 50
 
 # ---------------------------------------------------------------------------
 
-Write-Host "`ncrap4rust Stage 2 passed!" -ForegroundColor Green
+Write-Host "`nCrap4rust  and grip4rust Stage 2 passed!" -ForegroundColor Green
 Pop-Location
 exit 0

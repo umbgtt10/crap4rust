@@ -1,4 +1,4 @@
-# Faction — Copilot Instructions
+# Crap4Rust — Copilot Instructions
 
 ## Meaning
 
@@ -24,6 +24,22 @@ That means:
 Run gates:
 
 `powershell -File scripts\run_stage_1.ps1`
+`powershell -File scripts\run_stage_2.ps1`
+
+### Orthogonality, trait surface and cognitive complexity
+
+**When changing productive code, always maximize orthogonality and testable surface through traits, and minimize cognitive complexity.**
+
+Specifically:
+- prefer extracting behavior behind traits so individual pieces can be tested and swapped independently
+- prefer small, focused methods with a single responsibility over large methods with many branches
+- prefer named structs with methods over free functions operating on external state
+- when `crap4rust` or a reviewer flags a function as too complex, reduce it by extracting internal structs with methods and adding integration coverage — not by extracting standalone helper functions
+- never increase cognitive complexity to pass a test; find the root cause and fix it there
+- when introducing a new protocol dependency seam, place the contract in `traits/`, place the protocol-facing state/data model parallel to the protocol, and place the concrete implementation in its own dedicated implementation area
+- make constructors depend on traits, not directly on concrete implementations
+- ALL dependencies are injected through the SINGLE constructor and stored in the struct
+- apply the same split recursively to nested dependencies: trait first, state/data model second, concrete implementation third
 
 ### User coding standards
 
