@@ -121,15 +121,19 @@ function Invoke-GripGate {
     if ($impureFns -gt 0 -or $privateItems -gt 0) {
         Write-Host "  Function-level offenders:" -ForegroundColor Yellow
         if ($impureFns -gt 0) {
-            Write-Host "    $impureFns impure functions:" -ForegroundColor Yellow
+            Write-Host "    $impureFns impure:" -ForegroundColor Yellow
             $impureMatches = [regex]::Matches($outputText, '"name": "([^"]+)",\s+"file": "([^"]+)",\s+"is_pure": false')
             foreach ($match in $impureMatches) {
-                $fnName = $match.Groups[1].Value
-                $fnFile = $match.Groups[2].Value
-                Write-Host "      $fnFile::$fnName" -ForegroundColor Yellow
+                Write-Host "      $($match.Groups[2].Value)::$($match.Groups[1].Value)" -ForegroundColor Yellow
             }
         }
-        if ($privateItems -gt 0) { Write-Host "    $privateItems private items (hidden from tests)" -ForegroundColor Yellow }
+        if ($privateItems -gt 0) {
+            Write-Host "    $privateItems private:" -ForegroundColor Yellow
+            $privateMatches = [regex]::Matches($outputText, '"name": "([^"]+)",\s+"file": "([^"]+)",\s+"is_pure": (true|false),\s+"is_public": false')
+            foreach ($match in $privateMatches) {
+                Write-Host "      $($match.Groups[2].Value)::$($match.Groups[1].Value)" -ForegroundColor Yellow
+            }
+        }
     }
 
     if ($outputText -match '"offenders": \[(.*?)\]') {
