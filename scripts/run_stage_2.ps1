@@ -85,7 +85,7 @@ function Invoke-Crap4RustGate {
 function Invoke-GripGate {
     param(
         [string]$Label = "grip4rust self-analysis",
-        [int]$Threshold = 50
+        [int]$Threshold = 80
     )
 
     Write-Host "$Label..." -ForegroundColor Cyan
@@ -162,7 +162,7 @@ Invoke-Crap4RustGate "CRAP crap4rust" @("cargo-crap4rust") -ExcludePaths @("test
 # Grip gate
 # ---------------------------------------------------------------------------
 
-Invoke-GripGate -Label "grip4rust self-analysis" -Threshold 50
+Invoke-GripGate -Label "grip4rust self-analysis" -Threshold 80
 
 # ---------------------------------------------------------------------------
 
