@@ -110,14 +110,25 @@ function Invoke-GripGate {
     if ($outputText -match '"total_functions": (\d+)') { $totalFns = $matches[1] }
     if ($outputText -match '"pure_functions": (\d+)') { $pureFns = $matches[1] }
     if ($outputText -match '"public_items": (\d+)') { $pubItems = $matches[1] }
+    if ($outputText -match '"public_ratio": ([\d.]+)') { $pubRatio = [double]$matches[1] }
+
+    $impureFns = $totalFns - $pureFns
+    $totalItems = if ($pubRatio -gt 0) { [math]::Round($pubItems / $pubRatio) } else { 0 }
+    $privateItems = $totalItems - $pubItems
 
     Write-Host "  grip score: $score / 100  (pure: $pureFns / $totalFns, pub: $pubItems items)" -ForegroundColor Yellow
+
+    if ($impureFns -gt 0 -or $privateItems -gt 0) {
+        Write-Host "  Function-level offenders:" -ForegroundColor Yellow
+        if ($impureFns -gt 0) { Write-Host "    $impureFns impure functions" -ForegroundColor Yellow }
+        if ($privateItems -gt 0) { Write-Host "    $privateItems private items (hidden from tests)" -ForegroundColor Yellow }
+    }
 
     if ($outputText -match '"offenders": \[(.*?)\]') {
         $offendersSection = $matches[1]
         $offenderMatches = [regex]::Matches($offendersSection, '"path":"([^"]+)","grip_score":(\d+)')
         if ($offenderMatches.Count -gt 0) {
-            Write-Host "  Offenders (modules below threshold):" -ForegroundColor Red
+            Write-Host "  Module-level offenders (score < threshold):" -ForegroundColor Red
             foreach ($match in $offenderMatches) {
                 $offenderPath = $match.Groups[1].Value
                 $offenderScore = $match.Groups[2].Value
