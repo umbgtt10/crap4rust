@@ -92,42 +92,39 @@ function Invoke-GripGate {
 
     $previousErrorActionPreference = $ErrorActionPreference
     $ErrorActionPreference = "Continue"
-    $output = & cargo grip4rust --json 2>&1
+    $rawOutput = & cargo grip4rust --json 2>&1
     $ErrorActionPreference = $previousErrorActionPreference
     $exitCode = $LASTEXITCODE
 
     if ($exitCode -ne 0) {
         Write-Host "`nFailed: $Label (exit code $exitCode)" -ForegroundColor Red
-        $output | ForEach-Object { Write-Host $_ }
+        $rawOutput | ForEach-Object { Write-Host $_ }
         Pop-Location
         exit 1
     }
 
-    $scoreLine = $output | Select-String -Pattern '"grip_score": (\d+)'
-    if (-not $scoreLine) {
-        Write-Host "`nFailed: $Label (could not parse grip score)" -ForegroundColor Red
-        Pop-Location
-        exit 1
-    }
+    $outputText = ($rawOutput | Out-String -Stream) -join "`n"
+    $score = 0; $totalFns = "?"; $pureFns = "?"; $pubItems = "?"
 
-    $score = [int]$scoreLine.Matches[0].Groups[1].Value
-    Write-Host "  grip score: $score / 100" -ForegroundColor Yellow
+    if ($outputText -match '"grip_score": (\d+)') { $score = [int]$matches[1] }
+    if ($outputText -match '"total_functions": (\d+)') { $totalFns = $matches[1] }
+    if ($outputText -match '"pure_functions": (\d+)') { $pureFns = $matches[1] }
+    if ($outputText -match '"public_items": (\d+)') { $pubItems = $matches[1] }
 
-    # Extract the offenders array from JSON output (join lines first)
-    $outputText = $output -join "`n"
+    Write-Host "  grip score: $score / 100  (pure: $pureFns / $totalFns, pub: $pubItems items)" -ForegroundColor Yellow
+
     if ($outputText -match '"offenders": \[(.*?)\]') {
         $offendersSection = $matches[1]
         $offenderMatches = [regex]::Matches($offendersSection, '"path":"([^"]+)","grip_score":(\d+)')
         if ($offenderMatches.Count -gt 0) {
-            Write-Host ""
-            Write-Host "  Offenders:" -ForegroundColor Red
+            Write-Host "  Offenders (modules below threshold):" -ForegroundColor Red
             foreach ($match in $offenderMatches) {
                 $offenderPath = $match.Groups[1].Value
                 $offenderScore = $match.Groups[2].Value
-                Write-Host "    $offenderPath (score: $offenderScore)" -ForegroundColor Red
+                Write-Host "    $offenderPath  (score: $offenderScore)" -ForegroundColor Red
             }
         } else {
-            Write-Host "  No offenders." -ForegroundColor Green
+            Write-Host "  No modules below threshold." -ForegroundColor Green
         }
     }
 
@@ -152,6 +149,6 @@ Invoke-GripGate -Label "grip4rust self-analysis" -Threshold 50
 
 # ---------------------------------------------------------------------------
 
-Write-Host "`nCrap4rust  and grip4rust Stage 2 passed!" -ForegroundColor Green
+Write-Host "`nCrap4rust and grip4rust Stage 2 passed!" -ForegroundColor Green
 Pop-Location
 exit 0
