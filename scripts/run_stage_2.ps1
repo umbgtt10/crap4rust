@@ -104,7 +104,7 @@ function Invoke-GripGate {
     }
 
     $outputText = ($rawOutput | Out-String -Stream) -join "`n"
-    $score = 0; $totalFns = "?"; $pureFns = "?"; $pubItems = "?"
+    $score = 0; $totalFns = "?"; $pureFns = "?"; $pubItems = "?"; $pubRatio = 0
 
     if ($outputText -match '"grip_score": (\d+)') { $score = [int]$matches[1] }
     if ($outputText -match '"total_functions": (\d+)') { $totalFns = $matches[1] }
@@ -120,7 +120,15 @@ function Invoke-GripGate {
 
     if ($impureFns -gt 0 -or $privateItems -gt 0) {
         Write-Host "  Function-level offenders:" -ForegroundColor Yellow
-        if ($impureFns -gt 0) { Write-Host "    $impureFns impure functions" -ForegroundColor Yellow }
+        if ($impureFns -gt 0) {
+            Write-Host "    $impureFns impure functions:" -ForegroundColor Yellow
+            $impureMatches = [regex]::Matches($outputText, '"name": "([^"]+)",\s+"file": "([^"]+)",\s+"is_pure": false')
+            foreach ($match in $impureMatches) {
+                $fnName = $match.Groups[1].Value
+                $fnFile = $match.Groups[2].Value
+                Write-Host "      $fnFile::$fnName" -ForegroundColor Yellow
+            }
+        }
         if ($privateItems -gt 0) { Write-Host "    $privateItems private items (hidden from tests)" -ForegroundColor Yellow }
     }
 
