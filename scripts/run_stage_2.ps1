@@ -118,41 +118,35 @@ function Invoke-GripGate {
 
     Write-Host "  grip score: $score / 100  (pure: $pureFns / $totalFns, pub: $pubItems items)" -ForegroundColor Yellow
 
-    if ($impureFns -gt 0 -or $privateItems -gt 0) {
-        Write-Host "  Function-level offenders:" -ForegroundColor Yellow
-        if ($impureFns -gt 0) {
-            Write-Host "    $impureFns impure:" -ForegroundColor Yellow
-            $impureMatches = [regex]::Matches($outputText, '"name": "([^"]+)",\s+"file": "([^"]+)",\s+"is_pure": false')
-            foreach ($match in $impureMatches) {
-                Write-Host "      $($match.Groups[2].Value)::$($match.Groups[1].Value)" -ForegroundColor Yellow
-            }
-        }
-        if ($privateItems -gt 0) {
-            Write-Host "    $privateItems private:" -ForegroundColor Yellow
-            $privateMatches = [regex]::Matches($outputText, '"name": "([^"]+)",\s+"file": "([^"]+)",\s+"is_pure": (true|false),\s+"is_public": false')
-            foreach ($match in $privateMatches) {
-                Write-Host "      $($match.Groups[2].Value)::$($match.Groups[1].Value)" -ForegroundColor Yellow
-            }
-        }
-    }
-
-    if ($outputText -match '"offenders": \[(.*?)\]') {
-        $offendersSection = $matches[1]
-        $offenderMatches = [regex]::Matches($offendersSection, '"path":"([^"]+)","grip_score":(\d+)')
-        if ($offenderMatches.Count -gt 0) {
-            Write-Host "  Module-level offenders (score < threshold):" -ForegroundColor Red
-            foreach ($match in $offenderMatches) {
-                $offenderPath = $match.Groups[1].Value
-                $offenderScore = $match.Groups[2].Value
-                Write-Host "    $offenderPath  (score: $offenderScore)" -ForegroundColor Red
-            }
-        } else {
-            Write-Host "  No modules below threshold." -ForegroundColor Green
-        }
-    }
-
     if ($score -lt $Threshold) {
         Write-Host "`nFailed: $Label (score $score is below threshold $Threshold)" -ForegroundColor Red
+
+        # Show offenders only when threshold is crossed
+        if ($impureFns -gt 0) {
+            Write-Host ""
+            Write-Host "  Offending functions:" -ForegroundColor Yellow
+            $impureMatches = [regex]::Matches($outputText, '"name": "([^"]+)",\s+"file": "([^"]+)",\s+"is_pure": false')
+            foreach ($match in $impureMatches) {
+                Write-Host "    [impure] $($match.Groups[2].Value)::$($match.Groups[1].Value)" -ForegroundColor Yellow
+            }
+            $privateMatches = [regex]::Matches($outputText, '"name": "([^"]+)",\s+"file": "([^"]+)",\s+"is_pure": (true|false),\s+"is_public": false')
+            foreach ($match in $privateMatches) {
+                Write-Host "    [private] $($match.Groups[2].Value)::$($match.Groups[1].Value)" -ForegroundColor Yellow
+            }
+        }
+
+        if ($outputText -match '"offenders": \[(.*?)\]') {
+            $offendersSection = $matches[1]
+            $offenderMatches = [regex]::Matches($offendersSection, '"path":"([^"]+)","grip_score":(\d+)')
+            if ($offenderMatches.Count -gt 0) {
+                Write-Host ""
+                Write-Host "  Module-level offenders (score < threshold):" -ForegroundColor Red
+                foreach ($match in $offenderMatches) {
+                    Write-Host "    $($match.Groups[1].Value)  (score: $($match.Groups[2].Value))" -ForegroundColor Red
+                }
+            }
+        }
+
         Pop-Location
         exit 1
     }
