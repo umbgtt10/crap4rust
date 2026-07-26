@@ -34,9 +34,12 @@ use std::ffi::OsString;
 use std::process::ExitCode;
 
 use anyhow::Result;
+use clap::Parser;
+
+use cli::Args;
 
 pub fn run() -> Result<ExitCode> {
-    let args = cli::Args::parse_args();
+    let args = Args::parse_args();
     app::run(args)
 }
 
@@ -45,6 +48,6 @@ where
     I: IntoIterator<Item = T>,
     T: Into<OsString> + Clone,
 {
-    let args = <cli::Args as clap::Parser>::parse_from(args);
+    let args = <Args as Parser>::parse_from(args);
     app::run(args)
 }
