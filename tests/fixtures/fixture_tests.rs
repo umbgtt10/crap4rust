@@ -201,7 +201,7 @@ fn multiple_packages_produce_single_aggregate_report() {
 }
 
 #[test]
-fn duplicate_coverage_entries_are_aggregated() {
+fn duplicate_coverage_entries_discard_zero_ghost_keeping_real_coverage() {
     // Arrange
     let fixture_dir = fixture_path(&["aggregation_fixture"]);
     let manifest_path = fixture_dir.join("Cargo.toml");
@@ -221,13 +221,48 @@ fn duplicate_coverage_entries_are_aggregated() {
         .arg("--manifest-path")
         .arg(&manifest_path)
         .arg("--coverage")
-        .arg(&coverage_path);
+        .arg(&coverage_path)
+        .arg("--warn-threshold")
+        .arg("0");
 
     // Act & Assert
     command
         .assert()
         .success()
-        .stdout(contains("50.0%"))
+        .stdout(contains("100.0%"))
+        .stdout(contains("aggregation_target"));
+}
+
+#[test]
+fn duplicate_coverage_entries_discard_zero_ghost_regardless_of_arrival_order() {
+    // Arrange
+    let fixture_dir = fixture_path(&["aggregation_fixture"]);
+    let manifest_path = fixture_dir.join("Cargo.toml");
+    let source_path = fixture_dir.join("src").join("lib.rs");
+    let function_line = first_function_line(&source_path);
+    let temp_dir = TempDir::new().expect("temp dir");
+    let coverage_path = write_coverage_file(
+        temp_dir.path(),
+        &[
+            (source_path.clone(), function_line, 1),
+            (source_path, function_line, 0),
+        ],
+    );
+
+    let mut command = Command::cargo_bin("cargo-crap4rust").expect("binary");
+    command
+        .arg("--manifest-path")
+        .arg(&manifest_path)
+        .arg("--coverage")
+        .arg(&coverage_path)
+        .arg("--warn-threshold")
+        .arg("0");
+
+    // Act & Assert
+    command
+        .assert()
+        .success()
+        .stdout(contains("100.0%"))
         .stdout(contains("aggregation_target"));
 }
 

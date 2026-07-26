@@ -7,8 +7,6 @@ use std::path::Path;
 use tempfile::TempDir;
 
 use crap4rust::coverage::load_coverage_records;
-use crap4rust::coverage_index::CoverageIndex;
-use crap4rust::model::CoverageRecord;
 
 #[test]
 fn load_coverage_records_returns_error_for_nonexistent_file() {
@@ -140,33 +138,6 @@ fn load_coverage_records_handles_multiple_data_chunks() {
 
     // Assert
     assert_eq!(records.len(), 2);
-}
-
-#[test]
-fn from_records_skips_zero_duplicate_when_nonzero_exists() {
-    // Arrange
-    let records = vec![
-        CoverageRecord {
-            path_key: String::from("src/lib.rs"),
-            line: 10,
-            covered_regions: 1,
-            total_regions: 1,
-        },
-        CoverageRecord {
-            path_key: String::from("src/lib.rs"),
-            line: 10,
-            covered_regions: 0,
-            total_regions: 1,
-        },
-    ];
-
-    // Act
-    let index = CoverageIndex::from_records(records);
-
-    // Assert — find the function in the index
-    let record = index.get("src/lib.rs", 10).unwrap();
-    assert_eq!(record.covered_regions, 1);
-    assert_eq!(record.total_regions, 1);
 }
 
 #[test]

@@ -12,20 +12,34 @@ pub struct CoverageIndex {
 
 impl CoverageIndex {
     pub fn from_records(records: Vec<CoverageRecord>) -> Self {
-        let mut inner = HashMap::new();
+        let mut inner: HashMap<(String, usize), CoverageRecord> = HashMap::new();
         for record in records {
             let key = (record.path_key.clone(), record.line);
-            inner
-                .entry(key)
-                .and_modify(|existing: &mut CoverageRecord| {
-                    if record.covered_regions > 0 || existing.covered_regions == 0 {
-                        existing.covered_regions += record.covered_regions;
-                        existing.total_regions += record.total_regions;
-                    }
-                })
-                .or_insert(record);
+            match inner.remove(&key) {
+                None => {
+                    inner.insert(key, record);
+                }
+                Some(existing) => {
+                    inner.insert(key, Self::merge_duplicate(existing, record));
+                }
+            }
         }
         Self { inner }
+    }
+
+    fn merge_duplicate(existing: CoverageRecord, incoming: CoverageRecord) -> CoverageRecord {
+        if incoming.covered_regions == 0 && existing.covered_regions > 0 {
+            return existing;
+        }
+        if existing.covered_regions == 0 && incoming.covered_regions > 0 {
+            return incoming;
+        }
+        CoverageRecord {
+            path_key: existing.path_key,
+            line: existing.line,
+            covered_regions: existing.covered_regions + incoming.covered_regions,
+            total_regions: existing.total_regions + incoming.total_regions,
+        }
     }
 
     pub fn match_function(&self, function: &SourceFunction) -> Option<f64> {

@@ -177,3 +177,59 @@ fn from_records_aggregates_duplicate_entries() {
     assert!(ratio.is_some());
     assert!((ratio.unwrap() - 0.5).abs() < 0.001);
 }
+
+#[test]
+fn from_records_skips_zero_duplicate_when_nonzero_arrives_first() {
+    // Arrange
+    use crap4rust::coverage_index::CoverageIndex;
+    let records = vec![
+        CoverageRecord {
+            path_key: String::from("src/lib.rs"),
+            line: 10,
+            covered_regions: 1,
+            total_regions: 1,
+        },
+        CoverageRecord {
+            path_key: String::from("src/lib.rs"),
+            line: 10,
+            covered_regions: 0,
+            total_regions: 1,
+        },
+    ];
+
+    // Act
+    let index = CoverageIndex::from_records(records);
+
+    // Assert
+    let record = index.get("src/lib.rs", 10).unwrap();
+    assert_eq!(record.covered_regions, 1);
+    assert_eq!(record.total_regions, 1);
+}
+
+#[test]
+fn from_records_discards_zero_duplicate_when_nonzero_arrives_second() {
+    // Arrange
+    use crap4rust::coverage_index::CoverageIndex;
+    let records = vec![
+        CoverageRecord {
+            path_key: String::from("src/lib.rs"),
+            line: 10,
+            covered_regions: 0,
+            total_regions: 1,
+        },
+        CoverageRecord {
+            path_key: String::from("src/lib.rs"),
+            line: 10,
+            covered_regions: 1,
+            total_regions: 1,
+        },
+    ];
+
+    // Act
+    let index = CoverageIndex::from_records(records);
+
+    // Assert
+    let record = index.get("src/lib.rs", 10).unwrap();
+    assert_eq!(record.covered_regions, 1);
+    assert_eq!(record.total_regions, 1);
+}
