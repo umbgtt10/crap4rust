@@ -4,7 +4,7 @@
 
 use std::path::Path;
 
-use crap4rust::file_walker::{FileWalker, normalize_path};
+use crap4rust::file_walker::FileWalker;
 
 #[test]
 fn relative_file_within_base_dir_strips_prefix() {
@@ -120,13 +120,4 @@ fn is_excluded_relative_file_non_matching_not_excluded() {
 
     // Assert
     assert!(!result);
-}
-
-#[test]
-fn normalize_path_replaces_backslashes() {
-    // Arrange & Act
-    let result = normalize_path(Path::new("C:\\project\\src\\lib.rs"));
-
-    // Assert
-    assert!(!result.contains('\\'));
 }

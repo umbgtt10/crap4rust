@@ -7,8 +7,8 @@ use std::path::{Path, PathBuf};
 
 use syn::{File, Item, ItemMod};
 
-use crate::file_walker::normalize_path;
 use crate::impl_collector::is_test_attrs;
+use crate::normalize_path::normalize_path;
 
 pub struct TestModuleRegistry {
     excluded_files: HashSet<String>,

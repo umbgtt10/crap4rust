@@ -3,16 +3,14 @@
 // SPDX-License-Identifier: MIT
 
 use std::fs;
-use std::iter;
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
-use syn::spanned::Spanned;
-use syn::{File, Item, ItemEnum, ItemFn, ItemMod, ItemStruct};
+use syn::File;
 use walkdir::WalkDir;
 
-use crate::complexity::cognitive_complexity;
-use crate::impl_collector::{ImplCollector, end_line, is_test_attrs, qualified_name, start_line};
+use crate::item_visitor::ItemVisitor;
+use crate::normalize_path::normalize_path;
 use crate::package_context::PackageContext;
 use crate::source_function::SourceFunction;
 use crate::test_module_registry::TestModuleRegistry;
@@ -97,14 +95,9 @@ impl<'a> FileWalker<'a> {
     ) -> Vec<SourceFunction> {
         let relative_file = Self::relative_file(&self.package.manifest_dir, file_path);
         let module_prefix = Self::module_prefix(source_root, file_path);
-        Self::visit_items(
-            self.package,
-            syntax,
-            &normalize_path(file_path),
-            &relative_file,
-            &module_prefix,
-            &[],
-        )
+        let path_key = normalize_path(file_path);
+        let visitor = ItemVisitor::new(self.package, &path_key, &relative_file, &module_prefix);
+        visitor.visit_items(syntax, &[])
     }
 
     pub fn relative_file(base_dir: &Path, file_path: &Path) -> String {
@@ -181,146 +174,5 @@ impl<'a> FileWalker<'a> {
             prefix.push(file_stem.to_string());
         }
         prefix
-    }
-
-    pub fn visit_items(
-        package: &PackageContext,
-        syntax: &File,
-        path_key: &str,
-        relative_file: &str,
-        module_prefix: &[String],
-        inline_modules: &[String],
-    ) -> Vec<SourceFunction> {
-        syntax
-            .items
-            .iter()
-            .flat_map(|item| {
-                Self::visit_item(
-                    package,
-                    item,
-                    path_key,
-                    relative_file,
-                    module_prefix,
-                    inline_modules,
-                )
-            })
-            .collect()
-    }
-
-    pub fn visit_item(
-        package: &PackageContext,
-        item: &Item,
-        path_key: &str,
-        relative_file: &str,
-        module_prefix: &[String],
-        inline_modules: &[String],
-    ) -> Vec<SourceFunction> {
-        match item {
-            Item::Fn(item_fn) => Self::record_function(
-                package,
-                item_fn,
-                None,
-                path_key,
-                relative_file,
-                module_prefix,
-                inline_modules,
-            )
-            .into_iter()
-            .collect(),
-            Item::Impl(item_impl) if !is_test_attrs(&item_impl.attrs) => ImplCollector::visit_impl(
-                package,
-                item_impl,
-                path_key,
-                relative_file,
-                module_prefix,
-                inline_modules,
-            ),
-            Item::Mod(item_mod) if !is_test_attrs(&item_mod.attrs) => Self::visit_module(
-                package,
-                item_mod,
-                path_key,
-                relative_file,
-                module_prefix,
-                inline_modules,
-            ),
-            Item::Enum(ItemEnum { .. }) | Item::Struct(ItemStruct { .. }) => Vec::new(),
-            _ => Vec::new(),
-        }
-    }
-
-    pub fn visit_module(
-        package: &PackageContext,
-        item_mod: &ItemMod,
-        path_key: &str,
-        relative_file: &str,
-        module_prefix: &[String],
-        inline_modules: &[String],
-    ) -> Vec<SourceFunction> {
-        let Some((_, items)) = &item_mod.content else {
-            return Vec::new();
-        };
-
-        let nested_modules = inline_modules
-            .iter()
-            .cloned()
-            .chain(iter::once(item_mod.ident.to_string()))
-            .collect::<Vec<_>>();
-
-        items
-            .iter()
-            .flat_map(|item| {
-                Self::visit_item(
-                    package,
-                    item,
-                    path_key,
-                    relative_file,
-                    module_prefix,
-                    &nested_modules,
-                )
-            })
-            .collect()
-    }
-
-    pub fn record_function(
-        package: &PackageContext,
-        item_fn: &ItemFn,
-        receiver: Option<&str>,
-        path_key: &str,
-        relative_file: &str,
-        module_prefix: &[String],
-        inline_modules: &[String],
-    ) -> Option<SourceFunction> {
-        if is_test_attrs(&item_fn.attrs) {
-            return None;
-        }
-
-        let name = qualified_name(
-            module_prefix,
-            inline_modules,
-            receiver,
-            &item_fn.sig.ident.to_string(),
-        );
-        Some(SourceFunction {
-            package_name: package.name.clone(),
-            name,
-            path_key: path_key.to_string(),
-            relative_file: relative_file.to_string(),
-            line: start_line(item_fn.sig.ident.span()),
-            end_line: end_line(item_fn.span()),
-            complexity: cognitive_complexity(&item_fn.block),
-        })
-    }
-}
-
-pub fn normalize_path(path: &Path) -> String {
-    let normalized = path
-        .canonicalize()
-        .unwrap_or_else(|_| path.to_path_buf())
-        .to_string_lossy()
-        .replace('\\', "/");
-    if cfg!(windows) {
-        normalized.to_lowercase()
-    } else {
-        normalized
     }
 }

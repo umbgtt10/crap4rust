@@ -10,8 +10,8 @@ use anyhow::{Context, Result};
 use crate::config::Config;
 use crate::coverage_record::CoverageRecord;
 use crate::export::Export;
-use crate::file_walker::normalize_path;
 use crate::llvm_cov_builder::LlvmCovBuilder;
+use crate::normalize_path::normalize_path;
 use crate::package_context::PackageContext;
 
 pub fn ensure_coverage_path(config: &Config, packages: &[PackageContext]) -> Result<PathBuf> {

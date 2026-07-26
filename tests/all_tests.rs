@@ -18,6 +18,7 @@ pub mod function_report_tests;
 pub mod impl_collector_tests;
 pub mod llvm_cov_builder_tests;
 pub mod llvm_cov_provider_tests;
+pub mod normalize_path_tests;
 pub mod package_context_tests;
 pub mod project_metrics_tests;
 pub mod project_report_tests;
