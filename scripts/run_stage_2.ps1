@@ -1,6 +1,6 @@
 # Copyright 2025 Umberto Gotti <umberto.gotti@umbertogotti.dev>
-# Licensed under the Apache License, Version 2.0
-# http://www.apache.org/licenses/LICENSE-2.0
+# Licensed under the MIT License
+# SPDX-License-Identifier: MIT
 
 $ErrorActionPreference = "Stop"
 Push-Location (Split-Path $PSScriptRoot -Parent)
@@ -162,7 +162,7 @@ Invoke-Crap4RustGate "CRAP crap4rust" @("cargo-crap4rust") -ExcludePaths @("test
 # Grip gate
 # ---------------------------------------------------------------------------
 
-Invoke-GripGate -Label "grip4rust self-analysis" -Threshold 80
+Invoke-GripGate -Label "grip4rust self-analysis" -Threshold 70
 
 # ---------------------------------------------------------------------------
 

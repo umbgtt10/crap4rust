@@ -1,3 +1,7 @@
+// Copyright 2025 Umberto Gotti <umberto.gotti@umbertogotti.dev>
+// Licensed under the MIT License
+// SPDX-License-Identifier: MIT
+
 pub fn empty_function() {}
 
 pub fn single_if(x: bool) -> u32 {
