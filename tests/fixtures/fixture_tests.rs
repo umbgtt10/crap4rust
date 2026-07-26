@@ -560,6 +560,41 @@ fn cfg_test_modules_inside_src_are_excluded_from_discovery() {
 }
 
 #[test]
+fn cfg_test_file_based_mod_declaration_is_excluded_from_discovery() {
+    // Arrange
+    let fixture_dir = fixture_path(&["file_based_test_module_fixture"]);
+    let manifest_path = fixture_dir.join("Cargo.toml");
+    let lib_path = fixture_dir.join("src").join("lib.rs");
+    let tests_path = fixture_dir.join("src").join("tests.rs");
+    let shipped_line = first_function_line(&lib_path);
+    let helper_line = first_function_line(&tests_path);
+    let temp_dir = TempDir::new().expect("temp dir");
+    let coverage_path = write_coverage_file(
+        temp_dir.path(),
+        &[(lib_path, shipped_line, 0), (tests_path, helper_line, 0)],
+    );
+
+    let mut command = Command::cargo_bin("cargo-crap4rust").expect("binary");
+    command
+        .arg("--manifest-path")
+        .arg(&manifest_path)
+        .arg("--coverage")
+        .arg(&coverage_path);
+
+    // Act & Assert
+    command
+        .assert()
+        .success()
+        .stderr(is_empty())
+        .stdout(contains(
+            "crap4rust report for file-based-test-module-fixture",
+        ))
+        .stdout(contains("shipped_risky"))
+        .stdout(contains("test_only_helper").not())
+        .stdout(contains("summary: total_functions=1"));
+}
+
+#[test]
 fn coverage_that_does_not_match_any_function_returns_error() {
     // Arrange
     let fixture_dir = fixture_path(&["single_fixture"]);

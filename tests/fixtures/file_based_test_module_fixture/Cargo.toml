@@ -1,0 +1,4 @@
+[package]
+name = "file-based-test-module-fixture"
+version = "0.1.0"
+edition = "2024"

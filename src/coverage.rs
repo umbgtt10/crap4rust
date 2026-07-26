@@ -9,8 +9,8 @@ use std::path::{Path, PathBuf};
 use crate::export::Export;
 use anyhow::{Context, Result};
 
+use crate::file_walker::normalize_path;
 use crate::model::{Config, CoverageRecord, PackageContext};
-use crate::source::normalize_path;
 
 pub fn ensure_coverage_path(config: &Config, packages: &[PackageContext]) -> Result<PathBuf> {
     if let Some(path) = &config.coverage_path {

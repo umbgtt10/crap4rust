@@ -16,6 +16,7 @@ pub mod model;
 pub mod report;
 mod source;
 pub mod source_root_collector;
+pub mod test_module_registry;
 
 use std::process::ExitCode;
 

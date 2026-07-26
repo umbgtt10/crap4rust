@@ -3,16 +3,19 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
 use std::fs;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
 use syn::spanned::Spanned;
 use syn::{File, Item, ItemEnum, ItemFn, ItemMod, ItemStruct};
-use walkdir::{DirEntry, WalkDir};
+use walkdir::WalkDir;
 
 use crate::complexity::cognitive_complexity;
 use crate::impl_collector::{end_line, is_test_attrs, qualified_name, start_line, visit_impl};
 use crate::model::{PackageContext, SourceFunction};
+use crate::test_module_registry::TestModuleRegistry;
+
+type ParsedFile = (PathBuf, File);
 
 pub(crate) struct FileWalker<'a> {
     package: &'a PackageContext,
@@ -34,7 +37,21 @@ impl<'a> FileWalker<'a> {
             return Ok(Vec::new());
         }
 
+        let parsed_files = self.collect_parsed_files(source_root)?;
+        let test_modules = TestModuleRegistry::build(&parsed_files);
+
         let mut functions = Vec::new();
+        for (file_path, syntax) in &parsed_files {
+            if test_modules.is_excluded(file_path) {
+                continue;
+            }
+            self.visit_parsed_file(source_root, file_path, syntax, &mut functions);
+        }
+        Ok(functions)
+    }
+
+    fn collect_parsed_files(&self, source_root: &Path) -> Result<Vec<ParsedFile>> {
+        let mut parsed_files = Vec::new();
         for entry in WalkDir::new(source_root)
             .into_iter()
             .filter_map(|entry| entry.ok())
@@ -46,41 +63,48 @@ impl<'a> FileWalker<'a> {
                     .is_some_and(|extension| extension == "rs")
             })
         {
-            functions.extend(self.process_entry(source_root, &entry)?);
+            let file_path = entry.path();
+            if !self.is_selected(file_path) {
+                continue;
+            }
+            let source = fs::read_to_string(file_path)
+                .with_context(|| format!("failed to read source file {}", file_path.display()))?;
+            let syntax = syn::parse_file(&source)
+                .with_context(|| format!("failed to parse source file {}", file_path.display()))?;
+            parsed_files.push((file_path.to_path_buf(), syntax));
         }
-        Ok(functions)
+        Ok(parsed_files)
     }
 
-    fn process_entry(&self, source_root: &Path, entry: &DirEntry) -> Result<Vec<SourceFunction>> {
-        let file_path = entry.path();
+    fn is_selected(&self, file_path: &Path) -> bool {
         let relative_file = relative_file(&self.package.manifest_dir, file_path);
-        if !is_selected_relative_file(&relative_file, self.include_test_targets)
-            || !is_selected_source_file(
+        is_selected_relative_file(&relative_file, self.include_test_targets)
+            && is_selected_source_file(
                 &self.package.manifest_dir,
                 file_path,
                 self.include_test_targets,
             )
-            || is_excluded_relative_file(&relative_file, self.exclude_paths)
-        {
-            return Ok(Vec::new());
-        }
-        let module_prefix = module_prefix(source_root, file_path);
-        let source = fs::read_to_string(file_path)
-            .with_context(|| format!("failed to read source file {}", file_path.display()))?;
-        let syntax = syn::parse_file(&source)
-            .with_context(|| format!("failed to parse source file {}", file_path.display()))?;
+            && !is_excluded_relative_file(&relative_file, self.exclude_paths)
+    }
 
-        let mut functions = Vec::new();
+    fn visit_parsed_file(
+        &self,
+        source_root: &Path,
+        file_path: &Path,
+        syntax: &File,
+        functions: &mut Vec<SourceFunction>,
+    ) {
+        let relative_file = relative_file(&self.package.manifest_dir, file_path);
+        let module_prefix = module_prefix(source_root, file_path);
         visit_items(
             self.package,
-            &syntax,
+            syntax,
             &normalize_path(file_path),
             &relative_file,
             &module_prefix,
             &mut Vec::new(),
-            &mut functions,
+            functions,
         );
-        Ok(functions)
     }
 }
 

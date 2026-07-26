@@ -7,8 +7,6 @@ use anyhow::Result;
 use crate::file_walker::FileWalker;
 use crate::model::{PackageContext, SourceFunction};
 
-pub use crate::file_walker::normalize_path;
-
 pub fn discover_functions(package: &PackageContext) -> Result<Vec<SourceFunction>> {
     let walker = FileWalker::new(package);
     let mut functions = Vec::new();

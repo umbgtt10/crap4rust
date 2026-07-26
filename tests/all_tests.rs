@@ -16,3 +16,4 @@ pub mod model_tests;
 pub mod report_tests;
 pub mod source_root_collector_tests;
 pub mod source_tests;
+pub mod test_module_registry_tests;
