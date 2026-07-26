@@ -79,7 +79,7 @@ fn exclude_path_only_omits_matching_prefix_leaving_other_files_intact() {
     // Arrange
     let fixture_dir = fixture_path(&["test_target_fixture"]);
     let manifest_path = fixture_dir.join("Cargo.toml");
-    let source_path = fixture_dir.join("src").join("lib.rs");
+    let source_path = fixture_dir.join("src").join("target.rs");
     let source_line = first_function_line(&source_path);
     let temp_dir = TempDir::new().expect("temp dir");
     let coverage_path = write_coverage_file(temp_dir.path(), &[(source_path, source_line, 0)]);
@@ -106,7 +106,7 @@ fn cargo_subcommand_forwards_arguments_to_crap4rust_binary() {
     // Arrange
     let fixture_dir = fixture_path(&["single_fixture"]);
     let manifest_path = fixture_dir.join("Cargo.toml");
-    let source_path = fixture_dir.join("src").join("lib.rs");
+    let source_path = fixture_dir.join("src").join("target.rs");
     let function_line = first_function_line(&source_path);
     let temp_dir = TempDir::new().expect("temp dir");
     let coverage_path = write_coverage_file(temp_dir.path(), &[(source_path, function_line, 0)]);
@@ -135,7 +135,7 @@ fn single_package_with_precomputed_coverage_prints_report() {
     // Arrange
     let fixture_dir = fixture_path(&["single_fixture"]);
     let manifest_path = fixture_dir.join("Cargo.toml");
-    let source_path = fixture_dir.join("src").join("lib.rs");
+    let source_path = fixture_dir.join("src").join("target.rs");
     let function_line = first_function_line(&source_path);
     let temp_dir = TempDir::new().expect("temp dir");
     let coverage_path = write_coverage_file(temp_dir.path(), &[(source_path, function_line, 0)]);
@@ -162,11 +162,11 @@ fn multiple_packages_produce_single_aggregate_report() {
     // Arrange
     let fixture_dir = fixture_path(&["workspace_fixture"]);
     let manifest_path = fixture_dir.join("Cargo.toml");
-    let core_source = fixture_dir.join("app-core").join("src").join("lib.rs");
+    let core_source = fixture_dir.join("app-core").join("src").join("target.rs");
     let validation_source = fixture_dir
         .join("app-validation")
         .join("src")
-        .join("lib.rs");
+        .join("target.rs");
     let core_function_line = first_function_line(&core_source);
     let validation_function_line = first_function_line(&validation_source);
     let temp_dir = TempDir::new().expect("temp dir");
@@ -205,7 +205,7 @@ fn duplicate_coverage_entries_discard_zero_ghost_keeping_real_coverage() {
     // Arrange
     let fixture_dir = fixture_path(&["aggregation_fixture"]);
     let manifest_path = fixture_dir.join("Cargo.toml");
-    let source_path = fixture_dir.join("src").join("lib.rs");
+    let source_path = fixture_dir.join("src").join("target.rs");
     let function_line = first_function_line(&source_path);
     let temp_dir = TempDir::new().expect("temp dir");
     let coverage_path = write_coverage_file(
@@ -238,7 +238,7 @@ fn duplicate_coverage_entries_discard_zero_ghost_regardless_of_arrival_order() {
     // Arrange
     let fixture_dir = fixture_path(&["aggregation_fixture"]);
     let manifest_path = fixture_dir.join("Cargo.toml");
-    let source_path = fixture_dir.join("src").join("lib.rs");
+    let source_path = fixture_dir.join("src").join("target.rs");
     let function_line = first_function_line(&source_path);
     let temp_dir = TempDir::new().expect("temp dir");
     let coverage_path = write_coverage_file(
@@ -271,11 +271,11 @@ fn workspace_without_selected_package_selects_all_workspace_members() {
     // Arrange
     let fixture_dir = fixture_path(&["workspace_fixture"]);
     let manifest_path = fixture_dir.join("Cargo.toml");
-    let core_source = fixture_dir.join("app-core").join("src").join("lib.rs");
+    let core_source = fixture_dir.join("app-core").join("src").join("target.rs");
     let validation_source = fixture_dir
         .join("app-validation")
         .join("src")
-        .join("lib.rs");
+        .join("target.rs");
     let core_function_line = first_function_line(&core_source);
     let validation_function_line = first_function_line(&validation_source);
     let temp_dir = TempDir::new().expect("temp dir");
@@ -412,7 +412,7 @@ fn features_flag_is_accepted_with_precomputed_coverage() {
     // Arrange
     let fixture_dir = fixture_path(&["single_fixture"]);
     let manifest_path = fixture_dir.join("Cargo.toml");
-    let source_path = fixture_dir.join("src").join("lib.rs");
+    let source_path = fixture_dir.join("src").join("target.rs");
     let function_line = first_function_line(&source_path);
     let temp_dir = TempDir::new().expect("temp dir");
     let coverage_path = write_coverage_file(temp_dir.path(), &[(source_path, function_line, 0)]);
@@ -440,7 +440,7 @@ fn all_features_flag_is_accepted_with_precomputed_coverage() {
     // Arrange
     let fixture_dir = fixture_path(&["single_fixture"]);
     let manifest_path = fixture_dir.join("Cargo.toml");
-    let source_path = fixture_dir.join("src").join("lib.rs");
+    let source_path = fixture_dir.join("src").join("target.rs");
     let function_line = first_function_line(&source_path);
     let temp_dir = TempDir::new().expect("temp dir");
     let coverage_path = write_coverage_file(temp_dir.path(), &[(source_path, function_line, 0)]);
@@ -467,7 +467,7 @@ fn no_default_features_flag_is_accepted_with_precomputed_coverage() {
     // Arrange
     let fixture_dir = fixture_path(&["single_fixture"]);
     let manifest_path = fixture_dir.join("Cargo.toml");
-    let source_path = fixture_dir.join("src").join("lib.rs");
+    let source_path = fixture_dir.join("src").join("target.rs");
     let function_line = first_function_line(&source_path);
     let temp_dir = TempDir::new().expect("temp dir");
     let coverage_path = write_coverage_file(temp_dir.path(), &[(source_path, function_line, 0)]);
@@ -494,7 +494,7 @@ fn test_targets_are_excluded_from_discovery_by_default() {
     // Arrange
     let fixture_dir = fixture_path(&["test_target_fixture"]);
     let manifest_path = fixture_dir.join("Cargo.toml");
-    let source_path = fixture_dir.join("src").join("lib.rs");
+    let source_path = fixture_dir.join("src").join("target.rs");
     let test_support_path = fixture_dir.join("tests").join("support.rs");
     let source_line = first_function_line(&source_path);
     let test_support_line = first_function_line(&test_support_path);
@@ -530,13 +530,14 @@ fn cfg_test_modules_inside_src_are_excluded_from_discovery() {
     let fixture_dir = fixture_path(&["inline_test_module_fixture"]);
     let manifest_path = fixture_dir.join("Cargo.toml");
     let source_path = fixture_dir.join("src").join("lib.rs");
-    let shipped_line = named_function_line(&source_path, "shipped_risky");
+    let target_path = fixture_dir.join("src").join("target.rs");
+    let shipped_line = named_function_line(&target_path, "shipped_risky");
     let helper_line = named_function_line(&source_path, "test_only_helper");
     let temp_dir = TempDir::new().expect("temp dir");
     let coverage_path = write_coverage_file(
         temp_dir.path(),
         &[
-            (source_path.clone(), shipped_line, 0),
+            (target_path, shipped_line, 0),
             (source_path, helper_line, 0),
         ],
     );
@@ -564,14 +565,14 @@ fn cfg_test_file_based_mod_declaration_is_excluded_from_discovery() {
     // Arrange
     let fixture_dir = fixture_path(&["file_based_test_module_fixture"]);
     let manifest_path = fixture_dir.join("Cargo.toml");
-    let lib_path = fixture_dir.join("src").join("lib.rs");
+    let target_path = fixture_dir.join("src").join("target.rs");
     let tests_path = fixture_dir.join("src").join("tests.rs");
-    let shipped_line = first_function_line(&lib_path);
+    let shipped_line = first_function_line(&target_path);
     let helper_line = first_function_line(&tests_path);
     let temp_dir = TempDir::new().expect("temp dir");
     let coverage_path = write_coverage_file(
         temp_dir.path(),
-        &[(lib_path, shipped_line, 0), (tests_path, helper_line, 0)],
+        &[(target_path, shipped_line, 0), (tests_path, helper_line, 0)],
     );
 
     let mut command = Command::cargo_bin("cargo-crap4rust").expect("binary");
@@ -599,7 +600,7 @@ fn coverage_that_does_not_match_any_function_returns_error() {
     // Arrange
     let fixture_dir = fixture_path(&["single_fixture"]);
     let manifest_path = fixture_dir.join("Cargo.toml");
-    let source_path = fixture_dir.join("src").join("lib.rs");
+    let source_path = fixture_dir.join("src").join("target.rs");
     let function_line = first_function_line(&source_path);
     let temp_dir = TempDir::new().expect("temp dir");
     let coverage_path =
@@ -640,7 +641,7 @@ fn strict_mode_fails_when_project_threshold_would_otherwise_pass() {
     // Arrange
     let fixture_dir = fixture_path(&["single_fixture"]);
     let manifest_path = fixture_dir.join("Cargo.toml");
-    let source_path = fixture_dir.join("src").join("lib.rs");
+    let source_path = fixture_dir.join("src").join("target.rs");
     let function_line = first_function_line(&source_path);
     let temp_dir = TempDir::new().expect("temp dir");
     let coverage_path = write_coverage_file(temp_dir.path(), &[(source_path, function_line, 0)]);
@@ -669,7 +670,7 @@ fn warn_only_succeeds_even_when_thresholds_are_exceeded() {
     // Arrange
     let fixture_dir = fixture_path(&["single_fixture"]);
     let manifest_path = fixture_dir.join("Cargo.toml");
-    let source_path = fixture_dir.join("src").join("lib.rs");
+    let source_path = fixture_dir.join("src").join("target.rs");
     let function_line = first_function_line(&source_path);
     let temp_dir = TempDir::new().expect("temp dir");
     let coverage_path = write_coverage_file(temp_dir.path(), &[(source_path, function_line, 0)]);
@@ -698,7 +699,7 @@ fn threshold_boundary_at_thirty_is_warn_not_crappy() {
     // Arrange
     let fixture_dir = fixture_path(&["single_fixture"]);
     let manifest_path = fixture_dir.join("Cargo.toml");
-    let source_path = fixture_dir.join("src").join("lib.rs");
+    let source_path = fixture_dir.join("src").join("target.rs");
     let function_line = first_function_line(&source_path);
     let temp_dir = TempDir::new().expect("temp dir");
     let coverage_path = write_coverage_file(temp_dir.path(), &[(source_path, function_line, 0)]);
@@ -727,7 +728,7 @@ fn full_coverage_keeps_crap_score_below_warning_threshold() {
     // Arrange
     let fixture_dir = fixture_path(&["single_fixture"]);
     let manifest_path = fixture_dir.join("Cargo.toml");
-    let source_path = fixture_dir.join("src").join("lib.rs");
+    let source_path = fixture_dir.join("src").join("target.rs");
     let function_line = first_function_line(&source_path);
     let temp_dir = TempDir::new().expect("temp dir");
     let coverage_path = write_coverage_file(temp_dir.path(), &[(source_path, function_line, 1)]);
@@ -756,7 +757,7 @@ fn custom_warn_threshold_appears_in_output_message() {
     // Arrange
     let fixture_dir = fixture_path(&["single_fixture"]);
     let manifest_path = fixture_dir.join("Cargo.toml");
-    let source_path = fixture_dir.join("src").join("lib.rs");
+    let source_path = fixture_dir.join("src").join("target.rs");
     let function_line = first_function_line(&source_path);
     let temp_dir = TempDir::new().expect("temp dir");
     let coverage_path = write_coverage_file(temp_dir.path(), &[(source_path, function_line, 1)]);
@@ -787,7 +788,7 @@ fn zero_coverage_produces_fixture_expected_crap_score() {
     // Arrange
     let fixture_dir = fixture_path(&["single_fixture"]);
     let manifest_path = fixture_dir.join("Cargo.toml");
-    let source_path = fixture_dir.join("src").join("lib.rs");
+    let source_path = fixture_dir.join("src").join("target.rs");
     let function_line = first_function_line(&source_path);
     let temp_dir = TempDir::new().expect("temp dir");
     let coverage_path = write_coverage_file(temp_dir.path(), &[(source_path, function_line, 0)]);
@@ -816,8 +817,11 @@ fn root_workspace_defaults_to_all_workspace_members_when_no_package_is_provided(
     // Arrange
     let fixture_dir = fixture_path(&["root_workspace_fixture"]);
     let manifest_path = fixture_dir.join("Cargo.toml");
-    let root_source_path = fixture_dir.join("src").join("lib.rs");
-    let helper_source_path = fixture_dir.join("helper-member").join("src").join("lib.rs");
+    let root_source_path = fixture_dir.join("src").join("target.rs");
+    let helper_source_path = fixture_dir
+        .join("helper-member")
+        .join("src")
+        .join("target.rs");
     let root_function_line = first_function_line(&root_source_path);
     let helper_function_line = first_function_line(&helper_source_path);
     let temp_dir = TempDir::new().expect("temp dir");
@@ -853,7 +857,7 @@ fn explicit_package_in_root_workspace_overrides_all_members_default() {
     // Arrange
     let fixture_dir = fixture_path(&["root_workspace_fixture"]);
     let manifest_path = fixture_dir.join("Cargo.toml");
-    let source_path = fixture_dir.join("src").join("lib.rs");
+    let source_path = fixture_dir.join("src").join("target.rs");
     let function_line = first_function_line(&source_path);
     let temp_dir = TempDir::new().expect("temp dir");
     let coverage_path = write_coverage_file(temp_dir.path(), &[(source_path, function_line, 0)]);
@@ -901,7 +905,7 @@ fn json_output_format_produces_valid_json() {
     // Arrange
     let fixture_dir = fixture_path(&["single_fixture"]);
     let manifest_path = fixture_dir.join("Cargo.toml");
-    let source_path = fixture_dir.join("src").join("lib.rs");
+    let source_path = fixture_dir.join("src").join("target.rs");
     let function_line = first_function_line(&source_path);
     let temp_dir = TempDir::new().expect("temp dir");
     let coverage_path = write_coverage_file(temp_dir.path(), &[(source_path, function_line, 0)]);

@@ -2,6 +2,4 @@
 // Licensed under the MIT License
 // SPDX-License-Identifier: MIT
 
-pub fn validation_fixture_anchor() -> u32 {
-    1
-}
+pub mod target;

@@ -2,4 +2,4 @@
 // Licensed under the MIT License
 // SPDX-License-Identifier: MIT
 
-pub const BUILD_NUMBER: u32 = 7;
+pub mod constants;
