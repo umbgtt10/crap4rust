@@ -61,7 +61,7 @@ Goal: make local output more useful without changing the core analysis model.
 
 Planned scope:
 
-- HTML and Markdown reports for people-facing consumption
+- HTML, Markdown, and XML reports for people-facing consumption
 - output-file support instead of stdout-only reporting
 - sorting, top-N filtering, and optional clean-function display
 - clearer project summaries and report metadata

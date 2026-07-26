@@ -6,14 +6,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
-### Planned
-
-- Additional output formats such as HTML, Markdown, XML, or SARIF
-- Baseline and regression comparison support
-- Configuration file support
-- Broader coverage-source support
-- A stable public library API
-
 ## [0.7.0] - 2026-07-26
 
 ### Fixed
