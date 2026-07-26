@@ -142,4 +142,4 @@ lives in `App` and below.
   structural rather than type-resolved, why file-based test submodules need
   their own registry, and why duplicate coverage records have to merge
   order-independently.
-- `ROADMAP.md` — what's shipped and what's planned next.
+- `docs/ROADMAP.md` — what's shipped and what's planned next.

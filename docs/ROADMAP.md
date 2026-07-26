@@ -2,7 +2,7 @@
 
 This document tracks the planned evolution of `cargo-crap4rust` beyond the currently shipped release.
 
-For what is available today, see [IMPLEMENTED-FEATURES.md](IMPLEMENTED-FEATURES.md). For released versions, see [CHANGELOG.md](CHANGELOG.md).
+For what is available today, see [IMPLEMENTED-FEATURES.md](IMPLEMENTED-FEATURES.md). For released versions, see [CHANGELOG.md](../CHANGELOG.md).
 
 ## Product Direction
 
@@ -48,8 +48,8 @@ The shipped release already provides:
   (`PackageResolver`/`FunctionDiscovery`/`CoverageProvider`/`Scorer`/`Reporter`)
   rather than a fixed free-function pipeline
 
-See [CHANGELOG.md](CHANGELOG.md) for exactly which release each of these
-landed in, and [docs/FORMULA.md](docs/FORMULA.md)/[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+See [CHANGELOG.md](../CHANGELOG.md) for exactly which release each of these
+landed in, and [FORMULA.md](FORMULA.md)/[ARCHITECTURE.md](ARCHITECTURE.md)
 for how they work. The roadmap below is about what comes next, not what is
 already complete.
 

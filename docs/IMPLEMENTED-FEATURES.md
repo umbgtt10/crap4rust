@@ -30,8 +30,22 @@ This document describes the feature set currently shipped by `cargo-crap4rust`.
   type, each with its own dedicated test file
 - `docs/ADRs/`, `docs/FORMULA.md`, `docs/ARCHITECTURE.md`, `CLAUDE.md`, and
   `OPEN_POINTS.md` added
+- License headers normalized to MIT-only across every source file (`Cargo.toml`
+  and `LICENSE` were already MIT; the headers themselves had drifted to a
+  `MIT OR Apache-2.0` dual-license form, or plain Apache-2.0 in the stage
+  scripts)
+- `pub(crate)` items widened to `pub` wherever that makes them directly
+  testable from `tests/` — this crate's integration-tests-only policy means a
+  `pub(crate)` item is otherwise unreachable from any test
+- Free functions that were thin wrappers around, or exclusive helpers for,
+  one struct consolidated into that struct's own `impl` block
+  (`SourceRootCollector`, `CargoPackageResolver`, `CoverageIndex`,
+  `SourceFunctionDiscovery`, `ImplCollector`, `FileWalker`); functions
+  genuinely shared across multiple structs' files (`normalize_path`,
+  `qualified_name`, `start_line`, `end_line`, `is_test_attrs`) deliberately
+  stay free functions
 
-See [CHANGELOG.md](CHANGELOG.md) for the full entry.
+See [CHANGELOG.md](../CHANGELOG.md) for the full entry.
 
 ## Version 0.6.0
 

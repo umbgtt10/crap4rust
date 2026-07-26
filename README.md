@@ -20,9 +20,9 @@ It is published as the Cargo subcommand package `cargo-crap4rust`, so the comman
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | How a `crap4rust` invocation flows through the code, module by module. |
 | [`docs/FORMULA.md`](docs/FORMULA.md) | Every scoring term, in full, kept in sync with `src/`. |
 | [`docs/ADRs/`](docs/ADRs/) | Why the codebase is shaped the way it is. |
-| [`ROADMAP.md`](ROADMAP.md) | What's shipped, what's next. |
+| [`docs/ROADMAP.md`](docs/ROADMAP.md) | What's shipped, what's next. |
 | [`OPEN_POINTS.md`](OPEN_POINTS.md) | Known gaps, deliberately deferred. |
-| [`IMPLEMENTED-FEATURES.md`](IMPLEMENTED-FEATURES.md) | The full shipped feature set. |
+| [`docs/IMPLEMENTED-FEATURES.md`](docs/IMPLEMENTED-FEATURES.md) | The full shipped feature set. |
 | [`CHANGELOG.md`](CHANGELOG.md) | Release history. |
 
 ## Install
@@ -160,4 +160,4 @@ The current implementation focuses on:
 - try-operator propagation excluded from cognitive-complexity scoring
 - configurable warning threshold independent from the crappy threshold
 
-See [IMPLEMENTED-FEATURES.md](IMPLEMENTED-FEATURES.md) for the shipped feature set and [ROADMAP.md](ROADMAP.md) for the broader plan.
+See [docs/IMPLEMENTED-FEATURES.md](docs/IMPLEMENTED-FEATURES.md) for the shipped feature set and [docs/ROADMAP.md](docs/ROADMAP.md) for the broader plan.
