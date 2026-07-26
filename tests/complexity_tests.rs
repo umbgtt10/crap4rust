@@ -88,7 +88,7 @@ fn while_loop_scores_one() {
 }
 
 #[test]
-fn logical_and_scores_one() {
+fn if_with_logical_and_condition_scores_two() {
     // Arrange
     let block = parse_fn_block("if a && b { }");
 
@@ -100,7 +100,7 @@ fn logical_and_scores_one() {
 }
 
 #[test]
-fn logical_and_or_scores_two() {
+fn if_with_logical_and_or_condition_scores_three() {
     // Arrange
     let block = parse_fn_block("if a && b || c { }");
 
@@ -133,4 +133,42 @@ fn loop_scores_one() {
 
     // Assert
     assert_eq!(score, 1);
+}
+
+#[test]
+fn while_with_logical_and_condition_scores_two() {
+    // Arrange
+    let block = parse_fn_block("while a && b { }");
+
+    // Act
+    let score = cognitive_complexity(&block);
+
+    // Assert
+    assert_eq!(score, 2);
+}
+
+#[test]
+fn while_with_bare_condition_matches_logical_condition_base_cost() {
+    // Arrange
+    let bare = parse_fn_block("while a { }");
+    let logical = parse_fn_block("while a && b { }");
+
+    // Act
+    let bare_score = cognitive_complexity(&bare);
+    let logical_score = cognitive_complexity(&logical);
+
+    // Assert
+    assert_eq!(logical_score - bare_score, 1);
+}
+
+#[test]
+fn match_guard_with_logical_and_condition_scores_two() {
+    // Arrange
+    let block = parse_fn_block("match x { n if a && b => 1, _ => 0 };");
+
+    // Act
+    let score = cognitive_complexity(&block);
+
+    // Assert
+    assert_eq!(score, 2);
 }

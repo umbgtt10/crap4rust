@@ -193,9 +193,10 @@ fn score_match(expr_match: &ExprMatch, nesting: u32) -> u32 {
 }
 
 fn score_arm(arm: &Arm, nesting: u32) -> u32 {
-    arm.guard.as_ref().map_or(0, |(_, expr)| {
-        logical_expr_score(expr) + score_expr(expr, nesting)
-    }) + score_expr(&arm.body, nesting)
+    arm.guard
+        .as_ref()
+        .map_or(0, |(_, expr)| logical_expr_score(expr))
+        + score_expr(&arm.body, nesting)
 }
 
 fn score_for(expr_for: &ExprForLoop, nesting: u32) -> u32 {
@@ -206,10 +207,7 @@ fn score_for(expr_for: &ExprForLoop, nesting: u32) -> u32 {
 }
 
 fn score_while(expr_while: &ExprWhile, nesting: u32) -> u32 {
-    1 + nesting
-        + logical_expr_score(&expr_while.cond)
-        + score_expr(&expr_while.cond, nesting)
-        + score_block(&expr_while.body, nesting + 1)
+    1 + nesting + logical_expr_score(&expr_while.cond) + score_block(&expr_while.body, nesting + 1)
 }
 
 fn score_loop(expr_loop: &ExprLoop, nesting: u32) -> u32 {
