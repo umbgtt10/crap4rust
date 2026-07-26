@@ -2,6 +2,37 @@
 
 This document describes the feature set currently shipped by `cargo-crap4rust`.
 
+## Version 0.7.0
+
+### Correctness Fixes
+
+- Coverage duplicate handling is now order-independent: a zero-count
+  duplicate coverage record is discarded in favor of a non-zero one for the
+  same file/line regardless of which one `cargo-llvm-cov` happens to list
+  first (previously only one arrival order was handled correctly; the other
+  silently reproduced the halved-coverage-ratio bug the original fix was
+  meant to eliminate)
+- A file-based `#[cfg(test)] mod name;` test submodule is now excluded from
+  function discovery the same way an inline `#[cfg(test)] mod name { ... }`
+  block already was, via a new project-wide `TestModuleRegistry` pre-pass
+- `while` conditions and `match` arm guards no longer double-count `&&`/`||`
+  operators against cognitive complexity (a textually identical condition on
+  an `if` was already scored correctly; `while`/guards scored every logical
+  operator twice)
+
+### Structural
+
+- `App` is now built from five injected traits (`PackageResolver`,
+  `FunctionDiscovery`, `CoverageProvider`, `Scorer`, `Reporter`) rather than
+  calling concrete modules directly, matching the `grip`/`braintax` sibling
+  tools' own dependency-injection shape
+- `model.rs` (seven type definitions in one file) split into one file per
+  type, each with its own dedicated test file
+- `docs/ADRs/`, `docs/FORMULA.md`, `docs/ARCHITECTURE.md`, `CLAUDE.md`, and
+  `OPEN_POINTS.md` added
+
+See [CHANGELOG.md](CHANGELOG.md) for the full entry.
+
 ## Version 0.6.0
 
 ### CLI and Packaging

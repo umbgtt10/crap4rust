@@ -14,6 +14,67 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Broader coverage-source support
 - A stable public library API
 
+## [0.7.0] - 2026-07-26
+
+### Fixed
+
+- `CoverageIndex::from_records` discards a zero-coverage duplicate record in
+  favor of a non-zero one for the same `(path, line)` key regardless of
+  which one arrives first. The `[0.6.2]` fix below only handled the case
+  where the real record arrived first; when the zero-count "ghost" record
+  arrived first instead, it was summed with the real record that followed
+  it, silently reproducing the exact halved-ratio bug `[0.6.2]` was meant to
+  eliminate. See `docs/ADRs/ADR-SymmetricDuplicateCoverageHandling.md`.
+- File-based `#[cfg(test)] mod name;` test submodules (test code split into
+  its own sibling file, as opposed to an inline `#[cfg(test)] mod name {
+  ... }` block) are now excluded from function discovery. Previously only
+  the inline form was recognized — the `#[cfg(test)]` gate lives on the
+  `mod` statement in the *parent* file, which `FileWalker` had no way to see
+  while walking the child file on its own, so a file-based test submodule's
+  functions were counted as production code identical to real shipped
+  functions. See `docs/ADRs/ADR-CrossFileTestModuleExclusion.md`.
+- `while` conditions and `match` arm guards no longer count each `&&`/`||`
+  operator twice toward cognitive complexity. A textually identical `if`
+  condition was already scored correctly (once per operator); `while` and
+  match guards separately re-added the same operators through a redundant
+  code path. See `docs/FORMULA.md`.
+
+### Changed
+
+- **Breaking (library surface only, not the CLI):** `App` is now built from
+  five injected traits — `PackageResolver`, `FunctionDiscovery`,
+  `CoverageProvider`, `Scorer`, `Reporter` (all under `traits/`) — rather
+  than calling `manifest`/`source`/`coverage`/`report` modules directly.
+  `App::new(config)` wires the real implementations
+  (`CargoPackageResolver`/`SourceFunctionDiscovery`/`LlvmCovProvider`/
+  `DefaultScorer`/`StdoutReporter`); `App::with_deps(...)` takes all five as
+  explicit parameters for callers that need to substitute one. `model.rs`
+  (seven type definitions in one file) is now one file per type
+  (`config.rs`, `package_context.rs`, `source_function.rs`,
+  `coverage_record.rs`, `verdict.rs`, `function_report.rs`,
+  `project_report.rs`), and `manifest.rs`/`source.rs`/`report.rs` are
+  renamed to `cargo_package_resolver.rs`/`source_function_discovery.rs`/
+  `stdout_reporter.rs` to match the struct each now holds. CLI flags,
+  console/JSON output shape, and exit-code semantics are all unchanged.
+- `app::compute_crap_score`/`app::classify` (bare free functions) are now
+  `CrapFormula::score`/`CrapFormula::classify` (`crap_formula.rs`);
+  `app::project_fails` is now `Config::fails` (`config.rs`); the
+  project-metrics aggregation is now `DefaultScorer::project_metrics`
+  (`default_scorer.rs`); exit-code selection is now
+  `ProjectReport::exit_code` (`project_report.rs`). The formulas themselves
+  are unchanged.
+
+### Added
+
+- `CLAUDE.md`, `docs/ADRs/` (four ADRs plus an index), `docs/FORMULA.md`,
+  `docs/ARCHITECTURE.md`, and `OPEN_POINTS.md`, matching the `grip`/
+  `braintax` sibling tools' documentation depth.
+- Dedicated test files for every new/split source file, including direct
+  unit coverage for `DefaultScorer`'s project-metrics aggregation and
+  `TestModuleRegistry`'s resolution rules, neither of which had direct
+  tests before (only indirect, CLI-level coverage). 164 tests total, up
+  from 129 at the start of this cleanup.
+
 ## [0.6.2] - 2026-05-02
 
 ### Fixed
@@ -148,7 +209,8 @@ First public release.
 
 - Initial crates.io release of `cargo-crap4rust`
 
-[Unreleased]: https://github.com/umbgtt10/crap4rust/compare/v0.6.2...HEAD
+[Unreleased]: https://github.com/umbgtt10/crap4rust/compare/v0.7.0...HEAD
+[0.7.0]: https://github.com/umbgtt10/crap4rust/releases/tag/v0.7.0
 [0.6.2]: https://github.com/umbgtt10/crap4rust/releases/tag/v0.6.2
 [0.6.1]: https://github.com/umbgtt10/crap4rust/releases/tag/v0.6.1
 [0.6.0]: https://github.com/umbgtt10/crap4rust/releases/tag/v0.6.0

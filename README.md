@@ -6,13 +6,24 @@
 What is a CRAP score?
 CRAP (Change Risk Anti-Patterns) combines cognitive complexity and test coverage: CRAP(m) = comp(m)² × (1 − cov(m))³ + comp(m). Functions above a score of 30 are flagged as crappy — they are complex enough that their lack of test coverage makes them a maintenance risk.
 
+Full derivation of every term — how cognitive complexity is scored construct
+by construct, how coverage is matched and duplicate records resolved, and
+how a project-level verdict is computed from every function's own — is in
+[`docs/FORMULA.md`](docs/FORMULA.md).
+
 It is published as the Cargo subcommand package `cargo-crap4rust`, so the command is `cargo crap4rust`.
 
-Current status and release notes:
+## Documentation
 
-- [IMPLEMENTED-FEATURES.md](IMPLEMENTED-FEATURES.md) documents what `0.6.0` supports today
-- [ROADMAP.md](ROADMAP.md) tracks planned capabilities beyond the first release
-- [CHANGELOG.md](CHANGELOG.md) records released versions
+| Doc | What's in it |
+|---|---|
+| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | How a `crap4rust` invocation flows through the code, module by module. |
+| [`docs/FORMULA.md`](docs/FORMULA.md) | Every scoring term, in full, kept in sync with `src/`. |
+| [`docs/ADRs/`](docs/ADRs/) | Why the codebase is shaped the way it is. |
+| [`ROADMAP.md`](ROADMAP.md) | What's shipped, what's next. |
+| [`OPEN_POINTS.md`](OPEN_POINTS.md) | Known gaps, deliberately deferred. |
+| [`IMPLEMENTED-FEATURES.md`](IMPLEMENTED-FEATURES.md) | The full shipped feature set. |
+| [`CHANGELOG.md`](CHANGELOG.md) | Release history. |
 
 ## Install
 
@@ -36,6 +47,7 @@ Licensed under:
 - Does not count try-operator propagation with `?` as cognitive complexity
 - Supports `--output-format json` for structured CI-friendly output
 - Supports `--warn-threshold` to set the warning level independently from the crappy threshold
+- Excludes test-only code from discovery whether it's an inline `#[cfg(test)] mod tests { ... }` block or a file-based `#[cfg(test)] mod tests;` submodule
 - Cognitive complexity scoring lives in its own dedicated module
 
 ## Examples

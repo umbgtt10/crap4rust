@@ -1,6 +1,6 @@
 # crap4rust Roadmap
 
-This document tracks the planned evolution of `cargo-crap4rust` beyond the currently shipped `0.3.x` release.
+This document tracks the planned evolution of `cargo-crap4rust` beyond the currently shipped release.
 
 For what is available today, see [IMPLEMENTED-FEATURES.md](IMPLEMENTED-FEATURES.md). For released versions, see [CHANGELOG.md](CHANGELOG.md).
 
@@ -26,17 +26,32 @@ The long-term direction is:
 
 ## Current Baseline
 
-The shipped `0.3.x` line already provides:
+The shipped release already provides:
 
 - `cargo crap4rust` as a published Cargo subcommand
-- per-function CRAP scoring
-- internal cognitive-complexity scoring
-- automatic `cargo llvm-cov` JSON generation when needed
-- explicit coverage-file input
-- multi-package workspace aggregation
-- console reporting and threshold-based exit codes
+- per-function CRAP scoring, with internal cognitive-complexity scoring in
+  its own dedicated module
+- automatic `cargo llvm-cov` JSON generation when needed, or explicit
+  coverage-file input via `--coverage`
+- multi-package workspace aggregation, defaulting to every workspace member
+  when `--package` is omitted
+- `--features`, `--all-features`, `--no-default-features`,
+  `--include-test-targets`, and repeatable `--exclude-path` for controlling
+  what gets analyzed
+- console and `--output-format json` reporting, with independently
+  configurable `--threshold`/`--warn-threshold`/`--project-threshold` and
+  threshold-based exit codes (`--strict`, `--warn-only`)
+- try-operator (`?`) propagation excluded from cognitive-complexity scoring
+- file-based `#[cfg(test)] mod name;` submodules excluded from discovery the
+  same way an inline `#[cfg(test)] mod name { ... }` block already is
+- `App` built from five independently swappable traits
+  (`PackageResolver`/`FunctionDiscovery`/`CoverageProvider`/`Scorer`/`Reporter`)
+  rather than a fixed free-function pipeline
 
-That baseline is intentionally small. The roadmap below is about what comes next, not what is already complete.
+See [CHANGELOG.md](CHANGELOG.md) for exactly which release each of these
+landed in, and [docs/FORMULA.md](docs/FORMULA.md)/[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+for how they work. The roadmap below is about what comes next, not what is
+already complete.
 
 ## Planned Phases
 
@@ -46,7 +61,6 @@ Goal: make local output more useful without changing the core analysis model.
 
 Planned scope:
 
-- JSON output for automation and downstream tooling
 - HTML and Markdown reports for people-facing consumption
 - output-file support instead of stdout-only reporting
 - sorting, top-N filtering, and optional clean-function display
@@ -54,8 +68,11 @@ Planned scope:
 
 Exit criteria:
 
-- one machine-readable format is stable enough for CI consumption
 - one human-readable file format is useful enough to archive or share
+
+`--output-format json` already shipped as the machine-readable format this
+phase originally called for; this phase is now scoped to the remaining,
+people-facing formats.
 
 ### Phase 3: CI and Baselines
 
@@ -125,7 +142,7 @@ Exit criteria:
 These ideas are intentionally not prioritized until the core roadmap is further along:
 
 - broad plugin architecture before the core data model stabilizes
-- niche output formats before JSON and one strong human-readable file format land
+- niche output formats before one strong human-readable file format lands
 - advanced policy systems before basic configuration exists
 - ecosystem integrations that outrun the stability of the core analysis engine
 
