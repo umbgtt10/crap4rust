@@ -47,6 +47,8 @@ Licensed under:
 - Does not count try-operator propagation with `?` as cognitive complexity
 - Supports `--output-format json` for structured CI-friendly output
 - Supports `--warn-threshold` to set the warning level independently from the crappy threshold
+- Supports `--warn-only` to report without failing the exit code even when thresholds are exceeded
+- Supports `--all-features` to activate all Cargo features during the coverage build
 - Excludes test-only code from discovery whether it's an inline `#[cfg(test)] mod tests { ... }` block or a file-based `#[cfg(test)] mod tests;` submodule
 - Cognitive complexity scoring lives in its own dedicated module
 
@@ -97,6 +99,12 @@ Disable default features and enable specific ones:
 cargo crap4rust --manifest-path C:\Projects\my-workspace\Cargo.toml --package app-core --no-default-features --features host-analysis
 ```
 
+Activate all Cargo features during the coverage build:
+
+```powershell
+cargo crap4rust --manifest-path C:\Projects\my-workspace\Cargo.toml --package app-core --all-features
+```
+
 Include test targets in the analysis:
 
 ```powershell
@@ -121,43 +129,37 @@ Set a custom warning threshold:
 cargo crap4rust --manifest-path C:\Projects\my-workspace\Cargo.toml --warn-threshold 15
 ```
 
-## Real Workspace Example
-
-Example run against the Etheram workspace:
+Report without failing the exit code even when thresholds are exceeded:
 
 ```powershell
-cargo crap4rust --manifest-path C:\Projects\etheram\Cargo.toml --package etheram-node --package etheram-validation
+cargo crap4rust --manifest-path C:\Projects\my-workspace\Cargo.toml --warn-only
+```
+
+## Real Workspace Example
+
+Example run against the `etheram-raft` workspace (all four workspace
+members — `node`, `node-infra`, `validation`, `system-tests` — analysed
+together, since `--package` is omitted):
+
+```powershell
+cargo crap4rust --manifest-path C:\Projects\etheram\etheram-raft\Cargo.toml
 ```
 
 Report excerpt:
 
-`crap4rust report for etheram-node, etheram-validation`
+`crap4rust report for node, node-infra, validation, system-tests`
 
 | Package | Function | File | Line | Complexity | Coverage | CRAP | Verdict |
 | --- | --- | --- | ---: | ---: | ---: | ---: | --- |
-| `etheram-node` | `ConsensusWal::from_bytes` | `consensus_wal.rs` | 115 | 72 | 41.7% | 1099.3 | `crappy` |
-| `etheram-node` | `execute_bytecode` | `tiny_evm_engine.rs` | 572 | 39 | 43.3% | 316.1 | `crappy` |
-| `etheram-node` | `RecoveryImportValidator::validate_response` | `recovery_import_validator.rs` | 13 | 21 | 47.9% | 83.3 | `crappy` |
-| `etheram-node` | `IbftProtocol::handle_client_message` | `ibft_protocol_dispatch.rs` | 82 | 19 | 47.1% | 72.6 | `crappy` |
-| `etheram-node` | `exec_sha3` | `tiny_evm_engine.rs` | 345 | 12 | 30.3% | 60.7 | `crappy` |
+| `system-tests` | `GrpcRaftTransportInner::send_with_retry_async` | `grpc_raft_transport.rs` | 67 | 8 | 0.0% | 72.0 | `crappy` |
+| `system-tests` | `SledRaftStorage::mutate` | `sled_raft_storage.rs` | 163 | 7 | 0.0% | 56.0 | `crappy` |
+| `system-tests` | `TimerSlots::check_slot` | `desktop_raft_timer.rs` | 92 | 6 | 0.0% | 42.0 | `crappy` |
 
-Summary: `total_functions=388`, `crappy_functions=12`, `crappy_percent=3.1%`, `threshold=30.0`, `project_threshold=5.0%`, `verdict=warn`.
+Summary: `total_functions=419`, `crappy_functions=3`, `crappy_percent=0.7%`, `threshold=30.0`, `project_threshold=5.0%`, `verdict=warn`.
 Production functions only — test code and generated code excluded by default.
 
 The report above is abbreviated to the highest-scoring rows, with function names and file paths shortened for readability. When coverage is generated automatically, `cargo llvm-cov` also emits normal build and test output before the final crap4rust report.
 
 Try-operator propagation with `?` is treated as error forwarding rather than decision-making complexity, so CRAP scoring reflects branching and control-flow structure instead of penalising straightforward `Result` propagation.
-
-## Current Scope
-
-The current implementation focuses on:
-
-- console and JSON reporting
-- automatic `cargo llvm-cov` integration
-- internal cognitive-complexity scoring in a dedicated module
-- workspace package selection and aggregation
-- all-workspace-member default selection when `--package` is omitted in multi-package workspaces
-- try-operator propagation excluded from cognitive-complexity scoring
-- configurable warning threshold independent from the crappy threshold
 
 See [docs/IMPLEMENTED-FEATURES.md](docs/IMPLEMENTED-FEATURES.md) for the shipped feature set and [docs/ROADMAP.md](docs/ROADMAP.md) for the broader plan.
