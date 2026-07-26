@@ -2,6 +2,7 @@
 // Licensed under the MIT License or Apache License, Version 2.0
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
+use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result, bail};
@@ -104,7 +105,7 @@ fn select_packages<'a>(metadata: &'a Metadata, requested: &[String]) -> Result<V
         .workspace_members
         .iter()
         .cloned()
-        .collect::<std::collections::BTreeSet<_>>();
+        .collect::<BTreeSet<_>>();
     let selected = metadata
         .packages
         .iter()

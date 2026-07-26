@@ -5,6 +5,8 @@
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 
+use cargo_metadata::Target;
+
 pub struct SourceRootCollector<'a> {
     include_test_targets: bool,
     manifest_dir: &'a Path,
@@ -20,13 +22,13 @@ impl<'a> SourceRootCollector<'a> {
         }
     }
 
-    pub fn collect(&mut self, targets: &[cargo_metadata::Target]) {
+    pub fn collect(&mut self, targets: &[Target]) {
         for target in targets {
             self.process_target(target);
         }
     }
 
-    pub fn process_target(&mut self, target: &cargo_metadata::Target) {
+    pub fn process_target(&mut self, target: &Target) {
         if !is_selected_target(target, self.include_test_targets) {
             return;
         }
@@ -51,10 +53,7 @@ impl<'a> SourceRootCollector<'a> {
     }
 }
 
-pub(crate) fn is_selected_target(
-    target: &cargo_metadata::Target,
-    include_test_targets: bool,
-) -> bool {
+pub(crate) fn is_selected_target(target: &Target, include_test_targets: bool) -> bool {
     let kinds = target
         .kind
         .iter()

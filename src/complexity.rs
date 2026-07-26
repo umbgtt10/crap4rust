@@ -3,8 +3,8 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
 use syn::{
-    Arm, Block, Expr, ExprBinary, ExprBlock, ExprForLoop, ExprIf, ExprLoop, ExprMatch, ExprWhile,
-    ImplItem, Item, LocalInit, Pat, Stmt,
+    Arm, BinOp, Block, Expr, ExprBinary, ExprBlock, ExprForLoop, ExprIf, ExprLoop, ExprMatch,
+    ExprWhile, ImplItem, Item, LocalInit, Pat, Stmt,
 };
 
 #[must_use]
@@ -234,7 +234,7 @@ fn logical_expr_score(expr: &Expr) -> u32 {
 }
 
 fn logical_ops(expr_binary: &ExprBinary) -> u32 {
-    if matches!(expr_binary.op, syn::BinOp::And(_) | syn::BinOp::Or(_)) {
+    if matches!(expr_binary.op, BinOp::And(_) | BinOp::Or(_)) {
         1
     } else {
         0

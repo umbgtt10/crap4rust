@@ -4,9 +4,11 @@
 
 use std::path::Path;
 
+use cargo_metadata::Target;
+
 use crap4rust::source_root_collector::SourceRootCollector;
 
-fn make_target(kinds: &[&str], src_path: &str) -> cargo_metadata::Target {
+fn make_target(kinds: &[&str], src_path: &str) -> Target {
     let kinds_json: Vec<String> = kinds.iter().map(|k| format!("\"{}\"", k)).collect();
     let json = format!(
         r#"{{"name":"test","kind":[{}],"crate_types":["lib"],"required_features":[],"src_path":"{}","edition":"2021","doctest":false}}"#,

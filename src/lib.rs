@@ -30,6 +30,7 @@ pub mod test_module_registry;
 pub mod traits;
 pub mod verdict;
 
+use std::ffi::OsString;
 use std::process::ExitCode;
 
 use anyhow::Result;
@@ -42,7 +43,7 @@ pub fn run() -> Result<ExitCode> {
 pub fn run_from_args<I, T>(args: I) -> Result<ExitCode>
 where
     I: IntoIterator<Item = T>,
-    T: Into<std::ffi::OsString> + Clone,
+    T: Into<OsString> + Clone,
 {
     let args = <cli::Args as clap::Parser>::parse_from(args);
     app::run(args)

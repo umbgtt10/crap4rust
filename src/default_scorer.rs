@@ -2,6 +2,8 @@
 // Licensed under the MIT License or Apache License, Version 2.0
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
+use std::cmp::Ordering;
+
 use crate::config::Config;
 use crate::coverage_index::CoverageIndex;
 use crate::crap_formula::CrapFormula;
@@ -65,7 +67,7 @@ impl Scorer for DefaultScorer {
             right
                 .crap_score
                 .partial_cmp(&left.crap_score)
-                .unwrap_or(std::cmp::Ordering::Equal)
+                .unwrap_or(Ordering::Equal)
                 .then_with(|| left.name.cmp(&right.name))
         });
 

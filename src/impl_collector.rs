@@ -119,7 +119,7 @@ pub(crate) fn qualified_name(
     parts.join("::")
 }
 
-pub fn is_test_attrs(attrs: &[syn::Attribute]) -> bool {
+pub fn is_test_attrs(attrs: &[Attribute]) -> bool {
     attrs.iter().any(is_test_attr)
 }
 

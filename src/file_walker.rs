@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
 use std::fs;
+use std::iter;
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
@@ -276,7 +277,7 @@ pub(crate) fn visit_module(
     let nested_modules = inline_modules
         .iter()
         .cloned()
-        .chain(std::iter::once(item_mod.ident.to_string()))
+        .chain(iter::once(item_mod.ident.to_string()))
         .collect::<Vec<_>>();
 
     items

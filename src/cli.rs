@@ -2,6 +2,7 @@
 // Licensed under the MIT License or Apache License, Version 2.0
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
+use std::ffi::OsString;
 use std::path::PathBuf;
 
 use clap::Parser;
@@ -50,7 +51,7 @@ impl Args {
     pub fn parse_from_args<I, T>(args: I) -> Self
     where
         I: IntoIterator<Item = T>,
-        T: Into<std::ffi::OsString> + Clone,
+        T: Into<OsString> + Clone,
     {
         Self::parse_from(args)
     }
