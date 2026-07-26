@@ -101,3 +101,27 @@ fn collect_with_include_test_targets_includes_test_dir() {
     result.sort();
     assert_eq!(result, expected);
 }
+
+#[test]
+fn is_selected_target_excludes_test_kind_without_include_test_targets() {
+    // Arrange
+    let target = make_target(&["test"], "/project/tests/integration_test.rs");
+
+    // Act
+    let result = SourceRootCollector::is_selected_target(&target, false);
+
+    // Assert
+    assert!(!result);
+}
+
+#[test]
+fn is_selected_target_includes_proc_macro_kind() {
+    // Arrange
+    let target = make_target(&["proc-macro"], "/project/src/lib.rs");
+
+    // Act
+    let result = SourceRootCollector::is_selected_target(&target, false);
+
+    // Assert
+    assert!(result);
+}
