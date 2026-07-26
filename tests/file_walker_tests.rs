@@ -4,9 +4,7 @@
 
 use std::path::Path;
 
-use crap4rust::file_walker::{
-    is_excluded_relative_file, is_selected_relative_file, normalize_path, relative_file,
-};
+use crap4rust::file_walker::{FileWalker, normalize_path};
 
 #[test]
 fn relative_file_within_base_dir_strips_prefix() {
@@ -15,7 +13,7 @@ fn relative_file_within_base_dir_strips_prefix() {
     let file = Path::new("/project/src/lib.rs");
 
     // Act
-    let result = relative_file(base, file);
+    let result = FileWalker::relative_file(base, file);
 
     // Assert
     assert_eq!(result, "lib.rs");
@@ -28,7 +26,7 @@ fn relative_file_outside_base_dir_returns_full_path() {
     let file = Path::new("/other/lib.rs");
 
     // Act
-    let result = relative_file(base, file);
+    let result = FileWalker::relative_file(base, file);
 
     // Assert
     assert_eq!(result, "/other/lib.rs");
@@ -37,7 +35,7 @@ fn relative_file_outside_base_dir_returns_full_path() {
 #[test]
 fn is_selected_relative_file_without_test_targets_excludes_tests() {
     // Arrange & Act
-    let result = is_selected_relative_file("tests/test.rs", false);
+    let result = FileWalker::is_selected_relative_file("tests/test.rs", false);
 
     // Assert
     assert!(!result);
@@ -46,7 +44,7 @@ fn is_selected_relative_file_without_test_targets_excludes_tests() {
 #[test]
 fn is_selected_relative_file_with_test_targets_includes_tests() {
     // Arrange & Act
-    let result = is_selected_relative_file("tests/test.rs", true);
+    let result = FileWalker::is_selected_relative_file("tests/test.rs", true);
 
     // Assert
     assert!(result);
@@ -55,7 +53,7 @@ fn is_selected_relative_file_with_test_targets_includes_tests() {
 #[test]
 fn is_selected_relative_file_excludes_examples() {
     // Arrange & Act
-    let result = is_selected_relative_file("examples/example.rs", false);
+    let result = FileWalker::is_selected_relative_file("examples/example.rs", false);
 
     // Assert
     assert!(!result);
@@ -64,7 +62,7 @@ fn is_selected_relative_file_excludes_examples() {
 #[test]
 fn is_selected_relative_file_excludes_benches() {
     // Arrange & Act
-    let result = is_selected_relative_file("benches/bench.rs", false);
+    let result = FileWalker::is_selected_relative_file("benches/bench.rs", false);
 
     // Assert
     assert!(!result);
@@ -73,7 +71,7 @@ fn is_selected_relative_file_excludes_benches() {
 #[test]
 fn is_selected_relative_file_excludes_build_rs() {
     // Arrange & Act
-    let result = is_selected_relative_file("build.rs", false);
+    let result = FileWalker::is_selected_relative_file("build.rs", false);
 
     // Assert
     assert!(!result);
@@ -82,7 +80,7 @@ fn is_selected_relative_file_excludes_build_rs() {
 #[test]
 fn is_selected_relative_file_includes_src_files() {
     // Arrange & Act
-    let result = is_selected_relative_file("src/lib.rs", false);
+    let result = FileWalker::is_selected_relative_file("src/lib.rs", false);
 
     // Assert
     assert!(result);
@@ -94,7 +92,7 @@ fn is_excluded_relative_file_matches_prefix() {
     let excludes = vec![String::from("tests/fixtures")];
 
     // Act
-    let result = is_excluded_relative_file("tests/fixtures/data.rs", &excludes);
+    let result = FileWalker::is_excluded_relative_file("tests/fixtures/data.rs", &excludes);
 
     // Assert
     assert!(result);
@@ -106,7 +104,7 @@ fn is_excluded_relative_file_exact_match() {
     let excludes = vec![String::from("build.rs")];
 
     // Act
-    let result = is_excluded_relative_file("build.rs", &excludes);
+    let result = FileWalker::is_excluded_relative_file("build.rs", &excludes);
 
     // Assert
     assert!(result);
@@ -118,7 +116,7 @@ fn is_excluded_relative_file_non_matching_not_excluded() {
     let excludes = vec![String::from("tests/fixtures")];
 
     // Act
-    let result = is_excluded_relative_file("src/lib.rs", &excludes);
+    let result = FileWalker::is_excluded_relative_file("src/lib.rs", &excludes);
 
     // Assert
     assert!(!result);

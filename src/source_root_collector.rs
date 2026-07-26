@@ -29,7 +29,7 @@ impl<'a> SourceRootCollector<'a> {
     }
 
     pub fn process_target(&mut self, target: &Target) {
-        if !is_selected_target(target, self.include_test_targets) {
+        if !Self::is_selected_target(target, self.include_test_targets) {
             return;
         }
 
@@ -51,39 +51,46 @@ impl<'a> SourceRootCollector<'a> {
         }
         self.source_roots.into_iter().collect()
     }
-}
 
-pub(crate) fn is_selected_target(target: &Target, include_test_targets: bool) -> bool {
-    let kinds = target
-        .kind
-        .iter()
-        .map(|kind| kind.to_string())
-        .collect::<Vec<_>>();
+    pub fn is_selected_target(target: &Target, include_test_targets: bool) -> bool {
+        let kinds = target
+            .kind
+            .iter()
+            .map(|kind| kind.to_string())
+            .collect::<Vec<_>>();
 
-    if kinds.iter().any(|kind| kind == "custom-build") {
-        return false;
-    }
+        if kinds.iter().any(|kind| kind == "custom-build") {
+            return false;
+        }
 
-    if include_test_targets {
-        return kinds.iter().any(|kind| {
+        if include_test_targets {
+            return kinds.iter().any(|kind| {
+                matches!(
+                    kind.as_str(),
+                    "lib"
+                        | "bin"
+                        | "proc-macro"
+                        | "rlib"
+                        | "dylib"
+                        | "cdylib"
+                        | "staticlib"
+                        | "test"
+                )
+            });
+        }
+
+        if kinds
+            .iter()
+            .any(|kind| matches!(kind.as_str(), "test" | "bench" | "example"))
+        {
+            return false;
+        }
+
+        kinds.iter().any(|kind| {
             matches!(
                 kind.as_str(),
-                "lib" | "bin" | "proc-macro" | "rlib" | "dylib" | "cdylib" | "staticlib" | "test"
+                "lib" | "bin" | "proc-macro" | "rlib" | "dylib" | "cdylib" | "staticlib"
             )
-        });
+        })
     }
-
-    if kinds
-        .iter()
-        .any(|kind| matches!(kind.as_str(), "test" | "bench" | "example"))
-    {
-        return false;
-    }
-
-    kinds.iter().any(|kind| {
-        matches!(
-            kind.as_str(),
-            "lib" | "bin" | "proc-macro" | "rlib" | "dylib" | "cdylib" | "staticlib"
-        )
-    })
 }

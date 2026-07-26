@@ -17,19 +17,19 @@ impl SourceFunctionDiscovery {
     pub const fn new() -> Self {
         Self
     }
+
+    pub fn discover_functions(package: &PackageContext) -> Result<Vec<SourceFunction>> {
+        let walker = FileWalker::new(package);
+        let mut functions = Vec::new();
+        for source_root in &package.source_roots {
+            functions.extend(walker.process_source_root(source_root)?);
+        }
+        Ok(functions)
+    }
 }
 
 impl FunctionDiscovery for SourceFunctionDiscovery {
     fn discover(&self, package: &PackageContext) -> Result<Vec<SourceFunction>> {
-        discover_functions(package)
+        Self::discover_functions(package)
     }
-}
-
-pub fn discover_functions(package: &PackageContext) -> Result<Vec<SourceFunction>> {
-    let walker = FileWalker::new(package);
-    let mut functions = Vec::new();
-    for source_root in &package.source_roots {
-        functions.extend(walker.process_source_root(source_root)?);
-    }
-    Ok(functions)
 }

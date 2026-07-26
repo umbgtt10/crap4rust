@@ -12,7 +12,7 @@ pub mod coverage_index;
 pub mod coverage_record;
 pub mod crap_formula;
 pub mod default_scorer;
-mod export;
+pub mod export;
 pub mod file_walker;
 pub mod function_report;
 pub mod impl_collector;

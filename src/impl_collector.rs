@@ -10,7 +10,7 @@ use crate::complexity::cognitive_complexity;
 use crate::package_context::PackageContext;
 use crate::source_function::SourceFunction;
 
-pub(crate) struct ImplCollector<'a> {
+pub struct ImplCollector<'a> {
     package: &'a PackageContext,
     path_key: &'a str,
     relative_file: &'a str,
@@ -19,7 +19,7 @@ pub(crate) struct ImplCollector<'a> {
 }
 
 impl<'a> ImplCollector<'a> {
-    pub(crate) fn new(
+    pub fn new(
         package: &'a PackageContext,
         path_key: &'a str,
         relative_file: &'a str,
@@ -35,8 +35,26 @@ impl<'a> ImplCollector<'a> {
         }
     }
 
-    pub(crate) fn collect(&self, item_impl: &ItemImpl) -> Vec<SourceFunction> {
-        let receiver = impl_type_name(&item_impl.self_ty);
+    pub fn visit_impl(
+        package: &'a PackageContext,
+        item_impl: &ItemImpl,
+        path_key: &'a str,
+        relative_file: &'a str,
+        module_prefix: &'a [String],
+        inline_modules: &'a [String],
+    ) -> Vec<SourceFunction> {
+        Self::new(
+            package,
+            path_key,
+            relative_file,
+            module_prefix,
+            inline_modules,
+        )
+        .collect(item_impl)
+    }
+
+    pub fn collect(&self, item_impl: &ItemImpl) -> Vec<SourceFunction> {
+        let receiver = Self::impl_type_name(&item_impl.self_ty);
         let mut functions = Vec::new();
         for item in &item_impl.items {
             if let Some(function) = self.process_item(item, &receiver) {
@@ -46,7 +64,7 @@ impl<'a> ImplCollector<'a> {
         functions
     }
 
-    pub(crate) fn process_item(&self, item: &ImplItem, receiver: &str) -> Option<SourceFunction> {
+    pub fn process_item(&self, item: &ImplItem, receiver: &str) -> Option<SourceFunction> {
         if let ImplItem::Fn(method) = item {
             if is_test_attrs(&method.attrs) {
                 return None;
@@ -70,40 +88,22 @@ impl<'a> ImplCollector<'a> {
             None
         }
     }
-}
 
-pub(crate) fn visit_impl(
-    package: &PackageContext,
-    item_impl: &ItemImpl,
-    path_key: &str,
-    relative_file: &str,
-    module_prefix: &[String],
-    inline_modules: &[String],
-) -> Vec<SourceFunction> {
-    ImplCollector::new(
-        package,
-        path_key,
-        relative_file,
-        module_prefix,
-        inline_modules,
-    )
-    .collect(item_impl)
-}
-
-fn impl_type_name(ty: &Type) -> String {
-    match ty {
-        Type::Path(path) => path
-            .path
-            .segments
-            .last()
-            .map(|segment| segment.ident.to_string())
-            .unwrap_or_else(|| "impl".to_string()),
-        Type::Reference(reference) => impl_type_name(&reference.elem),
-        _ => "impl".to_string(),
+    fn impl_type_name(ty: &Type) -> String {
+        match ty {
+            Type::Path(path) => path
+                .path
+                .segments
+                .last()
+                .map(|segment| segment.ident.to_string())
+                .unwrap_or_else(|| "impl".to_string()),
+            Type::Reference(reference) => Self::impl_type_name(&reference.elem),
+            _ => "impl".to_string(),
+        }
     }
 }
 
-pub(crate) fn qualified_name(
+pub fn qualified_name(
     module_prefix: &[String],
     inline_modules: &[String],
     receiver: Option<&str>,
@@ -155,10 +155,10 @@ fn is_test_path(path: &SynPath) -> bool {
             .is_some_and(|segment| segment.ident == "test")
 }
 
-pub(crate) fn start_line(span: Span) -> usize {
+pub fn start_line(span: Span) -> usize {
     span.start().line
 }
 
-pub(crate) fn end_line(span: Span) -> usize {
+pub fn end_line(span: Span) -> usize {
     span.end().line
 }

@@ -5,17 +5,17 @@
 use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
-pub(crate) struct Export {
-    pub(crate) data: Vec<ExportChunk>,
+pub struct Export {
+    pub data: Vec<ExportChunk>,
 }
 
 #[derive(Debug, Deserialize)]
-pub(crate) struct ExportChunk {
-    pub(crate) functions: Vec<ExportFunction>,
+pub struct ExportChunk {
+    pub functions: Vec<ExportFunction>,
 }
 
 #[derive(Debug, Deserialize)]
-pub(crate) struct ExportFunction {
-    pub(crate) filenames: Vec<String>,
-    pub(crate) regions: Vec<Vec<u64>>,
+pub struct ExportFunction {
+    pub filenames: Vec<String>,
+    pub regions: Vec<Vec<u64>>,
 }

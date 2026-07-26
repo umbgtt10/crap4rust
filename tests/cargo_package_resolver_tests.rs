@@ -2,7 +2,7 @@
 // Licensed under the MIT License
 // SPDX-License-Identifier: MIT
 
-use crap4rust::cargo_package_resolver::{CargoPackageResolver, resolve_packages};
+use crap4rust::cargo_package_resolver::CargoPackageResolver;
 use crap4rust::config::Config;
 use crap4rust::output_format::OutputFormat;
 use crap4rust::traits::package_resolver::PackageResolver;
@@ -27,12 +27,13 @@ fn test_config() -> Config {
 }
 
 #[test]
-fn resolve_packages_finds_cargo_crap4rust() {
+fn resolve_finds_cargo_crap4rust() {
     // Arrange
     let config = test_config();
+    let resolver = CargoPackageResolver::new();
 
     // Act
-    let packages = resolve_packages(&config).expect("resolve packages");
+    let packages = resolver.resolve(&config).expect("resolve packages");
 
     // Assert
     assert_eq!(packages.len(), 1);
@@ -40,22 +41,23 @@ fn resolve_packages_finds_cargo_crap4rust() {
 }
 
 #[test]
-fn resolve_packages_has_source_roots() {
+fn resolve_has_source_roots() {
     // Arrange
     let config = test_config();
+    let resolver = CargoPackageResolver::new();
 
     // Act
-    let packages = resolve_packages(&config).expect("resolve packages");
+    let packages = resolver.resolve(&config).expect("resolve packages");
 
     // Assert
     assert!(!packages[0].source_roots.is_empty());
 }
 
 #[test]
-fn resolve_via_trait_matches_free_function() {
+fn resolve_via_dyn_package_resolver_finds_cargo_crap4rust() {
     // Arrange
     let config = test_config();
-    let resolver = CargoPackageResolver::new();
+    let resolver: Box<dyn PackageResolver> = Box::new(CargoPackageResolver::new());
 
     // Act
     let packages = resolver.resolve(&config).expect("resolve packages");

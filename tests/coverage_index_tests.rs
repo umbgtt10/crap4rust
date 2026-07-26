@@ -4,7 +4,7 @@
 
 use std::collections::HashMap;
 
-use crap4rust::coverage_index::match_function_coverage;
+use crap4rust::coverage_index::CoverageIndex;
 use crap4rust::coverage_record::CoverageRecord;
 use crap4rust::source_function::SourceFunction;
 
@@ -32,7 +32,7 @@ fn match_function_coverage_exact_match_returns_record() {
     };
 
     // Act
-    let result = match_function_coverage(&function, &index);
+    let result = CoverageIndex::match_function_coverage(&function, &index);
 
     // Assert
     assert!(result.is_some());
@@ -63,7 +63,7 @@ fn match_function_coverage_fuzzy_match_within_span_returns_nearest() {
     };
 
     // Act
-    let result = match_function_coverage(&function, &index);
+    let result = CoverageIndex::match_function_coverage(&function, &index);
 
     // Assert
     assert!(result.is_some());
@@ -94,7 +94,7 @@ fn match_function_coverage_no_match_returns_none() {
     };
 
     // Act
-    let result = match_function_coverage(&function, &index);
+    let result = CoverageIndex::match_function_coverage(&function, &index);
 
     // Assert
     assert!(result.is_none());
@@ -133,7 +133,7 @@ fn match_function_coverage_aggregates_all_regions_within_span() {
     };
 
     // Act
-    let result = match_function_coverage(&function, &index);
+    let result = CoverageIndex::match_function_coverage(&function, &index);
 
     // Assert
     assert!(result.is_some());
@@ -145,7 +145,6 @@ fn match_function_coverage_aggregates_all_regions_within_span() {
 #[test]
 fn from_records_aggregates_duplicate_entries() {
     // Arrange
-    use crap4rust::coverage_index::CoverageIndex;
     let records = vec![
         CoverageRecord {
             path_key: String::from("src/lib.rs"),
@@ -182,7 +181,6 @@ fn from_records_aggregates_duplicate_entries() {
 #[test]
 fn from_records_skips_zero_duplicate_when_nonzero_arrives_first() {
     // Arrange
-    use crap4rust::coverage_index::CoverageIndex;
     let records = vec![
         CoverageRecord {
             path_key: String::from("src/lib.rs"),
@@ -210,7 +208,6 @@ fn from_records_skips_zero_duplicate_when_nonzero_arrives_first() {
 #[test]
 fn from_records_discards_zero_duplicate_when_nonzero_arrives_second() {
     // Arrange
-    use crap4rust::coverage_index::CoverageIndex;
     let records = vec![
         CoverageRecord {
             path_key: String::from("src/lib.rs"),
