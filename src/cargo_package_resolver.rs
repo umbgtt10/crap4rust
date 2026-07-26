@@ -2,13 +2,31 @@
 // Licensed under the MIT License or Apache License, Version 2.0
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
-use crate::source_root_collector::SourceRootCollector;
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result, bail};
 use cargo_metadata::{Metadata, MetadataCommand, Package};
 
-use crate::model::{Config, PackageContext};
+use crate::config::Config;
+use crate::package_context::PackageContext;
+use crate::source_root_collector::SourceRootCollector;
+use crate::traits::package_resolver::PackageResolver;
+
+#[derive(Debug, Clone, Copy, Default)]
+pub struct CargoPackageResolver;
+
+impl CargoPackageResolver {
+    #[must_use]
+    pub const fn new() -> Self {
+        Self
+    }
+}
+
+impl PackageResolver for CargoPackageResolver {
+    fn resolve(&self, config: &Config) -> Result<Vec<PackageContext>> {
+        resolve_packages(config)
+    }
+}
 
 pub fn resolve_packages(config: &Config) -> Result<Vec<PackageContext>> {
     let mut command = MetadataCommand::new();

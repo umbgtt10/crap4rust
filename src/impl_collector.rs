@@ -7,7 +7,8 @@ use syn::spanned::Spanned;
 use syn::{Attribute, ImplItem, ItemImpl, Path as SynPath, Type};
 
 use crate::complexity::cognitive_complexity;
-use crate::model::{PackageContext, SourceFunction};
+use crate::package_context::PackageContext;
+use crate::source_function::SourceFunction;
 
 pub(crate) struct ImplCollector<'a> {
     package: &'a PackageContext,
@@ -78,17 +79,15 @@ pub(crate) fn visit_impl(
     relative_file: &str,
     module_prefix: &[String],
     inline_modules: &[String],
-    functions: &mut Vec<SourceFunction>,
-) {
-    let collector = ImplCollector::new(
+) -> Vec<SourceFunction> {
+    ImplCollector::new(
         package,
         path_key,
         relative_file,
         module_prefix,
         inline_modules,
-    );
-    let result = collector.collect(item_impl);
-    functions.extend(result);
+    )
+    .collect(item_impl)
 }
 
 fn impl_type_name(ty: &Type) -> String {

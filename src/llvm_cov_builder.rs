@@ -7,7 +7,8 @@ use std::process::{Command, Stdio};
 
 use anyhow::{Context, Result, bail};
 
-use crate::model::{Config, PackageContext};
+use crate::config::Config;
+use crate::package_context::PackageContext;
 
 pub struct LlvmCovBuilder {
     command: Command,

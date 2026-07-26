@@ -4,7 +4,9 @@
 
 use std::path::PathBuf;
 
-use clap::{Parser, ValueEnum};
+use clap::Parser;
+
+use crate::output_format::OutputFormat;
 
 #[derive(Debug, Clone, Parser)]
 #[command(name = "crap4rust")]
@@ -38,12 +40,6 @@ pub struct Args {
     pub warn_threshold: f64,
     #[arg(long, default_value_t = OutputFormat::Human, value_enum)]
     pub output_format: OutputFormat,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum)]
-pub enum OutputFormat {
-    Human,
-    Json,
 }
 
 impl Args {

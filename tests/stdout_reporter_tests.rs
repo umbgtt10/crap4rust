@@ -2,8 +2,13 @@
 // Licensed under the MIT License or Apache License, Version 2.0
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
-use crap4rust::cli::OutputFormat;
-use crap4rust::model::{Config, ProjectReport, Verdict};
+use crap4rust::config::Config;
+use crap4rust::function_report::FunctionReport;
+use crap4rust::output_format::OutputFormat;
+use crap4rust::project_report::ProjectReport;
+use crap4rust::stdout_reporter::StdoutReporter;
+use crap4rust::traits::reporter::Reporter;
+use crap4rust::verdict::Verdict;
 
 fn test_config() -> Config {
     Config {
@@ -25,8 +30,9 @@ fn test_config() -> Config {
 }
 
 #[test]
-fn print_report_with_no_clean_functions_shows_threshold_message() {
+fn render_with_no_clean_functions_shows_threshold_message() {
     // Arrange
+    let reporter = StdoutReporter::new();
     let report = ProjectReport {
         scope_name: String::from("test"),
         total_functions: 0,
@@ -39,8 +45,7 @@ fn print_report_with_no_clean_functions_shows_threshold_message() {
 
     // Act
     let output = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-        // This prints to stdout, which is fine — we just verify no panic
-        crap4rust::report::print_report(&report, &config);
+        reporter.render(&report, &config);
     }));
 
     // Assert
@@ -48,9 +53,9 @@ fn print_report_with_no_clean_functions_shows_threshold_message() {
 }
 
 #[test]
-fn print_report_with_crappy_functions_shows_table() {
+fn render_with_crappy_functions_shows_table() {
     // Arrange
-    use crap4rust::model::FunctionReport;
+    let reporter = StdoutReporter::new();
     let report = ProjectReport {
         scope_name: String::from("test"),
         total_functions: 1,
@@ -72,7 +77,31 @@ fn print_report_with_crappy_functions_shows_table() {
 
     // Act
     let output = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-        crap4rust::report::print_report(&report, &config);
+        reporter.render(&report, &config);
+    }));
+
+    // Assert
+    assert!(output.is_ok());
+}
+
+#[test]
+fn render_json_output_format_does_not_panic() {
+    // Arrange
+    let reporter = StdoutReporter::new();
+    let report = ProjectReport {
+        scope_name: String::from("test"),
+        total_functions: 0,
+        crappy_functions: 0,
+        crappy_percent: 0.0,
+        verdict: Verdict::Clean,
+        functions: vec![],
+    };
+    let mut config = test_config();
+    config.output_format = OutputFormat::Json;
+
+    // Act
+    let output = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        reporter.render(&report, &config);
     }));
 
     // Assert

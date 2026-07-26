@@ -6,171 +6,123 @@ use std::process::ExitCode;
 
 use anyhow::{Context, Result, bail};
 
+use crate::cargo_package_resolver::CargoPackageResolver;
 use crate::cli::Args;
-use crate::coverage;
-use crate::manifest;
-use crate::model::{Config, FunctionReport, ProjectReport, Verdict};
-use crate::report;
-use crate::source;
-
+use crate::config::Config;
 use crate::coverage_index::CoverageIndex;
-pub use crate::coverage_index::match_function_coverage;
+use crate::default_scorer::DefaultScorer;
+use crate::llvm_cov_provider::LlvmCovProvider;
+use crate::package_context::PackageContext;
+use crate::project_report::ProjectReport;
+use crate::source_function::SourceFunction;
+use crate::source_function_discovery::SourceFunctionDiscovery;
+use crate::stdout_reporter::StdoutReporter;
+use crate::traits::coverage_provider::CoverageProvider;
+use crate::traits::function_discovery::FunctionDiscovery;
+use crate::traits::package_resolver::PackageResolver;
+use crate::traits::reporter::Reporter;
+use crate::traits::scorer::Scorer;
+
+pub struct App {
+    resolver: Box<dyn PackageResolver>,
+    discovery: Box<dyn FunctionDiscovery>,
+    coverage_provider: Box<dyn CoverageProvider>,
+    scorer: Box<dyn Scorer>,
+    reporter: Box<dyn Reporter>,
+    config: Config,
+}
+
+impl App {
+    #[must_use]
+    pub fn new(config: Config) -> Self {
+        Self {
+            resolver: Box::new(CargoPackageResolver::new()),
+            discovery: Box::new(SourceFunctionDiscovery::new()),
+            coverage_provider: Box::new(LlvmCovProvider::new()),
+            scorer: Box::new(DefaultScorer::new()),
+            reporter: Box::new(StdoutReporter::new()),
+            config,
+        }
+    }
+
+    #[must_use]
+    pub fn with_deps(
+        resolver: Box<dyn PackageResolver>,
+        discovery: Box<dyn FunctionDiscovery>,
+        coverage_provider: Box<dyn CoverageProvider>,
+        scorer: Box<dyn Scorer>,
+        reporter: Box<dyn Reporter>,
+        config: Config,
+    ) -> Self {
+        Self {
+            resolver,
+            discovery,
+            coverage_provider,
+            scorer,
+            reporter,
+            config,
+        }
+    }
+
+    pub fn run(&self) -> Result<ExitCode> {
+        let packages = self.resolver.resolve(&self.config)?;
+        let coverage_records = self.coverage_provider.provide(&self.config, &packages)?;
+
+        let functions = self.discover_all_functions(&packages)?;
+        if functions.is_empty() {
+            bail!("no Rust functions were discovered in the selected packages");
+        }
+
+        if coverage_records.is_empty() {
+            bail!("coverage file did not contain any function records");
+        }
+        let coverage_index = CoverageIndex::from_records(coverage_records);
+
+        let matched_count = functions
+            .iter()
+            .filter(|function| coverage_index.match_function(function).is_some())
+            .count();
+        if matched_count == 0 {
+            bail!(
+                "coverage data could not be matched to any discovered function by file path and line"
+            );
+        }
+
+        let reports = self
+            .scorer
+            .score_functions(functions, &coverage_index, &self.config);
+        let metrics = self.scorer.project_metrics(&reports, &self.config);
+
+        let report_data = ProjectReport {
+            scope_name: packages
+                .iter()
+                .map(|package| package.name.clone())
+                .collect::<Vec<_>>()
+                .join(", "),
+            total_functions: metrics.total_functions,
+            crappy_functions: metrics.crappy_functions,
+            crappy_percent: metrics.crappy_percent,
+            verdict: metrics.verdict,
+            functions: reports,
+        };
+
+        self.reporter.render(&report_data, &self.config);
+
+        Ok(report_data.exit_code(&self.config))
+    }
+
+    fn discover_all_functions(&self, packages: &[PackageContext]) -> Result<Vec<SourceFunction>> {
+        let mut functions = Vec::new();
+        for package in packages {
+            let mut package_functions = self.discovery.discover(package).with_context(|| {
+                format!("failed to discover functions in package {}", package.name)
+            })?;
+            functions.append(&mut package_functions);
+        }
+        Ok(functions)
+    }
+}
 
 pub fn run(args: Args) -> Result<ExitCode> {
-    let config = Config {
-        coverage_path: args.coverage,
-        manifest_path: args.manifest_path,
-        packages: args.package,
-        features: args.features,
-        all_features: args.all_features,
-        no_default_features: args.no_default_features,
-        include_test_targets: args.include_test_targets,
-        exclude_paths: args.exclude_path,
-        threshold: args.threshold,
-        warn_threshold: args.warn_threshold,
-        project_threshold: args.project_threshold,
-        strict: args.strict,
-        warn_only: args.warn_only,
-        output_format: args.output_format,
-    };
-
-    let packages = manifest::resolve_packages(&config)?;
-    let coverage_path = coverage::ensure_coverage_path(&config, &packages)?;
-    let mut functions = Vec::new();
-    for package in &packages {
-        let mut package_functions = source::discover_functions(package)
-            .with_context(|| format!("failed to discover functions in package {}", package.name))?;
-        functions.append(&mut package_functions);
-    }
-    if functions.is_empty() {
-        bail!("no Rust functions were discovered in the selected packages");
-    }
-
-    let coverage_records = coverage::load_coverage_records(&coverage_path)?;
-    if coverage_records.is_empty() {
-        bail!("coverage file did not contain any function records");
-    }
-
-    let coverage_index = CoverageIndex::from_records(coverage_records);
-
-    let matched_count = functions
-        .iter()
-        .filter(|function| coverage_index.match_function(function).is_some())
-        .count();
-    if matched_count == 0 {
-        bail!(
-            "coverage data could not be matched to any discovered function by file path and line"
-        );
-    }
-
-    let mut reports = functions
-        .into_iter()
-        .map(|function| {
-            let coverage = coverage_index.match_function(&function).unwrap_or(0.0);
-            let crap_score = compute_crap_score(function.complexity, coverage);
-            let verdict = classify(crap_score, config.threshold, config.warn_threshold);
-
-            FunctionReport {
-                package_name: function.package_name,
-                name: function.name,
-                relative_file: function.relative_file,
-                line: function.line,
-                complexity: function.complexity,
-                coverage,
-                crap_score,
-                verdict,
-            }
-        })
-        .collect::<Vec<_>>();
-
-    reports.sort_by(|left, right| {
-        right
-            .crap_score
-            .partial_cmp(&left.crap_score)
-            .unwrap_or(std::cmp::Ordering::Equal)
-            .then_with(|| left.name.cmp(&right.name))
-    });
-
-    let (project_verdict, crappy_functions, total_functions, crappy_percent) =
-        compute_project_metrics(&reports, &config);
-
-    let report_data = ProjectReport {
-        scope_name: packages
-            .iter()
-            .map(|package| package.name.clone())
-            .collect::<Vec<_>>()
-            .join(", "),
-        total_functions,
-        crappy_functions,
-        crappy_percent,
-        verdict: project_verdict,
-        functions: reports,
-    };
-
-    report::print_report(&report_data, &config);
-
-    Ok(determine_exit_code(&report_data, &config))
-}
-
-pub fn classify(score: f64, threshold: f64, warn_threshold: f64) -> Verdict {
-    if score > threshold {
-        Verdict::Crappy
-    } else if score >= warn_threshold {
-        Verdict::Warn
-    } else {
-        Verdict::Clean
-    }
-}
-
-pub fn compute_crap_score(complexity: u32, coverage: f64) -> f64 {
-    let complexity = f64::from(complexity);
-    complexity.powi(2) * (1.0 - coverage).powi(3) + complexity
-}
-
-fn determine_exit_code(report: &ProjectReport, config: &Config) -> ExitCode {
-    if config.warn_only {
-        return ExitCode::SUCCESS;
-    }
-
-    if project_fails(report.crappy_functions, report.crappy_percent, config) {
-        ExitCode::from(1)
-    } else {
-        ExitCode::SUCCESS
-    }
-}
-
-pub fn project_fails(crappy_functions: usize, crappy_percent: f64, config: &Config) -> bool {
-    if config.strict {
-        crappy_functions > 0
-    } else {
-        crappy_percent > config.project_threshold
-    }
-}
-
-fn compute_project_metrics(
-    reports: &[FunctionReport],
-    config: &Config,
-) -> (Verdict, usize, usize, f64) {
-    let crappy_functions = reports
-        .iter()
-        .filter(|function| function.verdict == Verdict::Crappy)
-        .count();
-    let total_functions = reports.len();
-    let crappy_percent = if total_functions == 0 {
-        0.0
-    } else {
-        (crappy_functions as f64 / total_functions as f64) * 100.0
-    };
-    let verdict = if project_fails(crappy_functions, crappy_percent, config) {
-        Verdict::Crappy
-    } else if crappy_functions > 0
-        || reports
-            .iter()
-            .any(|function| function.verdict == Verdict::Warn)
-    {
-        Verdict::Warn
-    } else {
-        Verdict::Clean
-    };
-    (verdict, crappy_functions, total_functions, crappy_percent)
+    App::new(Config::from_args(args)).run()
 }

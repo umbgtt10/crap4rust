@@ -12,7 +12,8 @@ use walkdir::WalkDir;
 
 use crate::complexity::cognitive_complexity;
 use crate::impl_collector::{end_line, is_test_attrs, qualified_name, start_line, visit_impl};
-use crate::model::{PackageContext, SourceFunction};
+use crate::package_context::PackageContext;
+use crate::source_function::SourceFunction;
 use crate::test_module_registry::TestModuleRegistry;
 
 type ParsedFile = (PathBuf, File);
@@ -45,7 +46,7 @@ impl<'a> FileWalker<'a> {
             if test_modules.is_excluded(file_path) {
                 continue;
             }
-            self.visit_parsed_file(source_root, file_path, syntax, &mut functions);
+            functions.extend(self.visit_parsed_file(source_root, file_path, syntax));
         }
         Ok(functions)
     }
@@ -92,8 +93,7 @@ impl<'a> FileWalker<'a> {
         source_root: &Path,
         file_path: &Path,
         syntax: &File,
-        functions: &mut Vec<SourceFunction>,
-    ) {
+    ) -> Vec<SourceFunction> {
         let relative_file = relative_file(&self.package.manifest_dir, file_path);
         let module_prefix = module_prefix(source_root, file_path);
         visit_items(
@@ -102,9 +102,8 @@ impl<'a> FileWalker<'a> {
             &normalize_path(file_path),
             &relative_file,
             &module_prefix,
-            &mut Vec::new(),
-            functions,
-        );
+            &[],
+        )
     }
 }
 
@@ -203,20 +202,22 @@ pub(crate) fn visit_items(
     path_key: &str,
     relative_file: &str,
     module_prefix: &[String],
-    inline_modules: &mut Vec<String>,
-    functions: &mut Vec<SourceFunction>,
-) {
-    for item in &syntax.items {
-        visit_item(
-            package,
-            item,
-            path_key,
-            relative_file,
-            module_prefix,
-            inline_modules,
-            functions,
-        );
-    }
+    inline_modules: &[String],
+) -> Vec<SourceFunction> {
+    syntax
+        .items
+        .iter()
+        .flat_map(|item| {
+            visit_item(
+                package,
+                item,
+                path_key,
+                relative_file,
+                module_prefix,
+                inline_modules,
+            )
+        })
+        .collect()
 }
 
 pub(crate) fn visit_item(
@@ -225,23 +226,20 @@ pub(crate) fn visit_item(
     path_key: &str,
     relative_file: &str,
     module_prefix: &[String],
-    inline_modules: &mut Vec<String>,
-    functions: &mut Vec<SourceFunction>,
-) {
+    inline_modules: &[String],
+) -> Vec<SourceFunction> {
     match item {
-        Item::Fn(item_fn) => {
-            if let Some(function) = record_function(
-                package,
-                item_fn,
-                None,
-                path_key,
-                relative_file,
-                module_prefix,
-                inline_modules,
-            ) {
-                functions.push(function);
-            }
-        }
+        Item::Fn(item_fn) => record_function(
+            package,
+            item_fn,
+            None,
+            path_key,
+            relative_file,
+            module_prefix,
+            inline_modules,
+        )
+        .into_iter()
+        .collect(),
         Item::Impl(item_impl) if !is_test_attrs(&item_impl.attrs) => visit_impl(
             package,
             item_impl,
@@ -249,7 +247,6 @@ pub(crate) fn visit_item(
             relative_file,
             module_prefix,
             inline_modules,
-            functions,
         ),
         Item::Mod(item_mod) if !is_test_attrs(&item_mod.attrs) => visit_module(
             package,
@@ -258,10 +255,9 @@ pub(crate) fn visit_item(
             relative_file,
             module_prefix,
             inline_modules,
-            functions,
         ),
-        Item::Enum(ItemEnum { .. }) | Item::Struct(ItemStruct { .. }) => {}
-        _ => {}
+        Item::Enum(ItemEnum { .. }) | Item::Struct(ItemStruct { .. }) => Vec::new(),
+        _ => Vec::new(),
     }
 }
 
@@ -271,26 +267,31 @@ pub(crate) fn visit_module(
     path_key: &str,
     relative_file: &str,
     module_prefix: &[String],
-    inline_modules: &mut Vec<String>,
-    functions: &mut Vec<SourceFunction>,
-) {
+    inline_modules: &[String],
+) -> Vec<SourceFunction> {
     let Some((_, items)) = &item_mod.content else {
-        return;
+        return Vec::new();
     };
 
-    inline_modules.push(item_mod.ident.to_string());
-    for item in items {
-        visit_item(
-            package,
-            item,
-            path_key,
-            relative_file,
-            module_prefix,
-            inline_modules,
-            functions,
-        );
-    }
-    inline_modules.pop();
+    let nested_modules = inline_modules
+        .iter()
+        .cloned()
+        .chain(std::iter::once(item_mod.ident.to_string()))
+        .collect::<Vec<_>>();
+
+    items
+        .iter()
+        .flat_map(|item| {
+            visit_item(
+                package,
+                item,
+                path_key,
+                relative_file,
+                module_prefix,
+                &nested_modules,
+            )
+        })
+        .collect()
 }
 
 pub(crate) fn record_function(

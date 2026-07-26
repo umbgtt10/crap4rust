@@ -2,7 +2,8 @@
 // Licensed under the MIT License or Apache License, Version 2.0
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
-use crap4rust::cli::{Args, OutputFormat};
+use crap4rust::cli::Args;
+use crap4rust::output_format::OutputFormat;
 
 #[test]
 fn parse_args_defaults() {

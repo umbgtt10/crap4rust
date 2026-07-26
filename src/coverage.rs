@@ -2,15 +2,17 @@
 // Licensed under the MIT License or Apache License, Version 2.0
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
-use crate::llvm_cov_builder::LlvmCovBuilder;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use crate::export::Export;
 use anyhow::{Context, Result};
 
+use crate::config::Config;
+use crate::coverage_record::CoverageRecord;
+use crate::export::Export;
 use crate::file_walker::normalize_path;
-use crate::model::{Config, CoverageRecord, PackageContext};
+use crate::llvm_cov_builder::LlvmCovBuilder;
+use crate::package_context::PackageContext;
 
 pub fn ensure_coverage_path(config: &Config, packages: &[PackageContext]) -> Result<PathBuf> {
     if let Some(path) = &config.coverage_path {

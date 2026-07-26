@@ -5,7 +5,25 @@
 use anyhow::Result;
 
 use crate::file_walker::FileWalker;
-use crate::model::{PackageContext, SourceFunction};
+use crate::package_context::PackageContext;
+use crate::source_function::SourceFunction;
+use crate::traits::function_discovery::FunctionDiscovery;
+
+#[derive(Debug, Clone, Copy, Default)]
+pub struct SourceFunctionDiscovery;
+
+impl SourceFunctionDiscovery {
+    #[must_use]
+    pub const fn new() -> Self {
+        Self
+    }
+}
+
+impl FunctionDiscovery for SourceFunctionDiscovery {
+    fn discover(&self, package: &PackageContext) -> Result<Vec<SourceFunction>> {
+        discover_functions(package)
+    }
+}
 
 pub fn discover_functions(package: &PackageContext) -> Result<Vec<SourceFunction>> {
     let walker = FileWalker::new(package);

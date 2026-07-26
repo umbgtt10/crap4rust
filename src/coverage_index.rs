@@ -4,7 +4,8 @@
 
 use std::collections::HashMap;
 
-use crate::model::{CoverageRecord, SourceFunction};
+use crate::coverage_record::CoverageRecord;
+use crate::source_function::SourceFunction;
 
 pub struct CoverageIndex {
     inner: HashMap<(String, usize), CoverageRecord>,

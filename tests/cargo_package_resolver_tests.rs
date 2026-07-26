@@ -2,9 +2,10 @@
 // Licensed under the MIT License or Apache License, Version 2.0
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
-use crap4rust::cli::OutputFormat;
-use crap4rust::manifest::resolve_packages;
-use crap4rust::model::Config;
+use crap4rust::cargo_package_resolver::{CargoPackageResolver, resolve_packages};
+use crap4rust::config::Config;
+use crap4rust::output_format::OutputFormat;
+use crap4rust::traits::package_resolver::PackageResolver;
 
 fn test_config() -> Config {
     Config {
@@ -48,4 +49,18 @@ fn resolve_packages_has_source_roots() {
 
     // Assert
     assert!(!packages[0].source_roots.is_empty());
+}
+
+#[test]
+fn resolve_via_trait_matches_free_function() {
+    // Arrange
+    let config = test_config();
+    let resolver = CargoPackageResolver::new();
+
+    // Act
+    let packages = resolver.resolve(&config).expect("resolve packages");
+
+    // Assert
+    assert_eq!(packages.len(), 1);
+    assert_eq!(packages[0].name, "cargo-crap4rust");
 }

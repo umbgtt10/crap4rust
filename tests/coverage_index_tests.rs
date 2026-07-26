@@ -5,7 +5,8 @@
 use std::collections::HashMap;
 
 use crap4rust::coverage_index::match_function_coverage;
-use crap4rust::model::{CoverageRecord, SourceFunction};
+use crap4rust::coverage_record::CoverageRecord;
+use crap4rust::source_function::SourceFunction;
 
 #[test]
 fn match_function_coverage_exact_match_returns_record() {

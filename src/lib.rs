@@ -3,20 +3,32 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
 pub mod app;
+pub mod cargo_package_resolver;
 pub mod cli;
 pub mod complexity;
+pub mod config;
 pub mod coverage;
 pub mod coverage_index;
+pub mod coverage_record;
+pub mod crap_formula;
+pub mod default_scorer;
 mod export;
 pub mod file_walker;
+pub mod function_report;
 pub mod impl_collector;
 pub mod llvm_cov_builder;
-pub mod manifest;
-pub mod model;
-pub mod report;
-mod source;
+pub mod llvm_cov_provider;
+pub mod output_format;
+pub mod package_context;
+pub mod project_metrics;
+pub mod project_report;
+pub mod source_function;
+pub mod source_function_discovery;
 pub mod source_root_collector;
+pub mod stdout_reporter;
 pub mod test_module_registry;
+pub mod traits;
+pub mod verdict;
 
 use std::process::ExitCode;
 
