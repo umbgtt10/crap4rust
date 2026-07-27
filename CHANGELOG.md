@@ -114,7 +114,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   `else if` / `else` chains) had inaccurate coverage ratios because only
   one region was counted.
 
-## [0.6.0] - 2025-04-26
+## [0.6.0] - 2026-04-26
 
 ### Added
 
