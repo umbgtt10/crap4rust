@@ -33,9 +33,7 @@ cargo install cargo-crap4rust
 
 ## License
 
-Licensed under:
-
-- [LICENSE](LICENSE)
+Licensed under the [MIT License](LICENSE).
 
 ## What It Does
 
