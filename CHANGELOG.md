@@ -6,6 +6,41 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Fixed
+
+- License headers across every `.rs` source file and both `scripts/*.ps1`
+  gate scripts are now uniformly `MIT`, matching `Cargo.toml`/`LICENSE` and
+  the `grip`/`braintax` sibling tools' convention. Source files previously
+  carried a `MIT OR Apache-2.0` dual-license header and the stage scripts a
+  pure `Apache-2.0` header, neither of which matched the project's actual
+  single MIT license.
+
+### Changed
+
+- **Breaking (library surface only, not the CLI):** `file_walker.rs`'s AST
+  item-visiting logic — `visit_item`/`visit_module`/`record_function` and
+  the delegation into `ImplCollector` — is now `ItemVisitor`
+  (`item_visitor.rs`), constructed once per file from `package`/`path_key`/
+  `relative_file`/`module_prefix` rather than threading them through every
+  call. `FileWalker` itself is now filesystem-walking only
+  (`process_source_root`, `collect_parsed_files`, path/module-prefix
+  helpers). `normalize_path` moved to its own `normalize_path.rs` module:
+  `crap4rust::normalize_path::normalize_path`, not
+  `crap4rust::file_walker::normalize_path`.
+
+### Added
+
+- Previously crate-internal (`pub(crate)`) items are now `pub` across the
+  library, and free functions that were really a struct's own concern
+  (e.g. `SourceRootCollector::is_selected_target`) are consolidated into
+  their owning `impl` block instead of standing alone.
+- Direct unit tests for `ItemVisitor`, `ImplCollector`'s associated
+  functions (`qualified_name`/`start_line`/`end_line`/`collect`/
+  `visit_impl`), `Export`'s deserialization shape, and
+  `SourceRootCollector::is_selected_target` — surface the widened
+  visibility above made testable without a full CLI run. 180 tests total,
+  up from 164.
+
 ## [0.7.0] - 2026-07-26
 
 ### Fixed
