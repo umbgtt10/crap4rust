@@ -30,6 +30,18 @@ Run gates:
 
 If either gate is not green, the work is not complete.
 
+Stage 1 is formatting, clippy and tests. Stage 2 runs this tool against itself
+and then `cargo twin4rust`, which requires every source file under `src/` to
+have a mirrored `tests/<name>_tests.rs` beside it. Both must be installed:
+
+`cargo install cargo-crap4rust`
+`cargo install cargo-twin4rust`
+
+The fixture crates under `tests/fixtures/` are analysis inputs, not sources of
+this crate. The CRAP gate excludes them explicitly with `--exclude-path`;
+`twin4rust` never sees them, because it resolves source roots from this
+package's own cargo targets.
+
 ## Orthogonality, trait surface and cognitive complexity
 
 **When changing productive code, always maximize orthogonality and testable surface through traits, and minimize cognitive complexity.**

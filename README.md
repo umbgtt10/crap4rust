@@ -21,7 +21,7 @@ It is published as the Cargo subcommand package `cargo-crap4rust`, so the comman
 | [`docs/FORMULA.md`](docs/FORMULA.md) | Every scoring term, in full, kept in sync with `src/`. |
 | [`docs/ADRs/`](docs/ADRs/) | Why the codebase is shaped the way it is. |
 | [`docs/ROADMAP.md`](docs/ROADMAP.md) | What's shipped, what's next. |
-| [`OPEN_POINTS.md`](OPEN_POINTS.md) | Known gaps, deliberately deferred. |
+| [`docs/OPEN_POINTS.md`](docs/OPEN_POINTS.md) | Known gaps, deliberately deferred. |
 | [`docs/IMPLEMENTED-FEATURES.md`](docs/IMPLEMENTED-FEATURES.md) | The full shipped feature set. |
 | [`CHANGELOG.md`](CHANGELOG.md) | Release history. |
 

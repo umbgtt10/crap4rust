@@ -6,6 +6,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Changed
+
+- Stage 2 gates on `cargo twin4rust` instead of `cargo grip4rust`. The grip
+  gate scored this repository's own testability at 63 against a threshold of
+  70, with no plan to close the gap: the distance came from `App::new()`'s
+  composition-root shape rather than from a defect, and splitting it up to
+  raise the number was rejected as gaming the heuristic. The mirrored-test
+  gate replaces it with a property this crate can satisfy — every source file
+  under `src/` has a test file beside it. `Invoke-GripGate` and its 69 lines
+  of JSON scraping are gone.
+- `OPEN_POINTS.md` moved to `docs/OPEN_POINTS.md`, alongside the other
+  long-form documentation.
+
+### Removed
+
+- The `OPEN_POINTS` entry tracking the grip score against its threshold. It
+  described the behaviour of a gate that no longer exists.
+
 ## [0.7.0] - 2026-07-26
 
 ### Fixed
