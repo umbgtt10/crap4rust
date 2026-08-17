@@ -82,71 +82,37 @@ function Invoke-Crap4RustGate {
     }
 }
 
-function Invoke-GripGate {
+function Invoke-Twin4RustGate {
     param(
-        [string]$Label = "grip4rust self-analysis",
-        [int]$Threshold = 80
+        [string]$Label,
+        [string[]]$Packages
     )
 
     Write-Host "$Label..." -ForegroundColor Cyan
 
-    $previousErrorActionPreference = $ErrorActionPreference
-    $ErrorActionPreference = "Continue"
-    $rawOutput = & cargo grip4rust --json 2>&1
-    $ErrorActionPreference = $previousErrorActionPreference
-    $exitCode = $LASTEXITCODE
-
-    if ($exitCode -ne 0) {
-        Write-Host "`nFailed: $Label (exit code $exitCode)" -ForegroundColor Red
-        $rawOutput | ForEach-Object { Write-Host $_ }
+    if (-not (Get-Command cargo-twin4rust -ErrorAction SilentlyContinue)) {
+        Write-Host "`ncargo-twin4rust is not installed." -ForegroundColor Red
+        Write-Host "Install it with: cargo install cargo-twin4rust" -ForegroundColor Red
         Pop-Location
         exit 1
     }
 
-    $outputText = ($rawOutput | Out-String -Stream) -join "`n"
-    $score = 0; $totalFns = "?"; $pureFns = "?"; $pubItems = "?"; $pubRatio = 0
+    $manifestPath = (Resolve-Path (Join-Path $PSScriptRoot "..\Cargo.toml")).Path
 
-    if ($outputText -match '"grip_score": (\d+)') { $score = [int]$matches[1] }
-    if ($outputText -match '"total_functions": (\d+)') { $totalFns = $matches[1] }
-    if ($outputText -match '"pure_functions": (\d+)') { $pureFns = $matches[1] }
-    if ($outputText -match '"public_items": (\d+)') { $pubItems = $matches[1] }
-    if ($outputText -match '"public_ratio": ([\d.]+)') { $pubRatio = [double]$matches[1] }
+    $args = @("twin4rust", "--manifest-path", $manifestPath)
+    foreach ($package in $Packages) {
+        $args += @("--package", $package)
+    }
 
-    $impureFns = $totalFns - $pureFns
-    $totalItems = if ($pubRatio -gt 0) { [math]::Round($pubItems / $pubRatio) } else { 0 }
-    $privateItems = $totalItems - $pubItems
+    $previousErrorActionPreference = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    $output = & cargo @args 2>&1
+    $ErrorActionPreference = $previousErrorActionPreference
+    $exitCode = $LASTEXITCODE
+    $output | ForEach-Object { Write-Host $_ }
 
-    Write-Host "  grip score: $score / 100  (pure: $pureFns / $totalFns, pub: $pubItems items)" -ForegroundColor Yellow
-
-    if ($score -lt $Threshold) {
-        Write-Host "`nFailed: $Label (score $score is below threshold $Threshold)" -ForegroundColor Red
-
-        # Show offenders only when threshold is crossed
-        if ($impureFns -gt 0) {
-            Write-Host ""
-            Write-Host "  Offending functions:" -ForegroundColor Yellow
-            $impureMatches = [regex]::Matches($outputText, '"name": "([^"]+)",\s+"file": "([^"]+)",\s+"is_pure": false')
-            foreach ($match in $impureMatches) {
-                Write-Host "    [impure] $($match.Groups[2].Value)::$($match.Groups[1].Value)" -ForegroundColor Yellow
-            }
-            $privateMatches = [regex]::Matches($outputText, '"name": "([^"]+)",\s+"file": "([^"]+)",\s+"is_pure": (true|false),\s+"is_public": false')
-            foreach ($match in $privateMatches) {
-                Write-Host "    [private] $($match.Groups[2].Value)::$($match.Groups[1].Value)" -ForegroundColor Yellow
-            }
-        }
-
-        if ($outputText -match '"offenders": \[(.*?)\]') {
-            $offendersSection = $matches[1]
-            $offenderMatches = [regex]::Matches($offendersSection, '"path":"([^"]+)","grip_score":(\d+)')
-            if ($offenderMatches.Count -gt 0) {
-                Write-Host ""
-                Write-Host "  Module-level offenders (score < threshold):" -ForegroundColor Red
-                foreach ($match in $offenderMatches) {
-                    Write-Host "    $($match.Groups[1].Value)  (score: $($match.Groups[2].Value))" -ForegroundColor Red
-                }
-            }
-        }
-
+    if ($exitCode -ne 0) {
+        Write-Host "`nFailed: $Label (source files without a mirrored test)" -ForegroundColor Red
         Pop-Location
         exit 1
     }
@@ -159,13 +125,17 @@ function Invoke-GripGate {
 Invoke-Crap4RustGate "CRAP crap4rust" @("cargo-crap4rust") -ExcludePaths @("tests/fixtures")
 
 # ---------------------------------------------------------------------------
-# Grip gate
+# Mirrored test gate
+#
+# The fixture crates under tests/fixtures are analysis inputs, not sources of
+# this crate, so they never reach twin4rust: it resolves source roots from this
+# package's own cargo targets.
 # ---------------------------------------------------------------------------
 
-Invoke-GripGate -Label "grip4rust self-analysis" -Threshold 70
+Invoke-Twin4RustGate "Mirrored tests crap4rust" @("cargo-crap4rust")
 
 # ---------------------------------------------------------------------------
 
-Write-Host "`nCrap4rust and grip4rust Stage 2 passed!" -ForegroundColor Green
+Write-Host "`nCrap4rust Stage 2 passed!" -ForegroundColor Green
 Pop-Location
 exit 0
