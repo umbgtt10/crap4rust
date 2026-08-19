@@ -1,0 +1,11 @@
+[package]
+name = "root-app"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+path = "src/lib.rs"
+
+[workspace]
+members = ["helper-member"]
+resolver = "2"
