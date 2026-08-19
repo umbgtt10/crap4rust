@@ -19,7 +19,7 @@ function Invoke-Crap4RustGate {
 
     Write-Host "$Label..." -ForegroundColor Cyan
 
-    $manifestPath = (Resolve-Path (Join-Path $PSScriptRoot "..\Cargo.toml")).Path
+    $manifestPath = (Resolve-Path (Join-Path $PSScriptRoot "..\core\Cargo.toml")).Path
     $args = @("--manifest-path", $manifestPath)
     foreach ($package in $Packages) {
         $args += @("--package", $package)
@@ -97,7 +97,7 @@ function Invoke-Twin4RustGate {
         exit 1
     }
 
-    $manifestPath = (Resolve-Path (Join-Path $PSScriptRoot "..\Cargo.toml")).Path
+    $manifestPath = (Resolve-Path (Join-Path $PSScriptRoot "..\core\Cargo.toml")).Path
 
     $args = @("twin4rust", "--manifest-path", $manifestPath)
     foreach ($package in $Packages) {
@@ -138,7 +138,7 @@ function Invoke-Iceberg4RustGate {
         exit 1
     }
 
-    $manifestPath = (Resolve-Path (Join-Path $PSScriptRoot "..\Cargo.toml")).Path
+    $manifestPath = (Resolve-Path (Join-Path $PSScriptRoot "..\core\Cargo.toml")).Path
 
     # The ceiling is passed as a string rather than a [double] so it reaches the
     # CLI unchanged. Interpolating a [double] formats it with the current culture,
@@ -169,14 +169,13 @@ function Invoke-Iceberg4RustGate {
     }
 }
 
-Invoke-Crap4RustGate "CRAP crap4rust" @("cargo-crap4rust") -ExcludePaths @("tests/fixtures")
+Invoke-Crap4RustGate "CRAP crap4rust" @("cargo-crap4rust")
 
 # ---------------------------------------------------------------------------
 # Mirrored test gate
 #
-# The fixture crates under tests/fixtures are analysis inputs, not sources of
-# this crate, so they never reach twin4rust: it resolves source roots from this
-# package's own cargo targets.
+# The fixture crates live in fixture/ beside this package rather than inside it,
+# so nothing pointed at core/ ever reaches them -- no exclusion required.
 # ---------------------------------------------------------------------------
 
 Invoke-Twin4RustGate "Mirrored tests crap4rust" @("cargo-crap4rust")

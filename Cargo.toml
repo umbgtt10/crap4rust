@@ -1,32 +1,9 @@
-[package]
-name = "cargo-crap4rust"
-version = "0.7.0"
-edition = "2024"
-description = "Cargo subcommand for computing CRAP scores across Rust crates"
-license = "MIT"
-repository = "https://github.com/umbgtt10/crap4rust"
-documentation = "https://docs.rs/cargo-crap4rust"
+[workspace]
+resolver = "2"
+members = ["core"]
 
-autotests = false
-
-[lib]
-name = "crap4rust"
-
-[[test]]
-name = "all_tests"
-path = "tests/all_tests.rs"
-
-[dependencies]
-anyhow = "1.0.98"
-cargo_metadata = "0.23.1"
-clap = { version = "4.5.39", features = ["derive"] }
-proc-macro2 = { version = "1.0.95", features = ["span-locations"] }
-serde = { version = "1.0.219", features = ["derive"] }
-serde_json = "1.0.140"
-syn = { version = "2.0.101", features = ["full", "visit"] }
-walkdir = "2.5.0"
-
-[dev-dependencies]
-assert_cmd = "2.0.17"
-predicates = "3.1.3"
-tempfile = "3.20.0"
+# The fixture crates are analysis input, not code this workspace builds. They
+# carry manifests because crap4rust is pointed at them as real packages, and
+# they are excluded rather than made members so a deliberately-crappy fixture
+# never has to satisfy the workspace's own build.
+exclude = ["fixture"]
