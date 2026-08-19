@@ -17,7 +17,7 @@ fn main() -> ExitCode {
         args
     };
 
-    match crap4rust::run_from_args(forwarded_args) {
+    match crap4rust::app::run_from_args(forwarded_args) {
         Ok(code) => code,
         Err(error) => {
             println!("error: {error:#}");
