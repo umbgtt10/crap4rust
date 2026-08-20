@@ -2,7 +2,9 @@
 // Licensed under the MIT License
 // SPDX-License-Identifier: MIT
 
-pub mod analysis;
-pub mod coverage_io;
-pub mod invocation;
-pub mod reporting;
+pub mod app;
+pub mod cargo_package_resolver;
+pub mod cli;
+pub mod config;
+pub mod entry_point;
+pub mod package_context;

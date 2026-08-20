@@ -4,9 +4,9 @@
 
 use anyhow::Result;
 
-use crate::config::Config;
-use crate::coverage_record::CoverageRecord;
-use crate::package_context::PackageContext;
+use crate::coverage_io::coverage_record::CoverageRecord;
+use crate::invocation::config::Config;
+use crate::invocation::package_context::PackageContext;
 
 pub trait CoverageProvider {
     fn provide(&self, config: &Config, packages: &[PackageContext]) -> Result<Vec<CoverageRecord>>;

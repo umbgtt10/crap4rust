@@ -2,8 +2,8 @@
 // Licensed under the MIT License
 // SPDX-License-Identifier: MIT
 
-use crate::config::Config;
-use crate::project_report::ProjectReport;
+use crate::invocation::config::Config;
+use crate::reporting::project_report::ProjectReport;
 
 pub trait Reporter {
     fn render(&self, report: &ProjectReport, config: &Config);

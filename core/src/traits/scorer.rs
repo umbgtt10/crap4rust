@@ -2,11 +2,11 @@
 // Licensed under the MIT License
 // SPDX-License-Identifier: MIT
 
-use crate::config::Config;
-use crate::coverage_index::CoverageIndex;
-use crate::function_report::FunctionReport;
-use crate::project_metrics::ProjectMetrics;
-use crate::source_function::SourceFunction;
+use crate::analysis::source_function::SourceFunction;
+use crate::coverage_io::coverage_index::CoverageIndex;
+use crate::invocation::config::Config;
+use crate::reporting::function_report::FunctionReport;
+use crate::reporting::project_metrics::ProjectMetrics;
 
 pub trait Scorer {
     fn score_functions(

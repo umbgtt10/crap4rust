@@ -30,17 +30,41 @@ Run gates:
 
 If either gate is not green, the work is not complete.
 
-Stage 1 is formatting, clippy and tests. Stage 2 runs this tool against itself
-and then `cargo twin4rust`, which requires every source file under `src/` to
-have a mirrored `tests/<name>_tests.rs` beside it. Both must be installed:
+Stage 1 is formatting, clippy and tests -- cargo built-ins only, so it works on
+a fresh checkout. Stage 2 is four installed cargo subcommands, run in this
+order:
 
+| gate | asks |
+|---|---|
+| `cargo stern4rust` | do the house coding rules hold |
+| `cargo crap4rust` | is any function complex and untested |
+| `cargo twin4rust` | does every source file have a mirrored test file |
+| `cargo iceberg4rust` | is any file's private implementation risk too high |
+
+stern4rust runs **first** because its corrections are renames, file moves and
+directory splits: a layout it is about to reject is a layout the other three
+would have measured for nothing. Its findings are also the cheapest to act on.
+
+All twenty-one of its rules are enforced, with nothing skipped and nothing
+unconfigured. `docs/header.txt` holds the three-line header every `.rs` file
+carries and `stern4rust.toml` names it -- in the config rather than the gate
+script, so a hand-run of `cargo stern4rust` checks exactly what the gate checks.
+
+`cargo install cargo-stern4rust`
 `cargo install cargo-crap4rust`
 `cargo install cargo-twin4rust`
+`cargo install cargo-iceberg4rust`
 
-The fixture crates under `tests/fixtures/` are analysis inputs, not sources of
-this crate. The CRAP gate excludes them explicitly with `--exclude-path`;
-`twin4rust` never sees them, because it resolves source roots from this
-package's own cargo targets.
+Every stage 2 gate is scoped `--package cargo-crap4rust`, which is what keeps
+the two other crates in this repository out of them:
+
+- `fixture/` holds deliberately-crappy analysis inputs. They are `exclude`d
+  from the workspace, so no gate and no `cargo test` ever compiles them.
+- `validation/` holds the end-to-end tests that drive the built binary against
+  those fixtures. It **is** a workspace member, so the root `cargo test` runs
+  all of it -- but its tests answer to the whole tool rather than to any one
+  source file in `core/`, so measuring them against the house rules would
+  demand mirrors that cannot exist.
 
 ## Orthogonality, trait surface and cognitive complexity
 

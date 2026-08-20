@@ -4,8 +4,8 @@
 
 use anyhow::Result;
 
-use crate::config::Config;
-use crate::package_context::PackageContext;
+use crate::invocation::config::Config;
+use crate::invocation::package_context::PackageContext;
 
 pub trait PackageResolver {
     fn resolve(&self, config: &Config) -> Result<Vec<PackageContext>>;

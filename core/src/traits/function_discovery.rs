@@ -4,8 +4,8 @@
 
 use anyhow::Result;
 
-use crate::package_context::PackageContext;
-use crate::source_function::SourceFunction;
+use crate::analysis::source_function::SourceFunction;
+use crate::invocation::package_context::PackageContext;
 
 pub trait FunctionDiscovery {
     fn discover(&self, package: &PackageContext) -> Result<Vec<SourceFunction>>;
