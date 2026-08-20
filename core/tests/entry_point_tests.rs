@@ -3,10 +3,12 @@
 // SPDX-License-Identifier: MIT
 
 use assert_cmd::Command;
+use crap4rust::entry_point::EntryPoint;
 use serde_json::json;
 use serde_json::to_vec;
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::process::ExitCode;
 use tempfile::TempDir;
 
 const FUNCTION_NAMES: &[&str] = &[
@@ -277,6 +279,28 @@ fn nested_if_has_complexity_three_due_to_nesting_increment() {
     );
 }
 
+// Through main rather than through cargo: the same path the binary takes, in
+// process. A manifest that cannot be read must fail the run rather than report
+// a clean project, and the code it fails with is the one a gate script reads.
+#[test]
+fn run_against_a_manifest_that_does_not_exist_exits_with_the_error_code() {
+    // Arrange
+    let args = [
+        "cargo-crap4rust",
+        "crap4rust",
+        "--manifest-path",
+        "no/such/directory/Cargo.toml",
+    ]
+    .map(String::from)
+    .to_vec();
+
+    // Act
+    let code = EntryPoint::run(args);
+
+    // Assert
+    assert_eq!(format!("{code:?}"), format!("{:?}", ExitCode::from(2)));
+}
+
 #[test]
 fn single_if_has_complexity_one() {
     // Arrange
@@ -312,6 +336,63 @@ fn try_operator_excluded_from_report_when_complexity_becomes_zero() {
         extract_report_line(&output, "cases::try_operator").is_none(),
         "try_operator should not appear in report when ? no longer contributes to complexity"
     );
+}
+
+// The argv fixup cargo subcommands need, which lived in `main.rs` where no test
+// could reach it. Cargo runs `cargo crap4rust ...` as
+// `cargo-crap4rust crap4rust ...`, so the name arrives twice.
+#[test]
+fn without_cargo_subcommand_drops_the_name_cargo_repeats() {
+    // Arrange
+    let args = [
+        "cargo-crap4rust",
+        "crap4rust",
+        "--manifest-path",
+        "a/Cargo.toml",
+    ]
+    .map(String::from)
+    .to_vec();
+
+    // Act
+    let forwarded = EntryPoint::without_cargo_subcommand(args);
+
+    // Assert
+    assert_eq!(
+        forwarded,
+        ["cargo-crap4rust", "--manifest-path", "a/Cargo.toml"]
+    );
+}
+
+// Positional, not global: dropping every occurrence would swallow a package
+// that happens to be named after the tool.
+#[test]
+fn without_cargo_subcommand_keeps_a_package_named_after_the_tool() {
+    // Arrange
+    let args = ["cargo-crap4rust", "crap4rust", "--package", "crap4rust"]
+        .map(String::from)
+        .to_vec();
+
+    // Act
+    let forwarded = EntryPoint::without_cargo_subcommand(args);
+
+    // Assert
+    assert_eq!(forwarded, ["cargo-crap4rust", "--package", "crap4rust"]);
+}
+
+// Running the binary directly does not repeat the name, so the strip has to be
+// conditional or it would eat a real argument.
+#[test]
+fn without_cargo_subcommand_leaves_a_direct_invocation_untouched() {
+    // Arrange
+    let args = ["cargo-crap4rust", "--manifest-path", "a/Cargo.toml"]
+        .map(String::from)
+        .to_vec();
+
+    // Act
+    let forwarded = EntryPoint::without_cargo_subcommand(args.clone());
+
+    // Assert
+    assert_eq!(forwarded, args);
 }
 
 #[test]
