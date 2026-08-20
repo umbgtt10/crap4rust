@@ -64,7 +64,7 @@ impl<'a> ImplCollector<'a> {
         functions
     }
 
-    pub fn process_item(&self, item: &ImplItem, receiver: &str) -> Option<SourceFunction> {
+    fn process_item(&self, item: &ImplItem, receiver: &str) -> Option<SourceFunction> {
         if let ImplItem::Fn(method) = item {
             if is_test_attrs(&method.attrs) {
                 return None;

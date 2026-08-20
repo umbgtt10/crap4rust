@@ -22,7 +22,7 @@ pub struct ProjectReport {
 
 impl ProjectReport {
     #[must_use]
-    pub fn exit_code(&self, config: &Config) -> ExitCode {
+    pub(crate) fn exit_code(&self, config: &Config) -> ExitCode {
         if config.warn_only {
             return ExitCode::SUCCESS;
         }

@@ -18,7 +18,7 @@ impl SourceFunctionDiscovery {
         Self
     }
 
-    pub fn discover_functions(package: &PackageContext) -> Result<Vec<SourceFunction>> {
+    fn discover_functions(package: &PackageContext) -> Result<Vec<SourceFunction>> {
         let walker = FileWalker::new(package);
         let mut functions = Vec::new();
         for source_root in &package.source_roots {

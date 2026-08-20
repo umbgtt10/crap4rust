@@ -44,7 +44,7 @@ pub struct Args {
 }
 
 impl Args {
-    pub fn parse_args() -> Self {
+    pub(crate) fn parse_args() -> Self {
         Self::parse()
     }
 

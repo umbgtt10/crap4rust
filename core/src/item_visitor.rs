@@ -42,7 +42,7 @@ impl<'a> ItemVisitor<'a> {
             .collect()
     }
 
-    pub fn visit_item(&self, item: &Item, inline_modules: &[String]) -> Vec<SourceFunction> {
+    fn visit_item(&self, item: &Item, inline_modules: &[String]) -> Vec<SourceFunction> {
         match item {
             Item::Fn(item_fn) => self
                 .record_function(item_fn, None, inline_modules)
@@ -64,11 +64,7 @@ impl<'a> ItemVisitor<'a> {
         }
     }
 
-    pub fn visit_module(
-        &self,
-        item_mod: &ItemMod,
-        inline_modules: &[String],
-    ) -> Vec<SourceFunction> {
+    fn visit_module(&self, item_mod: &ItemMod, inline_modules: &[String]) -> Vec<SourceFunction> {
         let Some((_, items)) = &item_mod.content else {
             return Vec::new();
         };
@@ -85,7 +81,7 @@ impl<'a> ItemVisitor<'a> {
             .collect()
     }
 
-    pub fn record_function(
+    fn record_function(
         &self,
         item_fn: &ItemFn,
         receiver: Option<&str>,

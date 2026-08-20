@@ -28,7 +28,7 @@ impl<'a> SourceRootCollector<'a> {
         }
     }
 
-    pub fn process_target(&mut self, target: &Target) {
+    fn process_target(&mut self, target: &Target) {
         if !Self::is_selected_target(target, self.include_test_targets) {
             return;
         }

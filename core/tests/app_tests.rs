@@ -4,6 +4,7 @@
 
 use anyhow::{Result, bail};
 use crap4rust::app::App;
+use crap4rust::app::run_from_args;
 use crap4rust::config::Config;
 use crap4rust::coverage_record::CoverageRecord;
 use crap4rust::default_scorer::DefaultScorer;
@@ -114,6 +115,28 @@ fn test_config() -> Config {
         warn_only: false,
         output_format: OutputFormat::Human,
     }
+}
+
+// The one entry point the binary itself calls. Every other test here drives App
+// directly, which left the argv-to-exit-code path -- the whole tool, as a user
+// invokes it -- uncovered.
+#[test]
+fn run_from_args_against_a_manifest_that_does_not_exist_is_an_error() {
+    // Arrange
+    let args = [
+        "cargo-crap4rust",
+        "--manifest-path",
+        "no/such/directory/Cargo.toml",
+    ];
+
+    // Act
+    let outcome = run_from_args(args);
+
+    // Assert
+    assert!(
+        outcome.is_err(),
+        "a manifest that cannot be read must fail the run rather than report a clean project"
+    );
 }
 
 #[test]

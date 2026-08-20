@@ -33,7 +33,7 @@ impl<'a> FileWalker<'a> {
         }
     }
 
-    pub fn process_source_root(&self, source_root: &Path) -> Result<Vec<SourceFunction>> {
+    pub(crate) fn process_source_root(&self, source_root: &Path) -> Result<Vec<SourceFunction>> {
         if !source_root.exists() {
             return Ok(Vec::new());
         }
@@ -109,7 +109,7 @@ impl<'a> FileWalker<'a> {
             .replace('\\', "/")
     }
 
-    pub fn is_selected_source_file(
+    fn is_selected_source_file(
         base_dir: &Path,
         file_path: &Path,
         include_test_targets: bool,
@@ -156,7 +156,7 @@ impl<'a> FileWalker<'a> {
             && (include_test_targets || !relative_file.starts_with("tests/"))
     }
 
-    pub fn module_prefix(source_root: &Path, file_path: &Path) -> Vec<String> {
+    fn module_prefix(source_root: &Path, file_path: &Path) -> Vec<String> {
         let relative = file_path.strip_prefix(source_root).unwrap_or(file_path);
         let mut prefix = relative
             .parent()

@@ -15,7 +15,10 @@ use crate::normalize_path::normalize_path;
 use crate::package_context::PackageContext;
 use serde_json::from_str;
 
-pub fn ensure_coverage_path(config: &Config, packages: &[PackageContext]) -> Result<PathBuf> {
+pub(crate) fn ensure_coverage_path(
+    config: &Config,
+    packages: &[PackageContext],
+) -> Result<PathBuf> {
     if let Some(path) = &config.coverage_path {
         return Ok(path.clone());
     }

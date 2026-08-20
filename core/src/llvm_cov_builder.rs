@@ -24,7 +24,7 @@ impl LlvmCovBuilder {
         Self { command }
     }
 
-    pub fn apply_config(mut self, config: &Config) -> Self {
+    pub(crate) fn apply_config(mut self, config: &Config) -> Self {
         if let Some(manifest_path) = &config.manifest_path {
             self.command.arg("--manifest-path");
             self.command.arg(manifest_path);
@@ -42,7 +42,7 @@ impl LlvmCovBuilder {
         self
     }
 
-    pub fn add_packages(mut self, packages: &[PackageContext]) -> Self {
+    pub(crate) fn add_packages(mut self, packages: &[PackageContext]) -> Self {
         for package in packages {
             self.command.arg("--package");
             self.command.arg(&package.name);
@@ -50,7 +50,7 @@ impl LlvmCovBuilder {
         self
     }
 
-    pub fn execute(mut self) -> Result<()> {
+    pub(crate) fn execute(mut self) -> Result<()> {
         self.command.stderr(Stdio::null());
         let status = self
             .command
