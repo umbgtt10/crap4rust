@@ -12,6 +12,7 @@ pub mod coverage_record_tests;
 pub mod coverage_tests;
 pub mod crap_formula_tests;
 pub mod default_scorer_tests;
+pub mod entry_point_tests;
 pub mod export_tests;
 pub mod file_walker_tests;
 pub mod function_report_tests;

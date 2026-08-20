@@ -24,7 +24,19 @@ impl LlvmCovBuilder {
         Self { command }
     }
 
-    pub(crate) fn apply_config(mut self, config: &Config) -> Self {
+    // The arguments built so far, in the order cargo will receive them. The
+    // builder wraps a Command, whose arguments are otherwise write-only, so
+    // without this there is no way to assert on what a configuration produced
+    // short of running cargo llvm-cov for real.
+    #[must_use]
+    pub fn arguments(&self) -> Vec<String> {
+        self.command
+            .get_args()
+            .map(|argument| argument.to_string_lossy().into_owned())
+            .collect()
+    }
+
+    pub fn apply_config(mut self, config: &Config) -> Self {
         if let Some(manifest_path) = &config.manifest_path {
             self.command.arg("--manifest-path");
             self.command.arg(manifest_path);
