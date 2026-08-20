@@ -1,0 +1,29 @@
+# End-to-end validation of the cargo-crap4rust binary.
+#
+# These tests drive the built binary against the crates in fixture/ and assert
+# on what it prints. Their subject is the whole tool, not any one source file,
+# so they never had a mirror in core/ to be named after -- which is exactly
+# what paired-test-file kept reporting while they lived there.
+#
+# A workspace member rather than an excluded crate, so `cargo test` at the root
+# still runs every one of them. Stage 2 passes `--package cargo-crap4rust` to
+# each gate, so the house rules measure core/ and leave this alone.
+[package]
+name = "validation"
+version = "0.7.0"
+edition = "2024"
+description = "End-to-end validation of the cargo-crap4rust binary against the fixture crates"
+license = "MIT"
+publish = false
+
+autotests = false
+
+[[test]]
+name = "all_tests"
+path = "tests/all_tests.rs"
+
+[dev-dependencies]
+assert_cmd = { workspace = true }
+predicates = { workspace = true }
+serde_json = { workspace = true }
+tempfile = { workspace = true }

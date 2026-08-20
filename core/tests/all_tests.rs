@@ -14,7 +14,6 @@ pub mod crap_formula_tests;
 pub mod default_scorer_tests;
 pub mod export_tests;
 pub mod file_walker_tests;
-pub mod fixtures;
 pub mod function_report_tests;
 pub mod impl_collector_tests;
 pub mod item_visitor_tests;

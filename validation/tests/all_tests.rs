@@ -3,3 +3,4 @@
 // SPDX-License-Identifier: MIT
 
 pub mod fixture_tests;
+pub mod source_tests;
