@@ -15,7 +15,9 @@ impl CoverageRecord {
         if self.total_regions == 0 {
             0.0
         } else {
-            f64::from(self.covered_regions) / f64::from(self.total_regions)
+            let covered: f64 = self.covered_regions.into();
+            let total: f64 = self.total_regions.into();
+            covered / total
         }
     }
 }

@@ -2,11 +2,10 @@
 // Licensed under the MIT License
 // SPDX-License-Identifier: MIT
 
-use std::path::Path;
-
 use cargo_metadata::Target;
-
 use crap4rust::source_root_collector::SourceRootCollector;
+use serde_json::from_str;
+use std::path::Path;
 
 fn make_target(kinds: &[&str], src_path: &str) -> Target {
     let kinds_json: Vec<String> = kinds.iter().map(|k| format!("\"{}\"", k)).collect();
@@ -15,29 +14,15 @@ fn make_target(kinds: &[&str], src_path: &str) -> Target {
         kinds_json.join(","),
         src_path
     );
-    serde_json::from_str(&json).unwrap()
+    from_str(&json).unwrap()
 }
 
 #[test]
-fn finalize_with_no_targets_falls_back_to_src_dir() {
+fn collect_excludes_bench_target_without_include_test_flag() {
     // Arrange
     let manifest_dir = Path::new("/project");
     let mut collector = SourceRootCollector::new(false, manifest_dir);
-
-    // Act
-    collector.collect(&[]);
-    let roots = collector.finalize();
-
-    // Assert
-    assert_eq!(roots, vec![Path::new("/project/src")]);
-}
-
-#[test]
-fn collect_regular_lib_target_adds_parent_dir() {
-    // Arrange
-    let manifest_dir = Path::new("/project");
-    let mut collector = SourceRootCollector::new(false, manifest_dir);
-    let targets = vec![make_target(&["lib"], "/project/src/lib.rs")];
+    let targets = vec![make_target(&["bench"], "/project/benches/bench.rs")];
 
     // Act
     collector.collect(&targets);
@@ -66,11 +51,11 @@ fn collect_excludes_custom_build_target() {
 }
 
 #[test]
-fn collect_excludes_bench_target_without_include_test_flag() {
+fn collect_regular_lib_target_adds_parent_dir() {
     // Arrange
     let manifest_dir = Path::new("/project");
     let mut collector = SourceRootCollector::new(false, manifest_dir);
-    let targets = vec![make_target(&["bench"], "/project/benches/bench.rs")];
+    let targets = vec![make_target(&["lib"], "/project/src/lib.rs")];
 
     // Act
     collector.collect(&targets);
@@ -100,6 +85,20 @@ fn collect_with_include_test_targets_includes_test_dir() {
     let mut result: Vec<&Path> = roots.iter().map(|p| p.as_path()).collect();
     result.sort();
     assert_eq!(result, expected);
+}
+
+#[test]
+fn finalize_with_no_targets_falls_back_to_src_dir() {
+    // Arrange
+    let manifest_dir = Path::new("/project");
+    let mut collector = SourceRootCollector::new(false, manifest_dir);
+
+    // Act
+    collector.collect(&[]);
+    let roots = collector.finalize();
+
+    // Assert
+    assert_eq!(roots, vec![Path::new("/project/src")]);
 }
 
 #[test]

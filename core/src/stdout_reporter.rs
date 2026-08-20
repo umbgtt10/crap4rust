@@ -7,6 +7,7 @@ use crate::output_format::OutputFormat;
 use crate::project_report::ProjectReport;
 use crate::traits::reporter::Reporter;
 use crate::verdict::Verdict;
+use serde_json::to_string_pretty;
 
 #[derive(Debug, Clone, Copy, Default)]
 pub struct StdoutReporter;
@@ -96,8 +97,8 @@ impl StdoutReporter {
     }
 
     fn print_json_report(&self, report: &ProjectReport) {
-        let json = serde_json::to_string_pretty(report)
-            .expect("serialization of report to JSON should never fail");
+        let json =
+            to_string_pretty(report).expect("serialization of report to JSON should never fail");
         println!("{json}");
     }
 }

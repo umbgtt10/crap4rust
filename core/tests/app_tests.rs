@@ -2,10 +2,7 @@
 // Licensed under the MIT License
 // SPDX-License-Identifier: MIT
 
-use std::path::PathBuf;
-
 use anyhow::{Result, bail};
-
 use crap4rust::app::App;
 use crap4rust::config::Config;
 use crap4rust::coverage_record::CoverageRecord;
@@ -18,32 +15,13 @@ use crap4rust::traits::coverage_provider::CoverageProvider;
 use crap4rust::traits::function_discovery::FunctionDiscovery;
 use crap4rust::traits::package_resolver::PackageResolver;
 use crap4rust::traits::reporter::Reporter;
-
-struct FakePackageResolver {
-    packages: Vec<PackageContext>,
-}
-
-impl PackageResolver for FakePackageResolver {
-    fn resolve(&self, _config: &Config) -> Result<Vec<PackageContext>> {
-        Ok(self.packages.clone())
-    }
-}
+use std::path::PathBuf;
 
 struct FailingPackageResolver;
 
 impl PackageResolver for FailingPackageResolver {
     fn resolve(&self, _config: &Config) -> Result<Vec<PackageContext>> {
         bail!("manifest not found")
-    }
-}
-
-struct FakeFunctionDiscovery {
-    functions: Vec<SourceFunction>,
-}
-
-impl FunctionDiscovery for FakeFunctionDiscovery {
-    fn discover(&self, _package: &PackageContext) -> Result<Vec<SourceFunction>> {
-        Ok(self.functions.clone())
     }
 }
 
@@ -61,10 +39,62 @@ impl CoverageProvider for FakeCoverageProvider {
     }
 }
 
+struct FakeFunctionDiscovery {
+    functions: Vec<SourceFunction>,
+}
+
+impl FunctionDiscovery for FakeFunctionDiscovery {
+    fn discover(&self, _package: &PackageContext) -> Result<Vec<SourceFunction>> {
+        Ok(self.functions.clone())
+    }
+}
+
+struct FakePackageResolver {
+    packages: Vec<PackageContext>,
+}
+
+impl PackageResolver for FakePackageResolver {
+    fn resolve(&self, _config: &Config) -> Result<Vec<PackageContext>> {
+        Ok(self.packages.clone())
+    }
+}
+
 struct NoOpReporter;
 
 impl Reporter for NoOpReporter {
     fn render(&self, _report: &ProjectReport, _config: &Config) {}
+}
+
+fn sample_function() -> SourceFunction {
+    SourceFunction {
+        package_name: String::from("probe"),
+        name: String::from("risky"),
+        path_key: String::from("src/lib.rs"),
+        relative_file: String::from("src/lib.rs"),
+        line: 10,
+        end_line: 20,
+        complexity: 5,
+    }
+}
+
+fn sample_package() -> PackageContext {
+    PackageContext {
+        name: String::from("probe"),
+        manifest_dir: PathBuf::from("/probe"),
+        workspace_root: PathBuf::from("/probe"),
+        source_roots: vec![],
+        include_test_targets: false,
+        exclude_paths: vec![],
+    }
+}
+
+fn sample_record() -> CoverageRecord {
+    CoverageRecord {
+        path_key: String::from("src/lib.rs"),
+        line: 10,
+        covered_regions: 1,
+        total_regions: 2,
+    }
 }
 
 fn test_config() -> Config {
@@ -86,44 +116,41 @@ fn test_config() -> Config {
     }
 }
 
-fn sample_package() -> PackageContext {
-    PackageContext {
-        name: String::from("probe"),
-        manifest_dir: PathBuf::from("/probe"),
-        workspace_root: PathBuf::from("/probe"),
-        source_roots: vec![],
-        include_test_targets: false,
-        exclude_paths: vec![],
-    }
-}
+#[test]
+fn run_matched_functions_and_coverage_succeeds() {
+    // Arrange
+    let app = App::with_deps(
+        Box::new(FakePackageResolver {
+            packages: vec![sample_package()],
+        }),
+        Box::new(FakeFunctionDiscovery {
+            functions: vec![sample_function()],
+        }),
+        Box::new(FakeCoverageProvider {
+            records: vec![sample_record()],
+        }),
+        Box::new(DefaultScorer::new()),
+        Box::new(NoOpReporter),
+        test_config(),
+    );
 
-fn sample_function() -> SourceFunction {
-    SourceFunction {
-        package_name: String::from("probe"),
-        name: String::from("risky"),
-        path_key: String::from("src/lib.rs"),
-        relative_file: String::from("src/lib.rs"),
-        line: 10,
-        end_line: 20,
-        complexity: 5,
-    }
-}
+    // Act
+    let result = app.run();
 
-fn sample_record() -> CoverageRecord {
-    CoverageRecord {
-        path_key: String::from("src/lib.rs"),
-        line: 10,
-        covered_regions: 1,
-        total_regions: 2,
-    }
+    // Assert
+    assert!(result.is_ok());
 }
 
 #[test]
-fn run_package_resolver_failure_propagates_error() {
+fn run_no_coverage_records_bails() {
     // Arrange
     let app = App::with_deps(
-        Box::new(FailingPackageResolver),
-        Box::new(FakeFunctionDiscovery { functions: vec![] }),
+        Box::new(FakePackageResolver {
+            packages: vec![sample_package()],
+        }),
+        Box::new(FakeFunctionDiscovery {
+            functions: vec![sample_function()],
+        }),
         Box::new(FakeCoverageProvider { records: vec![] }),
         Box::new(DefaultScorer::new()),
         Box::new(NoOpReporter),
@@ -134,12 +161,11 @@ fn run_package_resolver_failure_propagates_error() {
     let result = app.run();
 
     // Assert
-    assert!(result.is_err());
     assert!(
         result
             .unwrap_err()
             .to_string()
-            .contains("manifest not found")
+            .contains("coverage file did not contain any function records")
     );
 }
 
@@ -172,15 +198,11 @@ fn run_no_functions_discovered_bails() {
 }
 
 #[test]
-fn run_no_coverage_records_bails() {
+fn run_package_resolver_failure_propagates_error() {
     // Arrange
     let app = App::with_deps(
-        Box::new(FakePackageResolver {
-            packages: vec![sample_package()],
-        }),
-        Box::new(FakeFunctionDiscovery {
-            functions: vec![sample_function()],
-        }),
+        Box::new(FailingPackageResolver),
+        Box::new(FakeFunctionDiscovery { functions: vec![] }),
         Box::new(FakeCoverageProvider { records: vec![] }),
         Box::new(DefaultScorer::new()),
         Box::new(NoOpReporter),
@@ -191,11 +213,12 @@ fn run_no_coverage_records_bails() {
     let result = app.run();
 
     // Assert
+    assert!(result.is_err());
     assert!(
         result
             .unwrap_err()
             .to_string()
-            .contains("coverage file did not contain any function records")
+            .contains("manifest not found")
     );
 }
 
@@ -229,29 +252,4 @@ fn run_unmatched_coverage_bails() {
             .to_string()
             .contains("coverage data could not be matched")
     );
-}
-
-#[test]
-fn run_matched_functions_and_coverage_succeeds() {
-    // Arrange
-    let app = App::with_deps(
-        Box::new(FakePackageResolver {
-            packages: vec![sample_package()],
-        }),
-        Box::new(FakeFunctionDiscovery {
-            functions: vec![sample_function()],
-        }),
-        Box::new(FakeCoverageProvider {
-            records: vec![sample_record()],
-        }),
-        Box::new(DefaultScorer::new()),
-        Box::new(NoOpReporter),
-        test_config(),
-    );
-
-    // Act
-    let result = app.run();
-
-    // Assert
-    assert!(result.is_ok());
 }

@@ -28,57 +28,9 @@ fn empty_function_returns_zero() {
 }
 
 #[test]
-fn single_if_scores_one() {
-    // Arrange
-    let block = parse_fn_block("if x { }");
-
-    // Act
-    let score = cognitive_complexity(&block);
-
-    // Assert
-    assert_eq!(score, 1);
-}
-
-#[test]
-fn nested_if_scores_three() {
-    // Arrange
-    let block = parse_fn_block("if x { if y { } }");
-
-    // Act
-    let score = cognitive_complexity(&block);
-
-    // Assert
-    assert_eq!(score, 3);
-}
-
-#[test]
-fn match_three_arms_scores_one() {
-    // Arrange
-    let block = parse_fn_block("match x { 1 => {}, 2 => {}, 3 => {} }");
-
-    // Act
-    let score = cognitive_complexity(&block);
-
-    // Assert
-    assert_eq!(score, 1);
-}
-
-#[test]
 fn for_loop_scores_one() {
     // Arrange
     let block = parse_fn_block("for _ in 0..10 { }");
-
-    // Act
-    let score = cognitive_complexity(&block);
-
-    // Assert
-    assert_eq!(score, 1);
-}
-
-#[test]
-fn while_loop_scores_one() {
-    // Arrange
-    let block = parse_fn_block("while true { }");
 
     // Act
     let score = cognitive_complexity(&block);
@@ -112,18 +64,6 @@ fn if_with_logical_and_or_condition_scores_three() {
 }
 
 #[test]
-fn try_block_scores_one() {
-    // Arrange
-    let block = parse_fn_block("let _ = try { 1 };");
-
-    // Act
-    let score = cognitive_complexity(&block);
-
-    // Assert
-    assert_eq!(score, 1);
-}
-
-#[test]
 fn loop_scores_one() {
     // Arrange
     let block = parse_fn_block("loop { break; }");
@@ -136,15 +76,75 @@ fn loop_scores_one() {
 }
 
 #[test]
-fn while_with_logical_and_condition_scores_two() {
+fn match_guard_with_logical_and_condition_scores_two() {
     // Arrange
-    let block = parse_fn_block("while a && b { }");
+    let block = parse_fn_block("match x { n if a && b => 1, _ => 0 };");
 
     // Act
     let score = cognitive_complexity(&block);
 
     // Assert
     assert_eq!(score, 2);
+}
+
+#[test]
+fn match_three_arms_scores_one() {
+    // Arrange
+    let block = parse_fn_block("match x { 1 => {}, 2 => {}, 3 => {} }");
+
+    // Act
+    let score = cognitive_complexity(&block);
+
+    // Assert
+    assert_eq!(score, 1);
+}
+
+#[test]
+fn nested_if_scores_three() {
+    // Arrange
+    let block = parse_fn_block("if x { if y { } }");
+
+    // Act
+    let score = cognitive_complexity(&block);
+
+    // Assert
+    assert_eq!(score, 3);
+}
+
+#[test]
+fn single_if_scores_one() {
+    // Arrange
+    let block = parse_fn_block("if x { }");
+
+    // Act
+    let score = cognitive_complexity(&block);
+
+    // Assert
+    assert_eq!(score, 1);
+}
+
+#[test]
+fn try_block_scores_one() {
+    // Arrange
+    let block = parse_fn_block("let _ = try { 1 };");
+
+    // Act
+    let score = cognitive_complexity(&block);
+
+    // Assert
+    assert_eq!(score, 1);
+}
+
+#[test]
+fn while_loop_scores_one() {
+    // Arrange
+    let block = parse_fn_block("while true { }");
+
+    // Act
+    let score = cognitive_complexity(&block);
+
+    // Assert
+    assert_eq!(score, 1);
 }
 
 #[test]
@@ -162,9 +162,9 @@ fn while_with_bare_condition_matches_logical_condition_base_cost() {
 }
 
 #[test]
-fn match_guard_with_logical_and_condition_scores_two() {
+fn while_with_logical_and_condition_scores_two() {
     // Arrange
-    let block = parse_fn_block("match x { n if a && b => 1, _ => 0 };");
+    let block = parse_fn_block("while a && b { }");
 
     // Act
     let score = cognitive_complexity(&block);

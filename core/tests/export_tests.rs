@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 use crap4rust::export::Export;
+use serde_json::from_str;
 
 #[test]
 fn export_deserializes_empty_data_array() {
@@ -10,7 +11,7 @@ fn export_deserializes_empty_data_array() {
     let json = r#"{"data": []}"#;
 
     // Act
-    let export: Export = serde_json::from_str(json).expect("deserialize export");
+    let export: Export = from_str(json).expect("deserialize export");
 
     // Assert
     assert!(export.data.is_empty());
@@ -31,7 +32,7 @@ fn export_deserializes_multiple_functions_in_one_chunk() {
     }"#;
 
     // Act
-    let export: Export = serde_json::from_str(json).expect("deserialize export");
+    let export: Export = from_str(json).expect("deserialize export");
 
     // Assert
     assert_eq!(export.data.len(), 1);
@@ -52,7 +53,7 @@ fn export_function_deserializes_multiple_filenames() {
     }"#;
 
     // Act
-    let export: Export = serde_json::from_str(json).expect("deserialize export");
+    let export: Export = from_str(json).expect("deserialize export");
 
     // Assert
     assert_eq!(

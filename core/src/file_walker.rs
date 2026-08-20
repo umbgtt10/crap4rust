@@ -14,6 +14,7 @@ use crate::normalize_path::normalize_path;
 use crate::package_context::PackageContext;
 use crate::source_function::SourceFunction;
 use crate::test_module_registry::TestModuleRegistry;
+use syn::parse_file;
 
 type ParsedFile = (PathBuf, File);
 
@@ -69,7 +70,7 @@ impl<'a> FileWalker<'a> {
             }
             let source = fs::read_to_string(file_path)
                 .with_context(|| format!("failed to read source file {}", file_path.display()))?;
-            let syntax = syn::parse_file(&source)
+            let syntax = parse_file(&source)
                 .with_context(|| format!("failed to parse source file {}", file_path.display()))?;
             parsed_files.push((file_path.to_path_buf(), syntax));
         }

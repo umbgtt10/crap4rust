@@ -6,21 +6,6 @@ use crap4rust::project_metrics::ProjectMetrics;
 use crap4rust::verdict::Verdict;
 
 #[test]
-fn eq_identical_metrics_are_equal() {
-    // Arrange
-    let left = ProjectMetrics {
-        verdict: Verdict::Warn,
-        crappy_functions: 2,
-        total_functions: 10,
-        crappy_percent: 20.0,
-    };
-    let right = left;
-
-    // Act & Assert
-    assert_eq!(left, right);
-}
-
-#[test]
 fn eq_differing_verdict_are_not_equal() {
     // Arrange
     let left = ProjectMetrics {
@@ -36,4 +21,19 @@ fn eq_differing_verdict_are_not_equal() {
 
     // Act & Assert
     assert_ne!(left, right);
+}
+
+#[test]
+fn eq_identical_metrics_are_equal() {
+    // Arrange
+    let left = ProjectMetrics {
+        verdict: Verdict::Warn,
+        crappy_functions: 2,
+        total_functions: 10,
+        crappy_percent: 20.0,
+    };
+    let right = left;
+
+    // Act & Assert
+    assert_eq!(left, right);
 }

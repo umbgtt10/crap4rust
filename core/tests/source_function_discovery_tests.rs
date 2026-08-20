@@ -2,13 +2,11 @@
 // Licensed under the MIT License
 // SPDX-License-Identifier: MIT
 
-use std::fs;
-
-use tempfile::TempDir;
-
 use crap4rust::package_context::PackageContext;
 use crap4rust::source_function_discovery::SourceFunctionDiscovery;
 use crap4rust::traits::function_discovery::FunctionDiscovery;
+use std::fs;
+use tempfile::TempDir;
 
 #[test]
 fn discover_finds_public_function_in_source_root() {

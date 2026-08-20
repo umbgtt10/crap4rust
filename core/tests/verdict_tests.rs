@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 use crap4rust::verdict::Verdict;
+use serde_json::to_string;
 
 #[test]
 fn as_str_clean_returns_clean() {
@@ -11,15 +12,6 @@ fn as_str_clean_returns_clean() {
 
     // Assert
     assert_eq!(result, "clean");
-}
-
-#[test]
-fn as_str_warn_returns_warn() {
-    // Arrange & Act
-    let result = Verdict::Warn.as_str();
-
-    // Assert
-    assert_eq!(result, "warn");
 }
 
 #[test]
@@ -37,8 +29,17 @@ fn as_str_serializes_to_json_as_pascal_case_variant_name() {
     let verdict = Verdict::Warn;
 
     // Act
-    let json = serde_json::to_string(&verdict).expect("serialize verdict");
+    let json = to_string(&verdict).expect("serialize verdict");
 
     // Assert
     assert_eq!(json, "\"Warn\"");
+}
+
+#[test]
+fn as_str_warn_returns_warn() {
+    // Arrange & Act
+    let result = Verdict::Warn.as_str();
+
+    // Assert
+    assert_eq!(result, "warn");
 }

@@ -2,9 +2,8 @@
 // Licensed under the MIT License
 // SPDX-License-Identifier: MIT
 
-use std::path::PathBuf;
-
 use crap4rust::package_context::PackageContext;
+use std::path::PathBuf;
 
 fn sample() -> PackageContext {
     PackageContext {

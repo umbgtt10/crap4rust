@@ -9,6 +9,8 @@ use crap4rust::project_report::ProjectReport;
 use crap4rust::stdout_reporter::StdoutReporter;
 use crap4rust::traits::reporter::Reporter;
 use crap4rust::verdict::Verdict;
+use std::panic::AssertUnwindSafe;
+use std::panic::catch_unwind;
 
 fn test_config() -> Config {
     Config {
@@ -30,7 +32,7 @@ fn test_config() -> Config {
 }
 
 #[test]
-fn render_with_no_clean_functions_shows_threshold_message() {
+fn render_json_output_format_does_not_panic() {
     // Arrange
     let reporter = StdoutReporter::new();
     let report = ProjectReport {
@@ -41,10 +43,11 @@ fn render_with_no_clean_functions_shows_threshold_message() {
         verdict: Verdict::Clean,
         functions: vec![],
     };
-    let config = test_config();
+    let mut config = test_config();
+    config.output_format = OutputFormat::Json;
 
     // Act
-    let output = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+    let output = catch_unwind(AssertUnwindSafe(|| {
         reporter.render(&report, &config);
     }));
 
@@ -76,7 +79,7 @@ fn render_with_crappy_functions_shows_table() {
     let config = test_config();
 
     // Act
-    let output = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+    let output = catch_unwind(AssertUnwindSafe(|| {
         reporter.render(&report, &config);
     }));
 
@@ -85,7 +88,7 @@ fn render_with_crappy_functions_shows_table() {
 }
 
 #[test]
-fn render_json_output_format_does_not_panic() {
+fn render_with_no_clean_functions_shows_threshold_message() {
     // Arrange
     let reporter = StdoutReporter::new();
     let report = ProjectReport {
@@ -96,11 +99,10 @@ fn render_json_output_format_does_not_panic() {
         verdict: Verdict::Clean,
         functions: vec![],
     };
-    let mut config = test_config();
-    config.output_format = OutputFormat::Json;
+    let config = test_config();
 
     // Act
-    let output = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+    let output = catch_unwind(AssertUnwindSafe(|| {
         reporter.render(&report, &config);
     }));
 

@@ -5,6 +5,7 @@
 use crap4rust::function_report::FunctionReport;
 use crap4rust::project_report::ProjectReport;
 use crap4rust::verdict::Verdict;
+use serde_json::to_string;
 
 #[test]
 fn project_report_serialization_contains_expected_fields() {
@@ -28,7 +29,7 @@ fn project_report_serialization_contains_expected_fields() {
     };
 
     // Act
-    let json = serde_json::to_string(&report).expect("serialization");
+    let json = to_string(&report).expect("serialization");
 
     // Assert
     assert!(json.contains(r#""scope_name":"test""#));

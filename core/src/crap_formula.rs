@@ -15,7 +15,7 @@ impl CrapFormula {
 
     #[must_use]
     pub fn score(&self, complexity: u32, coverage: f64) -> f64 {
-        let complexity = f64::from(complexity);
+        let complexity: f64 = complexity.into();
         complexity.powi(2) * (1.0 - coverage).powi(3) + complexity
     }
 

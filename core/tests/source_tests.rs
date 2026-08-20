@@ -2,11 +2,11 @@
 // Licensed under the MIT License
 // SPDX-License-Identifier: MIT
 
-use std::fs;
-use std::path::{Path, PathBuf};
-
 use assert_cmd::Command;
 use serde_json::json;
+use serde_json::to_vec;
+use std::fs;
+use std::path::{Path, PathBuf};
 use tempfile::TempDir;
 
 const FUNCTION_NAMES: &[&str] = &[
@@ -18,6 +18,43 @@ const FUNCTION_NAMES: &[&str] = &[
     "logical_and_or",
     "try_operator",
 ];
+
+fn build_coverage_entries(source_path: &Path, count: u64) -> Vec<(PathBuf, usize, u64)> {
+    FUNCTION_NAMES
+        .iter()
+        .map(|name| {
+            (
+                source_path.to_path_buf(),
+                named_function_line(source_path, name),
+                count,
+            )
+        })
+        .collect()
+}
+
+fn extract_complexity(output: &str, function_name: &str) -> Option<u32> {
+    extract_report_line(output, function_name).and_then(|line| {
+        line.split_whitespace()
+            .nth(4)
+            .and_then(|field| field.parse().ok())
+    })
+}
+
+fn extract_crap_score(output: &str, function_name: &str) -> Option<f64> {
+    extract_report_line(output, function_name).and_then(|line| {
+        line.split_whitespace()
+            .nth(6)
+            .and_then(|field| field.parse().ok())
+    })
+}
+
+fn extract_report_line<'a>(output: &'a str, function_name: &str) -> Option<&'a str> {
+    output.lines().find(|line| {
+        line.split_whitespace()
+            .nth(1)
+            .is_some_and(|field| field == function_name)
+    })
+}
 
 fn fixture_dir() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -35,6 +72,26 @@ fn named_function_line(path: &Path, function_name: &str) -> usize {
         .enumerate()
         .find_map(|(index, line)| line.trim_start().starts_with(&needle).then_some(index + 1))
         .expect("fixture source contains the named public function")
+}
+
+fn run_report(coverage_path: &Path, threshold: &str) -> String {
+    let manifest_path = fixture_dir().join("Cargo.toml");
+
+    let output = Command::cargo_bin("cargo-crap4rust")
+        .expect("binary")
+        .arg("--manifest-path")
+        .arg(&manifest_path)
+        .arg("--coverage")
+        .arg(coverage_path)
+        .arg("--warn-only")
+        .arg("--threshold")
+        .arg(threshold)
+        .arg("--project-threshold")
+        .arg("100.0")
+        .output()
+        .expect("failed to run crap4rust");
+
+    String::from_utf8(output.stdout).expect("non-UTF-8 output")
 }
 
 fn write_coverage_file(temp_dir: &Path, entries: &[(PathBuf, usize, u64)]) -> PathBuf {
@@ -58,68 +115,68 @@ fn write_coverage_file(temp_dir: &Path, entries: &[(PathBuf, usize, u64)]) -> Pa
 
     fs::write(
         &coverage_path,
-        serde_json::to_vec(&coverage_json).expect("serialize coverage json"),
+        to_vec(&coverage_json).expect("serialize coverage json"),
     )
     .expect("write coverage file");
 
     coverage_path
 }
 
-fn build_coverage_entries(source_path: &Path, count: u64) -> Vec<(PathBuf, usize, u64)> {
-    FUNCTION_NAMES
-        .iter()
-        .map(|name| {
-            (
-                source_path.to_path_buf(),
-                named_function_line(source_path, name),
-                count,
-            )
-        })
-        .collect()
+#[test]
+fn empty_function_excluded_from_report_because_complexity_is_zero() {
+    // Arrange
+    let source_path = fixture_dir().join("src").join("cases.rs");
+    let temp_dir = TempDir::new().expect("temp dir");
+    let entries = build_coverage_entries(&source_path, 1);
+    let coverage_path = write_coverage_file(temp_dir.path(), &entries);
+
+    // Act
+    let output = run_report(&coverage_path, "0");
+
+    // Assert
+    assert!(
+        extract_report_line(&output, "cases::empty_function").is_none(),
+        "empty_function should not appear in report (complexity 0, CRAP 0.0)"
+    );
 }
 
-fn run_report(coverage_path: &Path, threshold: &str) -> String {
-    let manifest_path = fixture_dir().join("Cargo.toml");
+#[test]
+fn for_loop_has_complexity_one() {
+    // Arrange
+    let source_path = fixture_dir().join("src").join("cases.rs");
+    let temp_dir = TempDir::new().expect("temp dir");
+    let entries = build_coverage_entries(&source_path, 1);
+    let coverage_path = write_coverage_file(temp_dir.path(), &entries);
 
-    let output = Command::cargo_bin("cargo-crap4rust")
-        .expect("binary")
-        .arg("--manifest-path")
-        .arg(&manifest_path)
-        .arg("--coverage")
-        .arg(coverage_path)
-        .arg("--warn-only")
-        .arg("--threshold")
-        .arg(threshold)
-        .arg("--project-threshold")
-        .arg("100.0")
-        .output()
-        .expect("failed to run crap4rust");
+    // Act
+    let output = run_report(&coverage_path, "0");
 
-    String::from_utf8(output.stdout).expect("non-UTF-8 output")
+    // Assert
+    assert_eq!(
+        extract_complexity(&output, "cases::for_loop"),
+        Some(1),
+        "simple for loop should score complexity 1"
+    );
 }
 
-fn extract_report_line<'a>(output: &'a str, function_name: &str) -> Option<&'a str> {
-    output.lines().find(|line| {
-        line.split_whitespace()
-            .nth(1)
-            .is_some_and(|field| field == function_name)
-    })
-}
+#[test]
+fn full_coverage_crap_score_equals_complexity() {
+    // Arrange
+    let source_path = fixture_dir().join("src").join("cases.rs");
+    let temp_dir = TempDir::new().expect("temp dir");
+    let entries = build_coverage_entries(&source_path, 1);
+    let coverage_path = write_coverage_file(temp_dir.path(), &entries);
 
-fn extract_complexity(output: &str, function_name: &str) -> Option<u32> {
-    extract_report_line(output, function_name).and_then(|line| {
-        line.split_whitespace()
-            .nth(4)
-            .and_then(|field| field.parse().ok())
-    })
-}
+    // Act
+    let output = run_report(&coverage_path, "0");
 
-fn extract_crap_score(output: &str, function_name: &str) -> Option<f64> {
-    extract_report_line(output, function_name).and_then(|line| {
-        line.split_whitespace()
-            .nth(6)
-            .and_then(|field| field.parse().ok())
-    })
+    // Assert
+    assert_eq!(extract_crap_score(&output, "cases::nested_if"), Some(3.0));
+    assert_eq!(
+        extract_crap_score(&output, "cases::logical_and_or"),
+        Some(2.0)
+    );
+    assert_eq!(extract_crap_score(&output, "cases::single_if"), Some(1.0));
 }
 
 #[test]
@@ -144,25 +201,7 @@ fn full_coverage_report_runs_successfully_and_contains_expected_functions() {
 }
 
 #[test]
-fn empty_function_excluded_from_report_because_complexity_is_zero() {
-    // Arrange
-    let source_path = fixture_dir().join("src").join("cases.rs");
-    let temp_dir = TempDir::new().expect("temp dir");
-    let entries = build_coverage_entries(&source_path, 1);
-    let coverage_path = write_coverage_file(temp_dir.path(), &entries);
-
-    // Act
-    let output = run_report(&coverage_path, "0");
-
-    // Assert
-    assert!(
-        extract_report_line(&output, "cases::empty_function").is_none(),
-        "empty_function should not appear in report (complexity 0, CRAP 0.0)"
-    );
-}
-
-#[test]
-fn single_if_has_complexity_one() {
+fn logical_and_or_has_complexity_two() {
     // Arrange
     let source_path = fixture_dir().join("src").join("cases.rs");
     let temp_dir = TempDir::new().expect("temp dir");
@@ -174,28 +213,9 @@ fn single_if_has_complexity_one() {
 
     // Assert
     assert_eq!(
-        extract_complexity(&output, "cases::single_if"),
-        Some(1),
-        "single if/else should score complexity 1"
-    );
-}
-
-#[test]
-fn nested_if_has_complexity_three_due_to_nesting_increment() {
-    // Arrange
-    let source_path = fixture_dir().join("src").join("cases.rs");
-    let temp_dir = TempDir::new().expect("temp dir");
-    let entries = build_coverage_entries(&source_path, 1);
-    let coverage_path = write_coverage_file(temp_dir.path(), &entries);
-
-    // Act
-    let output = run_report(&coverage_path, "0");
-
-    // Assert
-    assert_eq!(
-        extract_complexity(&output, "cases::nested_if"),
-        Some(3),
-        "nested if: outer (1+0) + inner (1+1) = 3"
+        extract_complexity(&output, "cases::logical_and_or"),
+        Some(2),
+        "&& and || each contribute 1 to complexity"
     );
 }
 
@@ -219,7 +239,7 @@ fn match_three_arms_has_complexity_one() {
 }
 
 #[test]
-fn for_loop_has_complexity_one() {
+fn nested_control_flow_scores_higher_than_flat_control_flow() {
     // Arrange
     let source_path = fixture_dir().join("src").join("cases.rs");
     let temp_dir = TempDir::new().expect("temp dir");
@@ -230,15 +250,16 @@ fn for_loop_has_complexity_one() {
     let output = run_report(&coverage_path, "0");
 
     // Assert
-    assert_eq!(
-        extract_complexity(&output, "cases::for_loop"),
-        Some(1),
-        "simple for loop should score complexity 1"
+    let nested = extract_complexity(&output, "cases::nested_if").expect("nested_if in report");
+    let flat = extract_complexity(&output, "cases::single_if").expect("single_if in report");
+    assert!(
+        nested > flat,
+        "nested_if ({nested}) should have higher complexity than single_if ({flat})"
     );
 }
 
 #[test]
-fn logical_and_or_has_complexity_two() {
+fn nested_if_has_complexity_three_due_to_nesting_increment() {
     // Arrange
     let source_path = fixture_dir().join("src").join("cases.rs");
     let temp_dir = TempDir::new().expect("temp dir");
@@ -250,9 +271,28 @@ fn logical_and_or_has_complexity_two() {
 
     // Assert
     assert_eq!(
-        extract_complexity(&output, "cases::logical_and_or"),
-        Some(2),
-        "&& and || each contribute 1 to complexity"
+        extract_complexity(&output, "cases::nested_if"),
+        Some(3),
+        "nested if: outer (1+0) + inner (1+1) = 3"
+    );
+}
+
+#[test]
+fn single_if_has_complexity_one() {
+    // Arrange
+    let source_path = fixture_dir().join("src").join("cases.rs");
+    let temp_dir = TempDir::new().expect("temp dir");
+    let entries = build_coverage_entries(&source_path, 1);
+    let coverage_path = write_coverage_file(temp_dir.path(), &entries);
+
+    // Act
+    let output = run_report(&coverage_path, "0");
+
+    // Assert
+    assert_eq!(
+        extract_complexity(&output, "cases::single_if"),
+        Some(1),
+        "single if/else should score complexity 1"
     );
 }
 
@@ -272,26 +312,6 @@ fn try_operator_excluded_from_report_when_complexity_becomes_zero() {
         extract_report_line(&output, "cases::try_operator").is_none(),
         "try_operator should not appear in report when ? no longer contributes to complexity"
     );
-}
-
-#[test]
-fn full_coverage_crap_score_equals_complexity() {
-    // Arrange
-    let source_path = fixture_dir().join("src").join("cases.rs");
-    let temp_dir = TempDir::new().expect("temp dir");
-    let entries = build_coverage_entries(&source_path, 1);
-    let coverage_path = write_coverage_file(temp_dir.path(), &entries);
-
-    // Act
-    let output = run_report(&coverage_path, "0");
-
-    // Assert
-    assert_eq!(extract_crap_score(&output, "cases::nested_if"), Some(3.0));
-    assert_eq!(
-        extract_crap_score(&output, "cases::logical_and_or"),
-        Some(2.0)
-    );
-    assert_eq!(extract_crap_score(&output, "cases::single_if"), Some(1.0));
 }
 
 #[test]
@@ -320,25 +340,5 @@ fn zero_coverage_amplifies_crap_to_complexity_squared_plus_complexity() {
         extract_crap_score(&output, "cases::single_if"),
         Some(2.0),
         "single_if: 1^2 + 1 = 2"
-    );
-}
-
-#[test]
-fn nested_control_flow_scores_higher_than_flat_control_flow() {
-    // Arrange
-    let source_path = fixture_dir().join("src").join("cases.rs");
-    let temp_dir = TempDir::new().expect("temp dir");
-    let entries = build_coverage_entries(&source_path, 1);
-    let coverage_path = write_coverage_file(temp_dir.path(), &entries);
-
-    // Act
-    let output = run_report(&coverage_path, "0");
-
-    // Assert
-    let nested = extract_complexity(&output, "cases::nested_if").expect("nested_if in report");
-    let flat = extract_complexity(&output, "cases::single_if").expect("single_if in report");
-    assert!(
-        nested > flat,
-        "nested_if ({nested}) should have higher complexity than single_if ({flat})"
     );
 }

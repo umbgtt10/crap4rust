@@ -13,6 +13,7 @@ use crate::export::Export;
 use crate::llvm_cov_builder::LlvmCovBuilder;
 use crate::normalize_path::normalize_path;
 use crate::package_context::PackageContext;
+use serde_json::from_str;
 
 pub fn ensure_coverage_path(config: &Config, packages: &[PackageContext]) -> Result<PathBuf> {
     if let Some(path) = &config.coverage_path {
@@ -51,8 +52,7 @@ pub fn ensure_coverage_path(config: &Config, packages: &[PackageContext]) -> Res
 pub fn load_coverage_records(path: &Path) -> Result<Vec<CoverageRecord>> {
     let contents = fs::read_to_string(path)
         .with_context(|| format!("failed to read coverage file {}", path.display()))?;
-    let export: Export =
-        serde_json::from_str(&contents).context("failed to parse cargo-llvm-cov JSON")?;
+    let export: Export = from_str(&contents).context("failed to parse cargo-llvm-cov JSON")?;
 
     let mut records = Vec::new();
     for chunk in export.data {

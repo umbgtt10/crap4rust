@@ -2,19 +2,19 @@
 // Licensed under the MIT License
 // SPDX-License-Identifier: MIT
 
-use tempfile::TempDir;
-
 use crap4rust::cli::Args;
 use crap4rust::config::Config;
 use crap4rust::llvm_cov_provider::LlvmCovProvider;
 use crap4rust::traits::coverage_provider::CoverageProvider;
+use std::fs;
+use tempfile::TempDir;
 
 #[test]
 fn provide_reads_precomputed_coverage_file_without_generating() {
     // Arrange
     let dir = TempDir::new().expect("temp dir");
     let coverage_path = dir.path().join("coverage.json");
-    std::fs::write(
+    fs::write(
         &coverage_path,
         r#"{"data":[{"functions":[{"filenames":["src/lib.rs"],"regions":[[10,1,20,2,1,0,0,0]]}]}]}"#,
     )

@@ -2,9 +2,8 @@
 // Licensed under the MIT License
 // SPDX-License-Identifier: MIT
 
-use std::path::Path;
-
 use crap4rust::llvm_cov_builder::LlvmCovBuilder;
+use std::path::Path;
 
 #[test]
 fn builder_new_constructs_without_panicking() {

@@ -2,9 +2,8 @@
 // Licensed under the MIT License
 // SPDX-License-Identifier: MIT
 
-use std::path::Path;
-
 use crap4rust::normalize_path::normalize_path;
+use std::path::Path;
 
 #[test]
 fn normalize_path_replaces_backslashes() {

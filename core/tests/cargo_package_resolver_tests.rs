@@ -6,11 +6,12 @@ use crap4rust::cargo_package_resolver::CargoPackageResolver;
 use crap4rust::config::Config;
 use crap4rust::output_format::OutputFormat;
 use crap4rust::traits::package_resolver::PackageResolver;
+use std::path::PathBuf;
 
 fn test_config() -> Config {
     Config {
         coverage_path: None,
-        manifest_path: Some(std::path::PathBuf::from("Cargo.toml")),
+        manifest_path: Some(PathBuf::from("Cargo.toml")),
         packages: vec![String::from("cargo-crap4rust")],
         features: None,
         all_features: false,
