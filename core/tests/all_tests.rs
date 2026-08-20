@@ -27,7 +27,6 @@ pub mod project_report_tests;
 pub mod source_function_discovery_tests;
 pub mod source_function_tests;
 pub mod source_root_collector_tests;
-pub mod source_tests;
 pub mod stdout_reporter_tests;
 pub mod test_module_registry_tests;
 pub mod verdict_tests;
