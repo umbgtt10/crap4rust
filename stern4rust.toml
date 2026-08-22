@@ -4,3 +4,14 @@
 # header says. Naming the file here rather than in the gate script means a
 # hand-run of `cargo stern4rust` checks exactly what the gate checks.
 header-file = "docs/header.txt"
+
+# `validation` has no `src/` at all: it drives the built binary through
+# `assert_cmd` and its tests are named for what they validate -- fixtures,
+# source handling -- rather than for a source file. `paired-test-file` asks
+# every `<x>_tests.rs` to name an `src/<x>.rs`, and here there is no `src/` for
+# one to be named after, so the rule has nothing to match rather than something
+# it dislikes.
+#
+# Nothing else is skipped, in this package or any other.
+[package.validation]
+skip = ["paired-test-file"]
