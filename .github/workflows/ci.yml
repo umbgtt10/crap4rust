@@ -42,7 +42,7 @@ jobs:
       # `cargo llvm-cov failed with exit code Some(101)` and nothing about the
       # message says an install is missing.
       - name: Install cargo-llvm-cov
-        run: cargo install cargo-llvm-cov
+        run: cargo install --locked cargo-llvm-cov
 
       # Not cached: caching cargo-installed binaries makes `cargo install` skip
       # a reinstall even when a newer version is published, so the gate would
@@ -50,16 +50,16 @@ jobs:
       - name: Install house gate tools
         if: matrix.stage == 'stage2'
         run: |
-          cargo install cargo-stern4rust
-          cargo install cargo-twin4rust
-          cargo install cargo-iceberg4rust
+          cargo install --locked cargo-stern4rust
+          cargo install --locked cargo-twin4rust
+          cargo install --locked cargo-iceberg4rust
 
       # This repository is crap4rust. The gate measures it with the published
       # crap4rust rather than the one in the working tree, matching what the
       # PowerShell gate did.
       - name: Install crap4rust
         if: matrix.stage == 'stage2'
-        run: cargo install cargo-crap4rust
+        run: cargo install --locked cargo-crap4rust
 
       - name: Run ${{ matrix.stage }}
         run: just ${{ matrix.stage }}

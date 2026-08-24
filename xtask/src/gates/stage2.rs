@@ -19,10 +19,14 @@ impl<'a> Stage2<'a> {
     // measured for nothing.
     pub fn run(&self) -> Result<(), String> {
         for gate in &self.gates {
-            println!("{}...", gate.label());
+            // Asked once and reused: a second call could answer differently if a
+            // gate ever derives its label, which would make the failure name a
+            // gate other than the one that ran.
+            let label = gate.label();
+            println!("{label}...");
 
             if let Err(reason) = gate.run() {
-                return Err(format!("{} ({reason})", gate.label()));
+                return Err(format!("{label} ({reason})"));
             }
         }
 
