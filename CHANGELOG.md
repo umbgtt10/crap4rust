@@ -6,8 +6,42 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-08-24
+
+### Fixed
+
+- An absent `cargo-llvm-cov` now says so. crap4rust generates coverage by
+  running `cargo llvm-cov`, and when that subcommand is not installed cargo
+  itself runs, writes ``no such command: `llvm-cov` `` to stderr and exits
+  101. `LlvmCovBuilder` discarded that stderr and hung its "ensure
+  cargo-llvm-cov is installed" hint off the spawn failure instead — which
+  fires only when `cargo` itself cannot be found, and so never fired for the
+  case it described. All that reached the user was
+
+      cargo llvm-cov failed with exit code Some(101)
+
+  naming neither the cause nor the fix. Reported as issue #1.
+
+  stderr is now captured rather than nulled, and `LlvmCovFailure` turns the
+  exit code and stderr into a message: a missing subcommand names the install
+  command, and any other failure carries `cargo llvm-cov`'s own stderr
+  alongside the code. stdout stays inherited, so a long coverage run still
+  reports progress.
+
+### Added
+
+- `coverage_io::llvm_cov_failure::LlvmCovFailure`, mapping a failed coverage
+  run to an explanation. A struct over data rather than a process wrapper, so
+  the mapping is tested without invoking cargo.
+
 ### Changed
 
+- The install instructions name `cargo-llvm-cov` and the `llvm-tools` rustup
+  component, neither of which ships with crap4rust and neither of which is
+  optional unless `--coverage` supplies a report produced elsewhere. README
+  also gains a Development section listing every tool the two gate stages
+  need, including that `cargo-llvm-cov` is required by stage 1 as well —
+  the validation tests drive the built binary through the coverage path.
 - Stage 2 gates on `cargo twin4rust` instead of `cargo grip4rust`. The grip
   gate scored this repository's own testability at 63 against a threshold of
   70, with no plan to close the gap: the distance came from `App::new()`'s

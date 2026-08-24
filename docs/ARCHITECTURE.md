@@ -55,7 +55,7 @@ Trait>` fields rather than generic parameters.
 |---|---|---|
 | `PackageResolver` | `CargoPackageResolver` (`cargo_package_resolver.rs`) | Run `cargo_metadata`, select the requested (or, for a multi-member workspace with none requested, every) package, and build each one's `PackageContext` — manifest dir, workspace root, and resolved source roots. |
 | `FunctionDiscovery` | `SourceFunctionDiscovery` (`source_function_discovery.rs`) | Walk a single package's source roots and return every production `SourceFunction` found, complexity already computed. |
-| `CoverageProvider` | `LlvmCovProvider` (`llvm_cov_provider.rs`) | Resolve a coverage JSON path (generating one via `cargo llvm-cov` if none was given) and parse it into `CoverageRecord`s. |
+| `CoverageProvider` | `LlvmCovProvider` (`llvm_cov_provider.rs`) | Resolve a coverage JSON path (generating one via `cargo llvm-cov` if none was given) and parse it into `CoverageRecord`s. Generation runs through `LlvmCovBuilder` (`llvm_cov_builder.rs`), and a non-zero exit is turned into a message by `LlvmCovFailure` (`llvm_cov_failure.rs`), which distinguishes an absent `cargo-llvm-cov` from a coverage run that genuinely failed. |
 | `Scorer` | `DefaultScorer` (`default_scorer.rs`) | Turn discovered functions plus a `CoverageIndex` into scored, sorted `FunctionReport`s, and fold those into project-level `ProjectMetrics`. |
 | `Reporter` | `StdoutReporter` (`stdout_reporter.rs`) | Render a `ProjectReport` as human-readable text or JSON. |
 

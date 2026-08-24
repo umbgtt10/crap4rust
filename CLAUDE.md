@@ -30,8 +30,11 @@ Run gates:
 
 If either gate is not green, the work is not complete.
 
-Stage 1 is formatting, clippy and tests -- cargo built-ins only, so it works on
-a fresh checkout. Stage 2 is `cargo xtask stage2`, which orchestrates four
+Stage 1 is formatting, clippy and tests. It is cargo built-ins plus
+`cargo-llvm-cov`: this repository is the coverage tool, so its validation tests
+drive the built binary through the path that generates coverage, and a checkout
+without that install fails stage 1 rather than stage 2. Stage 2 is
+`cargo xtask stage2`, which orchestrates four
 installed cargo subcommands in this order:
 
 | gate | asks |
@@ -58,16 +61,19 @@ script, so a hand-run of `cargo stern4rust` checks exactly what the gate checks.
 `cargo install cargo-llvm-cov`
 `rustup component add llvm-tools`
 
-`cargo-llvm-cov` is crap4rust's own coverage backend rather than a house tool.
-A missing install surfaces only once stage 2 runs, as
-`cargo llvm-cov failed with exit code Some(101)`.
+`cargo-llvm-cov` is crap4rust's own coverage backend rather than a house tool,
+and stage 1 needs it too, not only stage 2: the validation tests drive the built
+binary through the path that generates coverage. A missing install now names
+itself -- `LlvmCovFailure` reads cargo's own "no such command" off stderr and
+answers with the install line, instead of the bare
+`cargo llvm-cov failed with exit code Some(101)` it used to report.
 
 The gates are a `justfile` plus an `xtask` workspace member, not scripts: one
 entry point that behaves the same on Linux, Windows and macOS, and gate
 orchestration in Rust rather than shell text-parsing. `xtask` reads crap4rust's
 `--output-format json` instead of matching a regex against its table, and names
 every offending function when it fails. `.github/workflows/ci.yml` runs both
-stages on all three platforms for every push and pull request.
+stages on all three platforms for every pull request and every push to `main`.
 
 The CRAP gate measures this repository with the *published* crap4rust rather
 than the binary in the working tree, which is what the PowerShell gate did and

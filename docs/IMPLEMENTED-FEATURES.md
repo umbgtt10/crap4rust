@@ -107,8 +107,14 @@ The first release focuses on a minimal, usable CRAP workflow for Rust workspaces
 
 ### Coverage Workflow
 
-- Automatically runs `cargo llvm-cov --json` when `--coverage` is omitted
-- Accepts a precomputed coverage file through `--coverage`
+- Automatically runs `cargo llvm-cov --json` when `--coverage` is omitted, which
+  requires `cargo-llvm-cov` and the `llvm-tools` rustup component
+- Accepts a precomputed coverage file through `--coverage`, the one route that
+  needs neither
+- Reports an absent `cargo-llvm-cov` by name and with the install command,
+  rather than as the exit code cargo returns for an unknown subcommand
+- Carries `cargo llvm-cov`'s own stderr into the error when a coverage run
+  fails for any other reason
 - Produces one combined coverage input when multiple packages are requested
 
 ### Source Filtering
