@@ -82,7 +82,11 @@ fn resolve_at_a_workspace_root_without_packages_selects_every_member() {
     names.sort();
     assert_eq!(
         names,
-        vec![String::from("cargo-crap4rust"), String::from("validation")]
+        vec![
+            String::from("cargo-crap4rust"),
+            String::from("validation"),
+            String::from("xtask"),
+        ]
     );
 }
 
