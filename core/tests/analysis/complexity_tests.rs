@@ -3,9 +3,10 @@
 // SPDX-License-Identifier: MIT
 
 use crap4rust::analysis::complexity::cognitive_complexity;
+use syn::Block;
 use syn::parse_file;
 
-fn parse_fn_block(source: &str) -> syn::Block {
+fn parse_fn_block(source: &str) -> Block {
     let source = format!("fn f() {{ {} }}", source);
     let file = parse_file(&source).expect("parse source");
     let item_fn = match &file.items[0] {

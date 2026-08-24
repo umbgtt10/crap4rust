@@ -5,10 +5,11 @@
 use crap4rust::analysis::test_module_registry::TestModuleRegistry;
 use std::fs;
 use std::path::PathBuf;
+use syn::File;
 use syn::parse_file;
 use tempfile::TempDir;
 
-fn parsed(source: &str) -> syn::File {
+fn parsed(source: &str) -> File {
     parse_file(source).expect("parse source")
 }
 

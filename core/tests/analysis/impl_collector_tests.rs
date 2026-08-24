@@ -7,6 +7,8 @@ use crap4rust::analysis::impl_collector::{
 };
 use crap4rust::invocation::package_context::PackageContext;
 use std::path::PathBuf;
+use syn::Attribute;
+use syn::ItemImpl;
 use syn::parse_file;
 use syn::parse_quote;
 use syn::spanned::Spanned;
@@ -28,7 +30,7 @@ fn collect_excludes_test_attributed_methods() {
     let package = test_package();
     let module_prefix: Vec<String> = vec![];
     let inline_modules: Vec<String> = vec![];
-    let item_impl: syn::ItemImpl = parse_quote! {
+    let item_impl: ItemImpl = parse_quote! {
         impl Foo {
             #[test]
             fn test_only(&self) {}
@@ -54,7 +56,7 @@ fn collect_excludes_test_attributed_methods() {
 #[test]
 fn is_test_attrs_detects_cfg_test_attribute() {
     // Arrange
-    let attrs: Vec<syn::Attribute> = vec![parse_quote!(#[cfg(test)])];
+    let attrs: Vec<Attribute> = vec![parse_quote!(#[cfg(test)])];
 
     // Act
     let result = is_test_attrs(&attrs);
@@ -66,7 +68,7 @@ fn is_test_attrs_detects_cfg_test_attribute() {
 #[test]
 fn is_test_attrs_detects_test_attribute() {
     // Arrange
-    let attrs: Vec<syn::Attribute> = vec![parse_quote!(#[test])];
+    let attrs: Vec<Attribute> = vec![parse_quote!(#[test])];
 
     // Act
     let result = is_test_attrs(&attrs);
@@ -78,7 +80,7 @@ fn is_test_attrs_detects_test_attribute() {
 #[test]
 fn is_test_attrs_returns_false_for_empty_attrs() {
     // Arrange
-    let attrs: Vec<syn::Attribute> = vec![];
+    let attrs: Vec<Attribute> = vec![];
 
     // Act
     let result = is_test_attrs(&attrs);
@@ -90,7 +92,7 @@ fn is_test_attrs_returns_false_for_empty_attrs() {
 #[test]
 fn is_test_attrs_returns_false_for_regular_attributes() {
     // Arrange
-    let attrs: Vec<syn::Attribute> = vec![parse_quote!(#[allow(dead_code)])];
+    let attrs: Vec<Attribute> = vec![parse_quote!(#[allow(dead_code)])];
 
     // Act
     let result = is_test_attrs(&attrs);
@@ -148,7 +150,7 @@ fn visit_impl_qualifies_method_name_with_receiver() {
     let package = test_package();
     let module_prefix: Vec<String> = vec![];
     let inline_modules: Vec<String> = vec![];
-    let item_impl: syn::ItemImpl = parse_quote! {
+    let item_impl: ItemImpl = parse_quote! {
         impl Foo {
             pub fn bar(&self) {}
         }
