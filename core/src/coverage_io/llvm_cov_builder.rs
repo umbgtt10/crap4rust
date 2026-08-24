@@ -7,6 +7,7 @@ use std::process::{Command, Stdio};
 
 use anyhow::{Context, Result, bail};
 
+use crate::coverage_io::llvm_cov_failure::LlvmCovFailure;
 use crate::invocation::config::Config;
 use crate::invocation::package_context::PackageContext;
 
@@ -62,15 +63,27 @@ impl LlvmCovBuilder {
         self
     }
 
+    // stderr is captured rather than discarded: it is noise on a successful run,
+    // and the only account of what went wrong on a failing one. Nulling it lost
+    // cargo's own "no such command" and left a bare exit code to explain a
+    // missing install. stdout stays inherited so a long coverage run still
+    // reports progress.
     pub(crate) fn execute(mut self) -> Result<()> {
-        self.command.stderr(Stdio::null());
-        let status = self
+        self.command.stderr(Stdio::piped());
+        let output = self
             .command
-            .status()
-            .context("failed to invoke cargo llvm-cov; ensure cargo-llvm-cov is installed")?;
-        if !status.success() {
-            bail!("cargo llvm-cov failed with exit code {:?}", status.code());
+            .spawn()
+            .and_then(|child| child.wait_with_output())
+            .context("failed to invoke cargo; ensure cargo is on the PATH")?;
+
+        if !output.status.success() {
+            let failure = LlvmCovFailure::new(
+                output.status.code(),
+                String::from_utf8_lossy(&output.stderr).into_owned(),
+            );
+            bail!("{}", failure.describe());
         }
+
         Ok(())
     }
 }

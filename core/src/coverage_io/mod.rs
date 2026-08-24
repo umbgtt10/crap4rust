@@ -7,4 +7,5 @@ pub mod coverage_index;
 pub mod coverage_record;
 pub mod export;
 pub mod llvm_cov_builder;
+pub mod llvm_cov_failure;
 pub mod llvm_cov_provider;
