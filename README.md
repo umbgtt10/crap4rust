@@ -49,11 +49,16 @@ just stage2
 ```
 
 Both must be green before a change is complete. Stage 1 is formatting, clippy
-and tests — cargo built-ins only, so it works on a fresh checkout. Stage 2 is
-`cargo xtask stage2`, which runs, in order: `cargo stern4rust` (house coding
-rules), `cargo crap4rust` (complexity against coverage), `cargo twin4rust`
-(every source file has a mirrored test file) and `cargo iceberg4rust` (file
-risk).
+and tests; stage 2 is `cargo xtask stage2`, which runs, in order:
+`cargo stern4rust` (house coding rules), `cargo crap4rust` (complexity against
+coverage), `cargo twin4rust` (every source file has a mirrored test file) and
+`cargo iceberg4rust` (file risk).
+
+Stage 1 is *not* cargo built-ins alone here, which is the one way this
+repository differs from its siblings: crap4rust is the coverage tool, so its
+own validation tests drive the built binary through the path that shells out to
+`cargo llvm-cov`. A checkout without that install fails stage 1, before ever
+reaching the gate.
 
 Everything the two stages need, none of which ships with cargo:
 

@@ -30,8 +30,11 @@ Run gates:
 
 If either gate is not green, the work is not complete.
 
-Stage 1 is formatting, clippy and tests -- cargo built-ins only, so it works on
-a fresh checkout. Stage 2 is `cargo xtask stage2`, which orchestrates four
+Stage 1 is formatting, clippy and tests. It is cargo built-ins plus
+`cargo-llvm-cov`: this repository is the coverage tool, so its validation tests
+drive the built binary through the path that generates coverage, and a checkout
+without that install fails stage 1 rather than stage 2. Stage 2 is
+`cargo xtask stage2`, which orchestrates four
 installed cargo subcommands in this order:
 
 | gate | asks |

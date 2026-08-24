@@ -10,6 +10,10 @@ use crap4rust::coverage_io::llvm_cov_failure::LlvmCovFailure;
 const MISSING_SUBCOMMAND_STDERR: &str =
     "error: no such command: `llvm-cov`\n\nhelp: view all installed commands with `cargo --list`\n";
 
+// Pinned whole rather than by substring. The message is written across two
+// source lines with a `\` continuation, which strips the newline and the
+// indentation that follows it -- so the wording is one line with single spaces,
+// and a reader of the source cannot tell that from the layout alone.
 #[test]
 fn describe_a_missing_subcommand_names_the_install_command() {
     // Arrange
@@ -19,7 +23,27 @@ fn describe_a_missing_subcommand_names_the_install_command() {
     let described = failure.describe();
 
     // Assert
-    assert!(described.contains("cargo install cargo-llvm-cov"));
+    assert_eq!(
+        described,
+        "cargo-llvm-cov is not installed, and crap4rust needs it to measure coverage. \
+         Install it with: cargo install cargo-llvm-cov"
+    );
+}
+
+#[test]
+fn describe_a_missing_subcommand_runs_the_wording_together_on_one_line() {
+    // Arrange
+    let failure = LlvmCovFailure::new(Some(101), String::from(MISSING_SUBCOMMAND_STDERR));
+
+    // Act
+    let described = failure.describe();
+
+    // Assert
+    assert!(!described.contains('\n'), "the message is a single line");
+    assert!(
+        !described.contains("  "),
+        "the source indentation after the continuation must not survive into the message"
+    );
 }
 
 // The exit code alone was the whole message before, and it explained nothing.
