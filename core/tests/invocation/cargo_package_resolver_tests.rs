@@ -85,7 +85,7 @@ fn resolve_at_a_workspace_root_without_packages_selects_every_member() {
         vec![
             String::from("cargo-crap4rust"),
             String::from("validation"),
-            String::from("xtask")
+            String::from("xtask"),
         ]
     );
 }
