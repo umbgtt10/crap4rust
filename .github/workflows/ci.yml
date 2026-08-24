@@ -36,18 +36,23 @@ jobs:
       - name: Install just
         uses: extractions/setup-just@v4
 
+      # Both stages, not just stage 2. crap4rust is the coverage tool, so its
+      # own validation tests drive the built binary through the path that
+      # shells out to cargo llvm-cov -- without it, stage 1 fails with
+      # `cargo llvm-cov failed with exit code Some(101)` and nothing about the
+      # message says an install is missing.
+      - name: Install cargo-llvm-cov
+        run: cargo install cargo-llvm-cov
+
       # Not cached: caching cargo-installed binaries makes `cargo install` skip
       # a reinstall even when a newer version is published, so the gate would
-      # quietly keep testing against a stale tool. cargo-llvm-cov is crap4rust's
-      # own coverage backend rather than a house tool, but it is missing from a
-      # fresh runner just the same.
+      # quietly keep testing against a stale tool.
       - name: Install house gate tools
         if: matrix.stage == 'stage2'
         run: |
           cargo install cargo-stern4rust
           cargo install cargo-twin4rust
           cargo install cargo-iceberg4rust
-          cargo install cargo-llvm-cov
 
       # This repository is crap4rust. The gate measures it with the published
       # crap4rust rather than the one in the working tree, matching what the
