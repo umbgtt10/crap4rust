@@ -6,6 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.8.1] - 2026-10-02
+
+### Fixed
+
+- The crates.io page shows the README. The package lives in `core/` and the
+  README at the repository root, so cargo found none to ship: every release up
+  to 0.8.0 went out with `readme = false` and crates.io said "No Readme". The
+  manifest now names `../README.md`, which cargo copies into the package.
+- The README's links to `docs/`, `CHANGELOG.md` and `LICENSE` are absolute.
+  crates.io resolves a relative link against the package's own directory,
+  `core/`, where none of those files exist.
+
+No code changes since 0.8.0.
+
 ## [0.8.0] - 2026-08-24
 
 ### Fixed
@@ -279,7 +293,9 @@ First public release.
 
 - Initial crates.io release of `cargo-crap4rust`
 
-[Unreleased]: https://github.com/umbgtt10/crap4rust/compare/v0.7.0...HEAD
+[Unreleased]: https://github.com/umbgtt10/crap4rust/compare/v0.8.1...HEAD
+[0.8.1]: https://github.com/umbgtt10/crap4rust/releases/tag/v0.8.1
+[0.8.0]: https://github.com/umbgtt10/crap4rust/releases/tag/v0.8.0
 [0.7.0]: https://github.com/umbgtt10/crap4rust/releases/tag/v0.7.0
 [0.6.2]: https://github.com/umbgtt10/crap4rust/releases/tag/v0.6.2
 [0.6.1]: https://github.com/umbgtt10/crap4rust/releases/tag/v0.6.1

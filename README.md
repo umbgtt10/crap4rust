@@ -9,7 +9,7 @@ CRAP (Change Risk Anti-Patterns) combines cognitive complexity and test coverage
 Full derivation of every term — how cognitive complexity is scored construct
 by construct, how coverage is matched and duplicate records resolved, and
 how a project-level verdict is computed from every function's own — is in
-[`docs/FORMULA.md`](docs/FORMULA.md).
+[`docs/FORMULA.md`](https://github.com/umbgtt10/crap4rust/blob/main/docs/FORMULA.md).
 
 It is published as the Cargo subcommand package `cargo-crap4rust`, so the command is `cargo crap4rust`.
 
@@ -17,13 +17,13 @@ It is published as the Cargo subcommand package `cargo-crap4rust`, so the comman
 
 | Doc | What's in it |
 |---|---|
-| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | How a `crap4rust` invocation flows through the code, module by module. |
-| [`docs/FORMULA.md`](docs/FORMULA.md) | Every scoring term, in full, kept in sync with `src/`. |
-| [`docs/ADRs/`](docs/ADRs/) | Why the codebase is shaped the way it is. |
-| [`docs/ROADMAP.md`](docs/ROADMAP.md) | What's shipped, what's next. |
-| [`docs/OPEN_POINTS.md`](docs/OPEN_POINTS.md) | Known gaps, deliberately deferred. |
-| [`docs/IMPLEMENTED-FEATURES.md`](docs/IMPLEMENTED-FEATURES.md) | The full shipped feature set. |
-| [`CHANGELOG.md`](CHANGELOG.md) | Release history. |
+| [`docs/ARCHITECTURE.md`](https://github.com/umbgtt10/crap4rust/blob/main/docs/ARCHITECTURE.md) | How a `crap4rust` invocation flows through the code, module by module. |
+| [`docs/FORMULA.md`](https://github.com/umbgtt10/crap4rust/blob/main/docs/FORMULA.md) | Every scoring term, in full, kept in sync with `src/`. |
+| [`docs/ADRs/`](https://github.com/umbgtt10/crap4rust/tree/main/docs/ADRs) | Why the codebase is shaped the way it is. |
+| [`docs/ROADMAP.md`](https://github.com/umbgtt10/crap4rust/blob/main/docs/ROADMAP.md) | What's shipped, what's next. |
+| [`docs/OPEN_POINTS.md`](https://github.com/umbgtt10/crap4rust/blob/main/docs/OPEN_POINTS.md) | Known gaps, deliberately deferred. |
+| [`docs/IMPLEMENTED-FEATURES.md`](https://github.com/umbgtt10/crap4rust/blob/main/docs/IMPLEMENTED-FEATURES.md) | The full shipped feature set. |
+| [`CHANGELOG.md`](https://github.com/umbgtt10/crap4rust/blob/main/CHANGELOG.md) | Release history. |
 
 ## Install
 
@@ -85,7 +85,7 @@ for every pull request and every push to `main`.
 
 ## License
 
-Licensed under the [MIT License](LICENSE).
+Licensed under the [MIT License](https://github.com/umbgtt10/crap4rust/blob/main/LICENSE).
 
 ## What It Does
 
@@ -212,4 +212,4 @@ The report above is abbreviated to the highest-scoring rows, with function names
 
 Try-operator propagation with `?` is treated as error forwarding rather than decision-making complexity, so CRAP scoring reflects branching and control-flow structure instead of penalising straightforward `Result` propagation.
 
-See [docs/IMPLEMENTED-FEATURES.md](docs/IMPLEMENTED-FEATURES.md) for the shipped feature set and [docs/ROADMAP.md](docs/ROADMAP.md) for the broader plan.
+See [docs/IMPLEMENTED-FEATURES.md](https://github.com/umbgtt10/crap4rust/blob/main/docs/IMPLEMENTED-FEATURES.md) for the shipped feature set and [docs/ROADMAP.md](https://github.com/umbgtt10/crap4rust/blob/main/docs/ROADMAP.md) for the broader plan.
