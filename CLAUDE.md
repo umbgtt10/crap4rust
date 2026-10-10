@@ -34,19 +34,38 @@ Stage 1 is formatting, clippy and tests. It is cargo built-ins plus
 `cargo-llvm-cov`: this repository is the coverage tool, so its validation tests
 drive the built binary through the path that generates coverage, and a checkout
 without that install fails stage 1 rather than stage 2. Stage 2 is
-`cargo xtask stage2`, which orchestrates four
+`cargo xtask stage2`, which orchestrates five
 installed cargo subcommands in this order:
 
 | gate | asks |
 |---|---|
 | `cargo stern4rust` | do the house coding rules hold |
+| `cargo dry4rust` | did this change add duplicated code |
 | `cargo crap4rust` | is any function complex and untested |
 | `cargo twin4rust` | does every source file have a mirrored test file |
 | `cargo iceberg4rust` | is any file's private implementation risk too high |
 
 stern4rust runs **first** because its corrections are renames, file moves and
-directory splits: a layout it is about to reject is a layout the other three
-would have measured for nothing. Its findings are also the cheapest to act on.
+directory splits: a layout it is about to reject is a layout the others would
+have measured for nothing. Its findings are also the cheapest to act on.
+
+`dry4rust` runs **second** for the same reason: removing a duplicate moves code
+between files, which changes what the three behind it measure. It scans
+`core/src` only -- tests repeat their arrangement by design -- and checks with
+zero ceilings against `dry4rust-baseline.json`, the duplication already there
+when the gate arrived. So it fails on what a change adds, not on what it
+inherited; a duplicate removed is admitted, a copy added to a recorded group is
+not.
+
+It counts only code units of 25 AST nodes or more, the floor the family gates
+at. The baseline holds one group: `App::with_deps` and `ImplCollector::new`,
+two constructors that each store their arguments field by field. They share a
+shape rather than logic -- one holds five boxed trait objects and a `Config`,
+the other five borrows -- so there is nothing to extract, and both are `pub`.
+
+Re-record the baseline only to drop groups that are gone, never to admit new
+ones, and at the same floor -- a baseline matches only at the floor it was
+recorded at: `cargo dry4rust --path core/src --min-nodes 25 --baseline "$PWD/dry4rust-baseline.json" baseline`.
 
 All twenty-two of its rules apply to every workspace member, with nothing
 skipped, nothing selected and nothing unconfigured: `stern4rust.toml` holds no
@@ -58,6 +77,7 @@ which is the same set a bare `cargo stern4rust` at the root scans.
 
 `cargo install just`
 `cargo install cargo-stern4rust`
+`cargo install cargo-dry4rust`
 `cargo install cargo-crap4rust`
 `cargo install cargo-twin4rust`
 `cargo install cargo-iceberg4rust`

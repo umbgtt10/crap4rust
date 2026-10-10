@@ -7,6 +7,7 @@ use std::path::Path;
 use std::process::ExitCode;
 use xtask::crap::crap_report_parser::CrapReportParser;
 use xtask::gates::crap_gate::CrapGate;
+use xtask::gates::dry_gate::DryGate;
 use xtask::gates::gate::Gate;
 use xtask::gates::iceberg_gate::IcebergGate;
 use xtask::gates::stage2::Stage2;
@@ -19,6 +20,9 @@ const VALIDATION_PACKAGE: &str = "validation";
 const XTASK_PACKAGE: &str = "xtask";
 const CRAP_THRESHOLD: &str = "15";
 const ICEBERG_THRESHOLD: &str = "15.3";
+const DRY_PATH: &str = "core/src";
+const DRY_BASELINE: &str = "dry4rust-baseline.json";
+const DRY_MIN_NODES: &str = "25";
 
 // Reading the real process argv and wiring the concrete runner are the two
 // things no test can reach, so they are all this binary does.
@@ -58,6 +62,22 @@ fn run_stage2() -> ExitCode {
             String::from(XTASK_PACKAGE),
         ],
     );
+
+    // Second, for the same reason stern4rust is first: removing a duplicate
+    // moves code between files, which changes what the three behind it measure.
+    // The published crate's source only -- tests repeat their arrangement by
+    // design -- against a baseline of what was already duplicated when the gate
+    // arrived, so it fails on what a change adds rather than on what it
+    // inherited. The floor is the one the family gates at, and the one the
+    // baseline was recorded at: a baseline matches only at its own floor.
+    let root = workspace_root();
+    let dry = DryGate::new(
+        &runner,
+        root.join(DRY_PATH).to_string_lossy().into_owned(),
+        root.join(DRY_BASELINE).to_string_lossy().into_owned(),
+        String::from(DRY_MIN_NODES),
+    );
+
     let crap = CrapGate::new(
         &runner,
         &parser,
@@ -73,7 +93,7 @@ fn run_stage2() -> ExitCode {
         String::from(ICEBERG_THRESHOLD),
     );
 
-    let gates: Vec<&dyn Gate> = vec![&stern, &crap, &twin, &iceberg];
+    let gates: Vec<&dyn Gate> = vec![&stern, &dry, &crap, &twin, &iceberg];
 
     match Stage2::new(gates).run() {
         Ok(()) => {

@@ -50,9 +50,10 @@ just stage2
 
 Both must be green before a change is complete. Stage 1 is formatting, clippy
 and tests; stage 2 is `cargo xtask stage2`, which runs, in order:
-`cargo stern4rust` (house coding rules), `cargo crap4rust` (complexity against
-coverage), `cargo twin4rust` (every source file has a mirrored test file) and
-`cargo iceberg4rust` (file risk).
+`cargo stern4rust` (house coding rules, every one of them, on every workspace
+member), `cargo dry4rust` (no duplication beyond `dry4rust-baseline.json`),
+`cargo crap4rust` (complexity against coverage), `cargo twin4rust` (every
+source file has a mirrored test file) and `cargo iceberg4rust` (file risk).
 
 Stage 1 is *not* cargo built-ins alone here, which is the one way this
 repository differs from its siblings: crap4rust is the coverage tool, so its
@@ -68,6 +69,7 @@ Everything the two stages need, none of which ships with cargo:
 | [`cargo-llvm-cov`](https://github.com/taiki-e/cargo-llvm-cov) | `cargo install cargo-llvm-cov` | both stages |
 | `llvm-tools` rustup component | `rustup component add llvm-tools` | both stages |
 | `cargo-stern4rust` | `cargo install cargo-stern4rust` | stage 2 |
+| `cargo-dry4rust` | `cargo install cargo-dry4rust` | stage 2 |
 | `cargo-crap4rust` | `cargo install cargo-crap4rust` | stage 2 |
 | `cargo-twin4rust` | `cargo install cargo-twin4rust` | stage 2 |
 | `cargo-iceberg4rust` | `cargo install cargo-iceberg4rust` | stage 2 |
