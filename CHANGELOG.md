@@ -6,6 +6,37 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.8.2] - 2026-10-10
+
+A patch release: the tool's command line, output and exit codes are exactly
+those of 0.8.1. Patch rather than minor because no `pub` item of the
+`crap4rust` library changed signature -- the one source change in `core/` is
+inside two private functions of `TestModuleRegistry`. What changed is how this
+repository holds itself to its gates.
+
+### Changed
+
+- `TestModuleRegistry` returns the test-gated module files it finds instead of
+  writing them through a `&mut HashSet` parameter, which stern4rust 0.14.0's
+  new `returned-mutations` rule forbids in `src/`. The recursion unions the
+  sets the shared one used to accumulate, so the files excluded from
+  discovery are unchanged.
+- Every stern4rust rule now applies to every workspace member: all twenty-two,
+  with nothing skipped, selected or unconfigured. `validation` had skipped
+  `paired-test-file`, because its two test files were named for source files
+  in a package with no `src/`. It now has one: `Fixture` and `Source`, the
+  helpers both test files already shared -- one of them in two copies --
+  moved with their matching and panic messages unchanged, and each test file
+  is named for the apparatus it is built on. Every validation test is kept with its assertions untouched. The
+  house-rules gate scans `validation` alongside `cargo-crap4rust` and `xtask`,
+  the same set a bare `cargo stern4rust` at the root scans.
+- Stage 2 gains a fifth gate, `cargo dry4rust`, second after the house rules:
+  no duplicated code in `core/src` beyond `dry4rust-baseline.json`, counting
+  units of 25 AST nodes or more. The baseline holds the one group already
+  there -- `App::with_deps` and `ImplCollector::new`, two field-by-field
+  constructors that share a shape and no logic. CI installs `cargo-dry4rust`
+  beside the other stage-2 tools, and the README lists it.
+
 ## [0.8.1] - 2026-10-02
 
 ### Fixed
@@ -293,7 +324,8 @@ First public release.
 
 - Initial crates.io release of `cargo-crap4rust`
 
-[Unreleased]: https://github.com/umbgtt10/crap4rust/compare/v0.8.1...HEAD
+[Unreleased]: https://github.com/umbgtt10/crap4rust/compare/v0.8.2...HEAD
+[0.8.2]: https://github.com/umbgtt10/crap4rust/releases/tag/v0.8.2
 [0.8.1]: https://github.com/umbgtt10/crap4rust/releases/tag/v0.8.1
 [0.8.0]: https://github.com/umbgtt10/crap4rust/releases/tag/v0.8.0
 [0.7.0]: https://github.com/umbgtt10/crap4rust/releases/tag/v0.7.0
