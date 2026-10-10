@@ -8,6 +8,8 @@ use serde_json::to_vec;
 use std::fs;
 use std::path::{Path, PathBuf};
 use tempfile::TempDir;
+use validation::fixture::Fixture;
+use validation::source::Source;
 
 const FUNCTION_NAMES: &[&str] = &[
     "empty_function",
@@ -25,7 +27,7 @@ fn build_coverage_entries(source_path: &Path, count: u64) -> Vec<(PathBuf, usize
         .map(|name| {
             (
                 source_path.to_path_buf(),
-                named_function_line(source_path, name),
+                Source::new(source_path).named_function_line(name),
                 count,
             )
         })
@@ -57,21 +59,7 @@ fn extract_report_line<'a>(output: &'a str, function_name: &str) -> Option<&'a s
 }
 
 fn fixture_dir() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("..")
-        .join("fixture")
-        .join("complexity")
-}
-
-fn named_function_line(path: &Path, function_name: &str) -> usize {
-    let needle = format!("pub fn {function_name}");
-
-    fs::read_to_string(path)
-        .expect("read fixture source")
-        .lines()
-        .enumerate()
-        .find_map(|(index, line)| line.trim_start().starts_with(&needle).then_some(index + 1))
-        .expect("fixture source contains the named public function")
+    Fixture::new(&["complexity"]).directory()
 }
 
 fn run_report(coverage_path: &Path, threshold: &str) -> String {

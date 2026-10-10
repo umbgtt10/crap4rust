@@ -5,9 +5,14 @@
 # so they never had a mirror in core/ to be named after -- which is exactly
 # what paired-test-file kept reporting while they lived there.
 #
+# src/ holds the apparatus the tests share: `Fixture` locates a crate under
+# fixture/ and `Source` finds the line a fixture function starts on. Each test
+# file is named for the apparatus it is built on, so paired-test-file holds
+# here without a skip, and the house rules gate this package like any other.
+#
 # A workspace member rather than an excluded crate, so `cargo test` at the root
-# still runs every one of them. Stage 2 passes `--package cargo-crap4rust` to
-# each gate, so the house rules measure core/ and leave this alone.
+# still runs every one of them. The measuring gates -- CRAP, mirrored tests,
+# file risk -- are pointed at core/ and leave this alone.
 [package]
 name = "validation"
 version = "0.7.0"
@@ -17,6 +22,10 @@ license = "MIT"
 publish = false
 
 autotests = false
+
+[lib]
+name = "validation"
+path = "src/lib.rs"
 
 [[test]]
 name = "all_tests"

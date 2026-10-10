@@ -15,6 +15,7 @@ use xtask::gates::twin_gate::TwinGate;
 use xtask::process::system_command_runner::SystemCommandRunner;
 
 const PACKAGE: &str = "cargo-crap4rust";
+const VALIDATION_PACKAGE: &str = "validation";
 const XTASK_PACKAGE: &str = "xtask";
 const CRAP_THRESHOLD: &str = "15";
 const ICEBERG_THRESHOLD: &str = "15.3";
@@ -42,13 +43,20 @@ fn run_stage2() -> ExitCode {
     let parser = CrapReportParser::new();
     let packages = vec![String::from(PACKAGE)];
 
-    // The house rules reach xtask as well, so the crate that runs the gates is
-    // held to them too. The measuring gates below cannot: they are scoped to
-    // core/ to stay off validation, and xtask lives outside that manifest.
+    // The house rules reach every member, which is what a bare hand-run of
+    // `cargo stern4rust` at the root scans too: xtask, so the crate that runs
+    // the gates is held to them, and validation, whose tests are each named for
+    // the apparatus in its src/ they are built on. The measuring gates below
+    // cannot follow: they are scoped to core/ to stay off validation, and xtask
+    // lives outside that manifest.
     let stern = SternGate::new(
         &runner,
         workspace_manifest,
-        vec![String::from(PACKAGE), String::from(XTASK_PACKAGE)],
+        vec![
+            String::from(PACKAGE),
+            String::from(VALIDATION_PACKAGE),
+            String::from(XTASK_PACKAGE),
+        ],
     );
     let crap = CrapGate::new(
         &runner,

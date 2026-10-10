@@ -48,10 +48,13 @@ stern4rust runs **first** because its corrections are renames, file moves and
 directory splits: a layout it is about to reject is a layout the other three
 would have measured for nothing. Its findings are also the cheapest to act on.
 
-All twenty-one of its rules are enforced, with nothing skipped and nothing
-unconfigured. `docs/header.txt` holds the three-line header every `.rs` file
-carries and `stern4rust.toml` names it -- in the config rather than the gate
-script, so a hand-run of `cargo stern4rust` checks exactly what the gate checks.
+All twenty-two of its rules apply to every workspace member, with nothing
+skipped, nothing selected and nothing unconfigured: `stern4rust.toml` holds no
+`skip`, no `rules` and no per-package section. `docs/header.txt` holds the
+three-line header every `.rs` file carries and `stern4rust.toml` names it -- in
+the config rather than the gate script, so a hand-run of `cargo stern4rust`
+checks exactly what the gate checks. The gate passes all three members by name,
+which is the same set a bare `cargo stern4rust` at the root scans.
 
 `cargo install just`
 `cargo install cargo-stern4rust`
@@ -79,16 +82,21 @@ The CRAP gate measures this repository with the *published* crap4rust rather
 than the binary in the working tree, which is what the PowerShell gate did and
 what keeps a regression in the tree from hiding itself.
 
-Every stage 2 gate is scoped `--package cargo-crap4rust`, which is what keeps
-the two other crates in this repository out of them:
+The measuring gates -- CRAP, mirrored tests, file risk -- are scoped
+`--package cargo-crap4rust` against `core/Cargo.toml`, which is what keeps the
+two other crates in this repository out of them. The house-rules gate is not:
+it holds every workspace member to every rule.
 
 - `fixture/` holds deliberately-crappy analysis inputs. They are `exclude`d
   from the workspace, so no gate and no `cargo test` ever compiles them.
 - `validation/` holds the end-to-end tests that drive the built binary against
   those fixtures. It **is** a workspace member, so the root `cargo test` runs
-  all of it -- but its tests answer to the whole tool rather than to any one
-  source file in `core/`, so measuring them against the house rules would
-  demand mirrors that cannot exist.
+  all of it. Its tests answer to the whole tool rather than to any one source
+  file in `core/`, so the measuring gates leave it alone. Its `src/` is the
+  apparatus those tests share -- `Fixture` locates a crate under `fixture/`,
+  `Source` finds the line a fixture function starts on -- and each test file is
+  named for the apparatus it is built on, which is what lets `paired-test-file`
+  hold there without the skip it used to need.
 
 ## Orthogonality, trait surface and cognitive complexity
 
