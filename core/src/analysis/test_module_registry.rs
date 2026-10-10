@@ -20,7 +20,7 @@ impl TestModuleRegistry {
         let mut excluded_files = HashSet::new();
         for (file_path, syntax) in files {
             let base_dir = Self::own_base_dir(file_path);
-            Self::collect_excluded_mods(&syntax.items, &base_dir, &mut excluded_files);
+            excluded_files.extend(Self::collect_excluded_mods(&syntax.items, &base_dir));
         }
         Self { excluded_files }
     }
@@ -46,11 +46,8 @@ impl TestModuleRegistry {
         }
     }
 
-    fn collect_excluded_mods(
-        items: &[Item],
-        base_dir: &Path,
-        excluded_files: &mut HashSet<String>,
-    ) {
+    fn collect_excluded_mods(items: &[Item], base_dir: &Path) -> HashSet<String> {
+        let mut excluded_files = HashSet::new();
         for item in items {
             let Item::Mod(item_mod) = item else {
                 continue;
@@ -58,24 +55,19 @@ impl TestModuleRegistry {
             match &item_mod.content {
                 Some((_, nested_items)) => {
                     let nested_dir = base_dir.join(item_mod.ident.to_string());
-                    Self::collect_excluded_mods(nested_items, &nested_dir, excluded_files);
+                    excluded_files.extend(Self::collect_excluded_mods(nested_items, &nested_dir));
                 }
-                None => Self::register_if_test_gated(item_mod, base_dir, excluded_files),
+                None => excluded_files.extend(Self::register_if_test_gated(item_mod, base_dir)),
             }
         }
+        excluded_files
     }
 
-    fn register_if_test_gated(
-        item_mod: &ItemMod,
-        base_dir: &Path,
-        excluded_files: &mut HashSet<String>,
-    ) {
+    fn register_if_test_gated(item_mod: &ItemMod, base_dir: &Path) -> Option<String> {
         if !is_test_attrs(&item_mod.attrs) {
-            return;
+            return None;
         }
-        if let Some(target) = Self::resolve_file_module(base_dir, item_mod) {
-            excluded_files.insert(normalize_path(&target));
-        }
+        Self::resolve_file_module(base_dir, item_mod).map(|target| normalize_path(&target))
     }
 
     fn resolve_file_module(base_dir: &Path, item_mod: &ItemMod) -> Option<PathBuf> {
