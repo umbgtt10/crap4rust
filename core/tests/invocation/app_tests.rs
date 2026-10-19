@@ -6,7 +6,6 @@ use anyhow::{Result, bail};
 use crap4rust::analysis::source_function::SourceFunction;
 use crap4rust::coverage_io::coverage_record::CoverageRecord;
 use crap4rust::invocation::app::App;
-use crap4rust::invocation::app::run_from_args;
 use crap4rust::invocation::config::Config;
 use crap4rust::invocation::package_context::PackageContext;
 use crap4rust::reporting::default_scorer::DefaultScorer;
@@ -130,7 +129,7 @@ fn run_from_args_against_a_manifest_that_does_not_exist_is_an_error() {
     ];
 
     // Act
-    let outcome = run_from_args(args);
+    let outcome = App::run_from_args(args);
 
     // Assert
     assert!(

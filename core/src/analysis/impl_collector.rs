@@ -66,10 +66,10 @@ impl<'a> ImplCollector<'a> {
 
     fn process_item(&self, item: &ImplItem, receiver: &str) -> Option<SourceFunction> {
         if let ImplItem::Fn(method) = item {
-            if is_test_attrs(&method.attrs) {
+            if Self::is_test_attrs(&method.attrs) {
                 return None;
             }
-            let name = qualified_name(
+            let name = Self::qualified_name(
                 self.module_prefix,
                 self.inline_modules,
                 Some(receiver),
@@ -80,8 +80,8 @@ impl<'a> ImplCollector<'a> {
                 name,
                 path_key: self.path_key.to_string(),
                 relative_file: self.relative_file.to_string(),
-                line: start_line(method.sig.ident.span()),
-                end_line: end_line(method.span()),
+                line: Self::start_line(method.sig.ident.span()),
+                end_line: Self::end_line(method.span()),
                 complexity: cognitive_complexity(&method.block),
             })
         } else {
@@ -101,64 +101,64 @@ impl<'a> ImplCollector<'a> {
             _ => "impl".to_string(),
         }
     }
-}
 
-pub fn qualified_name(
-    module_prefix: &[String],
-    inline_modules: &[String],
-    receiver: Option<&str>,
-    function_name: &str,
-) -> String {
-    let mut parts = Vec::new();
-    parts.extend(module_prefix.iter().cloned());
-    parts.extend(inline_modules.iter().cloned());
-    if let Some(receiver) = receiver {
-        parts.push(receiver.to_string());
-    }
-    parts.push(function_name.to_string());
-    parts.join("::")
-}
-
-pub fn is_test_attrs(attrs: &[Attribute]) -> bool {
-    attrs.iter().any(is_test_attr)
-}
-
-fn is_test_attr(attr: &Attribute) -> bool {
-    if is_test_path(attr.path()) {
-        return true;
+    pub fn qualified_name(
+        module_prefix: &[String],
+        inline_modules: &[String],
+        receiver: Option<&str>,
+        function_name: &str,
+    ) -> String {
+        let mut parts = Vec::new();
+        parts.extend(module_prefix.iter().cloned());
+        parts.extend(inline_modules.iter().cloned());
+        if let Some(receiver) = receiver {
+            parts.push(receiver.to_string());
+        }
+        parts.push(function_name.to_string());
+        parts.join("::")
     }
 
-    let mut found = false;
-    let _ = attr.parse_nested_meta(|meta| {
-        if is_test_path(&meta.path) {
-            found = true;
+    pub fn is_test_attrs(attrs: &[Attribute]) -> bool {
+        attrs.iter().any(Self::is_test_attr)
+    }
+
+    fn is_test_attr(attr: &Attribute) -> bool {
+        if Self::is_test_path(attr.path()) {
+            return true;
         }
 
-        let _ = meta.parse_nested_meta(|nested| {
-            if is_test_path(&nested.path) {
+        let mut found = false;
+        let _ = attr.parse_nested_meta(|meta| {
+            if Self::is_test_path(&meta.path) {
                 found = true;
             }
+
+            let _ = meta.parse_nested_meta(|nested| {
+                if Self::is_test_path(&nested.path) {
+                    found = true;
+                }
+                Ok(())
+            });
+
             Ok(())
         });
 
-        Ok(())
-    });
+        found
+    }
 
-    found
-}
+    fn is_test_path(path: &SynPath) -> bool {
+        path.is_ident("test")
+            || path
+                .segments
+                .last()
+                .is_some_and(|segment| segment.ident == "test")
+    }
 
-fn is_test_path(path: &SynPath) -> bool {
-    path.is_ident("test")
-        || path
-            .segments
-            .last()
-            .is_some_and(|segment| segment.ident == "test")
-}
+    pub fn start_line(span: Span) -> usize {
+        span.start().line
+    }
 
-pub fn start_line(span: Span) -> usize {
-    span.start().line
-}
-
-pub fn end_line(span: Span) -> usize {
-    span.end().line
+    pub fn end_line(span: Span) -> usize {
+        span.end().line
+    }
 }

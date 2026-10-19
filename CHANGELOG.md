@@ -11,8 +11,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - `invocation::cli` is now `invocation::args`, named after the `Args` it
   holds, which stern4rust 0.16.0's new `named-subject` rule asks for: a source
   file is named after its subject. The command line, output and exit codes are
-  unchanged; the test file moves with it, to `args_tests.rs`. All twenty-three
-  stern4rust rules apply to every workspace member.
+  unchanged; the test file moves with it, to `args_tests.rs`.
+- `invocation::app::run_from_args` is `App::run_from_args`, and the free `run`,
+  which nothing called, is gone with the `Args::parse_args` only it used:
+  `main.rs` already enters through `EntryPoint`. `impl_collector`'s six helpers
+  -- `qualified_name`, `is_test_attrs`, `start_line`, `end_line` and two private
+  ones -- are associated functions of `ImplCollector`. Both for stern4rust
+  0.17.0's `owned-functions`: a file with a subject holds no free function. All
+  twenty-four stern4rust rules apply to every workspace member.
 
 ## [0.8.2] - 2026-10-10
 

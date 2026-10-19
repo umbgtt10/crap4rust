@@ -44,10 +44,6 @@ pub struct Args {
 }
 
 impl Args {
-    pub(crate) fn parse_args() -> Self {
-        Self::parse()
-    }
-
     pub fn parse_from_args<I, T>(args: I) -> Self
     where
         I: IntoIterator<Item = T>,

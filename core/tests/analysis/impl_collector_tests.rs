@@ -2,9 +2,7 @@
 // Licensed under the MIT License
 // SPDX-License-Identifier: MIT
 
-use crap4rust::analysis::impl_collector::{
-    ImplCollector, end_line, is_test_attrs, qualified_name, start_line,
-};
+use crap4rust::analysis::impl_collector::ImplCollector;
 use crap4rust::invocation::package_context::PackageContext;
 use std::path::PathBuf;
 use syn::Attribute;
@@ -59,7 +57,7 @@ fn is_test_attrs_detects_cfg_test_attribute() {
     let attrs: Vec<Attribute> = vec![parse_quote!(#[cfg(test)])];
 
     // Act
-    let result = is_test_attrs(&attrs);
+    let result = ImplCollector::is_test_attrs(&attrs);
 
     // Assert
     assert!(result);
@@ -71,7 +69,7 @@ fn is_test_attrs_detects_test_attribute() {
     let attrs: Vec<Attribute> = vec![parse_quote!(#[test])];
 
     // Act
-    let result = is_test_attrs(&attrs);
+    let result = ImplCollector::is_test_attrs(&attrs);
 
     // Assert
     assert!(result);
@@ -83,7 +81,7 @@ fn is_test_attrs_returns_false_for_empty_attrs() {
     let attrs: Vec<Attribute> = vec![];
 
     // Act
-    let result = is_test_attrs(&attrs);
+    let result = ImplCollector::is_test_attrs(&attrs);
 
     // Assert
     assert!(!result);
@@ -95,7 +93,7 @@ fn is_test_attrs_returns_false_for_regular_attributes() {
     let attrs: Vec<Attribute> = vec![parse_quote!(#[allow(dead_code)])];
 
     // Act
-    let result = is_test_attrs(&attrs);
+    let result = ImplCollector::is_test_attrs(&attrs);
 
     // Assert
     assert!(!result);
@@ -108,7 +106,7 @@ fn qualified_name_with_receiver_and_module_prefix() {
     let inline_modules: Vec<String> = vec![];
 
     // Act
-    let result = qualified_name(&module_prefix, &inline_modules, Some("Bar"), "baz");
+    let result = ImplCollector::qualified_name(&module_prefix, &inline_modules, Some("Bar"), "baz");
 
     // Assert
     assert_eq!(result, "foo::Bar::baz");
@@ -121,7 +119,7 @@ fn qualified_name_without_receiver() {
     let inline_modules: Vec<String> = vec![];
 
     // Act
-    let result = qualified_name(&module_prefix, &inline_modules, None, "baz");
+    let result = ImplCollector::qualified_name(&module_prefix, &inline_modules, None, "baz");
 
     // Assert
     assert_eq!(result, "baz");
@@ -136,8 +134,8 @@ fn start_line_and_end_line_reflect_span() {
     };
 
     // Act
-    let start = start_line(item_fn.sig.ident.span());
-    let end = end_line(item_fn.span());
+    let start = ImplCollector::start_line(item_fn.sig.ident.span());
+    let end = ImplCollector::end_line(item_fn.span());
 
     // Assert
     assert_eq!(start, 1);

@@ -7,7 +7,7 @@ use std::path::{Path, PathBuf};
 
 use syn::{File, Item, ItemMod};
 
-use crate::analysis::impl_collector::is_test_attrs;
+use crate::analysis::impl_collector::ImplCollector;
 use crate::analysis::normalize_path::normalize_path;
 
 pub struct TestModuleRegistry {
@@ -64,7 +64,7 @@ impl TestModuleRegistry {
     }
 
     fn register_if_test_gated(item_mod: &ItemMod, base_dir: &Path) -> Option<String> {
-        if !is_test_attrs(&item_mod.attrs) {
+        if !ImplCollector::is_test_attrs(&item_mod.attrs) {
             return None;
         }
         Self::resolve_file_module(base_dir, item_mod).map(|target| normalize_path(&target))

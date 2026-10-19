@@ -8,9 +8,7 @@ use syn::spanned::Spanned;
 use syn::{File, Item, ItemEnum, ItemFn, ItemMod, ItemStruct};
 
 use crate::analysis::complexity::cognitive_complexity;
-use crate::analysis::impl_collector::{
-    ImplCollector, end_line, is_test_attrs, qualified_name, start_line,
-};
+use crate::analysis::impl_collector::ImplCollector;
 use crate::analysis::source_function::SourceFunction;
 use crate::invocation::package_context::PackageContext;
 
@@ -50,15 +48,17 @@ impl<'a> ItemVisitor<'a> {
                 .record_function(item_fn, None, inline_modules)
                 .into_iter()
                 .collect(),
-            Item::Impl(item_impl) if !is_test_attrs(&item_impl.attrs) => ImplCollector::visit_impl(
-                self.package,
-                item_impl,
-                self.path_key,
-                self.relative_file,
-                self.module_prefix,
-                inline_modules,
-            ),
-            Item::Mod(item_mod) if !is_test_attrs(&item_mod.attrs) => {
+            Item::Impl(item_impl) if !ImplCollector::is_test_attrs(&item_impl.attrs) => {
+                ImplCollector::visit_impl(
+                    self.package,
+                    item_impl,
+                    self.path_key,
+                    self.relative_file,
+                    self.module_prefix,
+                    inline_modules,
+                )
+            }
+            Item::Mod(item_mod) if !ImplCollector::is_test_attrs(&item_mod.attrs) => {
                 self.visit_module(item_mod, inline_modules)
             }
             Item::Enum(ItemEnum { .. }) | Item::Struct(ItemStruct { .. }) => Vec::new(),
@@ -89,11 +89,11 @@ impl<'a> ItemVisitor<'a> {
         receiver: Option<&str>,
         inline_modules: &[String],
     ) -> Option<SourceFunction> {
-        if is_test_attrs(&item_fn.attrs) {
+        if ImplCollector::is_test_attrs(&item_fn.attrs) {
             return None;
         }
 
-        let name = qualified_name(
+        let name = ImplCollector::qualified_name(
             self.module_prefix,
             inline_modules,
             receiver,
@@ -104,8 +104,8 @@ impl<'a> ItemVisitor<'a> {
             name,
             path_key: self.path_key.to_string(),
             relative_file: self.relative_file.to_string(),
-            line: start_line(item_fn.sig.ident.span()),
-            end_line: end_line(item_fn.span()),
+            line: ImplCollector::start_line(item_fn.sig.ident.span()),
+            end_line: ImplCollector::end_line(item_fn.span()),
             complexity: cognitive_complexity(&item_fn.block),
         })
     }

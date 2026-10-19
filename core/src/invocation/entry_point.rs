@@ -2,7 +2,7 @@
 // Licensed under the MIT License
 // SPDX-License-Identifier: MIT
 
-use crate::invocation::app::run_from_args;
+use crate::invocation::app::App;
 use std::process::ExitCode;
 
 // Everything `main` used to do, moved somewhere a test can reach it.
@@ -39,7 +39,7 @@ impl EntryPoint {
     // An error is exit 2, the same code a broken rule uses, because a run that
     // could not finish must never read as a clean project.
     pub fn run(args: Vec<String>) -> ExitCode {
-        match run_from_args(Self::without_cargo_subcommand(args)) {
+        match App::run_from_args(Self::without_cargo_subcommand(args)) {
             Ok(code) => code,
             Err(error) => {
                 println!("error: {error:#}");

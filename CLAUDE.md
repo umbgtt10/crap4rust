@@ -67,7 +67,7 @@ Re-record the baseline only to drop groups that are gone, never to admit new
 ones, and at the same floor -- a baseline matches only at the floor it was
 recorded at: `cargo dry4rust --path core/src --min-nodes 25 --baseline "$PWD/dry4rust-baseline.json" baseline`.
 
-All twenty-three of its rules apply to every workspace member, with nothing
+All twenty-four of its rules apply to every workspace member, with nothing
 skipped, nothing selected and nothing unconfigured: `stern4rust.toml` holds no
 `skip`, no `rules` and no per-package section. `docs/header.txt` holds the
 three-line header every `.rs` file carries and `stern4rust.toml` names it -- in

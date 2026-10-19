@@ -123,21 +123,16 @@ impl App {
         }
         Ok(functions)
     }
-}
 
-// The crate's entry points, beside the App they build rather than in the crate
-// root. lib.rs is an index of the modules beneath it; a reader looking for what
-// happens when this tool runs should find it here, next to the type that does
-// it.
-pub fn run() -> Result<ExitCode> {
-    App::new(Config::from_args(Args::parse_args())).run()
-}
-
-pub fn run_from_args<I, T>(args: I) -> Result<ExitCode>
-where
-    I: IntoIterator<Item = T>,
-    T: Into<OsString> + Clone,
-{
-    let args = <Args as Parser>::parse_from(args);
-    App::new(Config::from_args(args)).run()
+    // The crate's entry point, on the App it builds rather than in the crate
+    // root. lib.rs is an index of the modules beneath it; a reader looking for
+    // what happens when this tool runs should find it here.
+    pub fn run_from_args<I, T>(args: I) -> Result<ExitCode>
+    where
+        I: IntoIterator<Item = T>,
+        T: Into<OsString> + Clone,
+    {
+        let args = <Args as Parser>::parse_from(args);
+        Self::new(Config::from_args(args)).run()
+    }
 }
