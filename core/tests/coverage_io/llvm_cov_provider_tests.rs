@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 use crap4rust::coverage_io::llvm_cov_provider::LlvmCovProvider;
-use crap4rust::invocation::cli::Args;
+use crap4rust::invocation::args::Args;
 use crap4rust::invocation::config::Config;
 use crap4rust::traits::coverage_provider::CoverageProvider;
 use std::fs;

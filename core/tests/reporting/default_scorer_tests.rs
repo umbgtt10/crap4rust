@@ -5,7 +5,7 @@
 use crap4rust::analysis::source_function::SourceFunction;
 use crap4rust::coverage_io::coverage_index::CoverageIndex;
 use crap4rust::coverage_io::coverage_record::CoverageRecord;
-use crap4rust::invocation::cli::Args;
+use crap4rust::invocation::args::Args;
 use crap4rust::invocation::config::Config;
 use crap4rust::reporting::default_scorer::DefaultScorer;
 use crap4rust::reporting::verdict::Verdict;

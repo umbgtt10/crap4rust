@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Changed
+
+- `invocation::cli` is now `invocation::args`, named after the `Args` it
+  holds, which stern4rust 0.16.0's new `named-subject` rule asks for: a source
+  file is named after its subject. The command line, output and exit codes are
+  unchanged; the test file moves with it, to `args_tests.rs`. All twenty-three
+  stern4rust rules apply to every workspace member.
+
 ## [0.8.2] - 2026-10-10
 
 A patch release: the tool's command line, output and exit codes are exactly

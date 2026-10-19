@@ -4,7 +4,7 @@
 
 use std::path::PathBuf;
 
-use crate::invocation::cli::Args;
+use crate::invocation::args::Args;
 use crate::reporting::output_format::OutputFormat;
 
 #[derive(Debug, Clone)]

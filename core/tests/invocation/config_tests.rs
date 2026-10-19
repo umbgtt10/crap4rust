@@ -2,7 +2,7 @@
 // Licensed under the MIT License
 // SPDX-License-Identifier: MIT
 
-use crap4rust::invocation::cli::Args;
+use crap4rust::invocation::args::Args;
 use crap4rust::invocation::config::Config;
 
 fn test_config(strict: bool, project_threshold: f64) -> Config {
