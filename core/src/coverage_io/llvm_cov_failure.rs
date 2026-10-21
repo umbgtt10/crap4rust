@@ -14,13 +14,6 @@ impl LlvmCovFailure {
         Self { exit_code, stderr }
     }
 
-    // cargo runs and exits non-zero when the subcommand is absent, so a missing
-    // cargo-llvm-cov never reaches the spawn error that used to carry the
-    // install hint. What distinguishes it is cargo's own message.
-    pub fn is_missing_subcommand(&self) -> bool {
-        self.stderr.contains(MISSING_SUBCOMMAND_MARKER)
-    }
-
     pub fn describe(&self) -> String {
         if self.is_missing_subcommand() {
             return String::from(
@@ -38,5 +31,12 @@ impl LlvmCovFailure {
             "cargo llvm-cov failed with exit code {:?}: {trimmed}",
             self.exit_code
         )
+    }
+
+    // cargo runs and exits non-zero when the subcommand is absent, so a missing
+    // cargo-llvm-cov never reaches the spawn error that used to carry the
+    // install hint. What distinguishes it is cargo's own message.
+    pub fn is_missing_subcommand(&self) -> bool {
+        self.stderr.contains(MISSING_SUBCOMMAND_MARKER)
     }
 }

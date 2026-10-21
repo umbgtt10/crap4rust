@@ -42,6 +42,33 @@ impl<'a> ItemVisitor<'a> {
             .collect()
     }
 
+    fn record_function(
+        &self,
+        item_fn: &ItemFn,
+        receiver: Option<&str>,
+        inline_modules: &[String],
+    ) -> Option<SourceFunction> {
+        if ImplCollector::is_test_attrs(&item_fn.attrs) {
+            return None;
+        }
+
+        let name = ImplCollector::qualified_name(
+            self.module_prefix,
+            inline_modules,
+            receiver,
+            &item_fn.sig.ident.to_string(),
+        );
+        Some(SourceFunction {
+            package_name: self.package.name.clone(),
+            name,
+            path_key: self.path_key.to_string(),
+            relative_file: self.relative_file.to_string(),
+            line: ImplCollector::start_line(item_fn.sig.ident.span()),
+            end_line: ImplCollector::end_line(item_fn.span()),
+            complexity: cognitive_complexity(&item_fn.block),
+        })
+    }
+
     fn visit_item(&self, item: &Item, inline_modules: &[String]) -> Vec<SourceFunction> {
         match item {
             Item::Fn(item_fn) => self
@@ -81,32 +108,5 @@ impl<'a> ItemVisitor<'a> {
             .iter()
             .flat_map(|item| self.visit_item(item, &nested_modules))
             .collect()
-    }
-
-    fn record_function(
-        &self,
-        item_fn: &ItemFn,
-        receiver: Option<&str>,
-        inline_modules: &[String],
-    ) -> Option<SourceFunction> {
-        if ImplCollector::is_test_attrs(&item_fn.attrs) {
-            return None;
-        }
-
-        let name = ImplCollector::qualified_name(
-            self.module_prefix,
-            inline_modules,
-            receiver,
-            &item_fn.sig.ident.to_string(),
-        );
-        Some(SourceFunction {
-            package_name: self.package.name.clone(),
-            name,
-            path_key: self.path_key.to_string(),
-            relative_file: self.relative_file.to_string(),
-            line: ImplCollector::start_line(item_fn.sig.ident.span()),
-            end_line: ImplCollector::end_line(item_fn.span()),
-            complexity: cognitive_complexity(&item_fn.block),
-        })
     }
 }

@@ -28,23 +28,6 @@ impl<'a> SourceRootCollector<'a> {
         }
     }
 
-    fn process_target(&mut self, target: &Target) {
-        if !Self::is_selected_target(target, self.include_test_targets) {
-            return;
-        }
-
-        if target
-            .src_path
-            .extension()
-            .is_some_and(|extension| extension == "rs")
-        {
-            let path = target.src_path.clone().into_std_path_buf();
-            if let Some(parent) = path.parent() {
-                self.source_roots.insert(parent.to_path_buf());
-            }
-        }
-    }
-
     pub fn finalize(mut self) -> Vec<PathBuf> {
         if self.source_roots.is_empty() {
             self.source_roots.insert(self.manifest_dir.join("src"));
@@ -92,5 +75,22 @@ impl<'a> SourceRootCollector<'a> {
                 "lib" | "bin" | "proc-macro" | "rlib" | "dylib" | "cdylib" | "staticlib"
             )
         })
+    }
+
+    fn process_target(&mut self, target: &Target) {
+        if !Self::is_selected_target(target, self.include_test_targets) {
+            return;
+        }
+
+        if target
+            .src_path
+            .extension()
+            .is_some_and(|extension| extension == "rs")
+        {
+            let path = target.src_path.clone().into_std_path_buf();
+            if let Some(parent) = path.parent() {
+                self.source_roots.insert(parent.to_path_buf());
+            }
+        }
     }
 }

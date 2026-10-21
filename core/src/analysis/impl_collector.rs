@@ -35,24 +35,6 @@ impl<'a> ImplCollector<'a> {
         }
     }
 
-    pub fn visit_impl(
-        package: &'a PackageContext,
-        item_impl: &ItemImpl,
-        path_key: &'a str,
-        relative_file: &'a str,
-        module_prefix: &'a [String],
-        inline_modules: &'a [String],
-    ) -> Vec<SourceFunction> {
-        Self::new(
-            package,
-            path_key,
-            relative_file,
-            module_prefix,
-            inline_modules,
-        )
-        .collect(item_impl)
-    }
-
     pub fn collect(&self, item_impl: &ItemImpl) -> Vec<SourceFunction> {
         let receiver = Self::impl_type_name(&item_impl.self_ty);
         let mut functions = Vec::new();
@@ -64,42 +46,12 @@ impl<'a> ImplCollector<'a> {
         functions
     }
 
-    fn process_item(&self, item: &ImplItem, receiver: &str) -> Option<SourceFunction> {
-        if let ImplItem::Fn(method) = item {
-            if Self::is_test_attrs(&method.attrs) {
-                return None;
-            }
-            let name = Self::qualified_name(
-                self.module_prefix,
-                self.inline_modules,
-                Some(receiver),
-                &method.sig.ident.to_string(),
-            );
-            Some(SourceFunction {
-                package_name: self.package.name.clone(),
-                name,
-                path_key: self.path_key.to_string(),
-                relative_file: self.relative_file.to_string(),
-                line: Self::start_line(method.sig.ident.span()),
-                end_line: Self::end_line(method.span()),
-                complexity: cognitive_complexity(&method.block),
-            })
-        } else {
-            None
-        }
+    pub fn end_line(span: Span) -> usize {
+        span.end().line
     }
 
-    fn impl_type_name(ty: &Type) -> String {
-        match ty {
-            Type::Path(path) => path
-                .path
-                .segments
-                .last()
-                .map(|segment| segment.ident.to_string())
-                .unwrap_or_else(|| "impl".to_string()),
-            Type::Reference(reference) => Self::impl_type_name(&reference.elem),
-            _ => "impl".to_string(),
-        }
+    pub fn is_test_attrs(attrs: &[Attribute]) -> bool {
+        attrs.iter().any(Self::is_test_attr)
     }
 
     pub fn qualified_name(
@@ -118,8 +70,39 @@ impl<'a> ImplCollector<'a> {
         parts.join("::")
     }
 
-    pub fn is_test_attrs(attrs: &[Attribute]) -> bool {
-        attrs.iter().any(Self::is_test_attr)
+    pub fn start_line(span: Span) -> usize {
+        span.start().line
+    }
+
+    pub fn visit_impl(
+        package: &'a PackageContext,
+        item_impl: &ItemImpl,
+        path_key: &'a str,
+        relative_file: &'a str,
+        module_prefix: &'a [String],
+        inline_modules: &'a [String],
+    ) -> Vec<SourceFunction> {
+        Self::new(
+            package,
+            path_key,
+            relative_file,
+            module_prefix,
+            inline_modules,
+        )
+        .collect(item_impl)
+    }
+
+    fn impl_type_name(ty: &Type) -> String {
+        match ty {
+            Type::Path(path) => path
+                .path
+                .segments
+                .last()
+                .map(|segment| segment.ident.to_string())
+                .unwrap_or_else(|| "impl".to_string()),
+            Type::Reference(reference) => Self::impl_type_name(&reference.elem),
+            _ => "impl".to_string(),
+        }
     }
 
     fn is_test_attr(attr: &Attribute) -> bool {
@@ -154,11 +137,28 @@ impl<'a> ImplCollector<'a> {
                 .is_some_and(|segment| segment.ident == "test")
     }
 
-    pub fn start_line(span: Span) -> usize {
-        span.start().line
-    }
-
-    pub fn end_line(span: Span) -> usize {
-        span.end().line
+    fn process_item(&self, item: &ImplItem, receiver: &str) -> Option<SourceFunction> {
+        if let ImplItem::Fn(method) = item {
+            if Self::is_test_attrs(&method.attrs) {
+                return None;
+            }
+            let name = Self::qualified_name(
+                self.module_prefix,
+                self.inline_modules,
+                Some(receiver),
+                &method.sig.ident.to_string(),
+            );
+            Some(SourceFunction {
+                package_name: self.package.name.clone(),
+                name,
+                path_key: self.path_key.to_string(),
+                relative_file: self.relative_file.to_string(),
+                line: Self::start_line(method.sig.ident.span()),
+                end_line: Self::end_line(method.span()),
+                complexity: cognitive_complexity(&method.block),
+            })
+        } else {
+            None
+        }
     }
 }

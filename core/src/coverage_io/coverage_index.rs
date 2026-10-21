@@ -28,27 +28,12 @@ impl CoverageIndex {
         Self { inner }
     }
 
-    fn merge_duplicate(existing: CoverageRecord, incoming: CoverageRecord) -> CoverageRecord {
-        if incoming.covered_regions == 0 && existing.covered_regions > 0 {
-            return existing;
-        }
-        if existing.covered_regions == 0 && incoming.covered_regions > 0 {
-            return incoming;
-        }
-        CoverageRecord {
-            path_key: existing.path_key,
-            line: existing.line,
-            covered_regions: existing.covered_regions + incoming.covered_regions,
-            total_regions: existing.total_regions + incoming.total_regions,
-        }
+    pub fn get(&self, path_key: &str, line: usize) -> Option<&CoverageRecord> {
+        self.inner.get(&(path_key.to_string(), line))
     }
 
     pub fn match_function(&self, function: &SourceFunction) -> Option<f64> {
         Self::match_function_coverage(function, &self.inner).map(|record| record.coverage_ratio())
-    }
-
-    pub fn get(&self, path_key: &str, line: usize) -> Option<&CoverageRecord> {
-        self.inner.get(&(path_key.to_string(), line))
     }
 
     pub fn match_function_coverage(
@@ -78,5 +63,20 @@ impl CoverageIndex {
             covered_regions,
             total_regions,
         })
+    }
+
+    fn merge_duplicate(existing: CoverageRecord, incoming: CoverageRecord) -> CoverageRecord {
+        if incoming.covered_regions == 0 && existing.covered_regions > 0 {
+            return existing;
+        }
+        if existing.covered_regions == 0 && incoming.covered_regions > 0 {
+            return incoming;
+        }
+        CoverageRecord {
+            path_key: existing.path_key,
+            line: existing.line,
+            covered_regions: existing.covered_regions + incoming.covered_regions,
+            total_regions: existing.total_regions + incoming.total_regions,
+        }
     }
 }

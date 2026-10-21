@@ -22,6 +22,18 @@ pub struct EntryPoint;
 impl EntryPoint {
     pub const SUBCOMMAND: &'static str = "crap4rust";
 
+    // An error is exit 2, the same code a broken rule uses, because a run that
+    // could not finish must never read as a clean project.
+    pub fn run(args: Vec<String>) -> ExitCode {
+        match App::run_from_args(Self::without_cargo_subcommand(args)) {
+            Ok(code) => code,
+            Err(error) => {
+                println!("error: {error:#}");
+                ExitCode::from(2)
+            }
+        }
+    }
+
     // Conditional and positional: only a repeated name in argv[1] goes.
     pub fn without_cargo_subcommand(args: Vec<String>) -> Vec<String> {
         if args.get(1).map(String::as_str) != Some(Self::SUBCOMMAND) {
@@ -34,17 +46,5 @@ impl EntryPoint {
         }
         forwarded.extend(rest.skip(1));
         forwarded
-    }
-
-    // An error is exit 2, the same code a broken rule uses, because a run that
-    // could not finish must never read as a clean project.
-    pub fn run(args: Vec<String>) -> ExitCode {
-        match App::run_from_args(Self::without_cargo_subcommand(args)) {
-            Ok(code) => code,
-            Err(error) => {
-                println!("error: {error:#}");
-                ExitCode::from(2)
-            }
-        }
     }
 }

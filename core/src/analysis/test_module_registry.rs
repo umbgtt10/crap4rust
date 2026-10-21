@@ -30,22 +30,6 @@ impl TestModuleRegistry {
         self.excluded_files.contains(&normalize_path(file_path))
     }
 
-    fn own_base_dir(file_path: &Path) -> PathBuf {
-        let parent = file_path
-            .parent()
-            .map(Path::to_path_buf)
-            .unwrap_or_default();
-        let stem = file_path
-            .file_stem()
-            .and_then(|stem| stem.to_str())
-            .unwrap_or_default();
-        if matches!(stem, "lib" | "main" | "mod") {
-            parent
-        } else {
-            parent.join(stem)
-        }
-    }
-
     fn collect_excluded_mods(items: &[Item], base_dir: &Path) -> HashSet<String> {
         let mut excluded_files = HashSet::new();
         for item in items {
@@ -61,6 +45,22 @@ impl TestModuleRegistry {
             }
         }
         excluded_files
+    }
+
+    fn own_base_dir(file_path: &Path) -> PathBuf {
+        let parent = file_path
+            .parent()
+            .map(Path::to_path_buf)
+            .unwrap_or_default();
+        let stem = file_path
+            .file_stem()
+            .and_then(|stem| stem.to_str())
+            .unwrap_or_default();
+        if matches!(stem, "lib" | "main" | "mod") {
+            parent
+        } else {
+            parent.join(stem)
+        }
     }
 
     fn register_if_test_gated(item_mod: &ItemMod, base_dir: &Path) -> Option<String> {

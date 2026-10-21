@@ -25,16 +25,12 @@ impl LlvmCovBuilder {
         Self { command }
     }
 
-    // The arguments built so far, in the order cargo will receive them. The
-    // builder wraps a Command, whose arguments are otherwise write-only, so
-    // without this there is no way to assert on what a configuration produced
-    // short of running cargo llvm-cov for real.
-    #[must_use]
-    pub fn arguments(&self) -> Vec<String> {
-        self.command
-            .get_args()
-            .map(|argument| argument.to_string_lossy().into_owned())
-            .collect()
+    pub fn add_packages(mut self, packages: &[PackageContext]) -> Self {
+        for package in packages {
+            self.command.arg("--package");
+            self.command.arg(&package.name);
+        }
+        self
     }
 
     pub fn apply_config(mut self, config: &Config) -> Self {
@@ -55,12 +51,16 @@ impl LlvmCovBuilder {
         self
     }
 
-    pub fn add_packages(mut self, packages: &[PackageContext]) -> Self {
-        for package in packages {
-            self.command.arg("--package");
-            self.command.arg(&package.name);
-        }
-        self
+    // The arguments built so far, in the order cargo will receive them. The
+    // builder wraps a Command, whose arguments are otherwise write-only, so
+    // without this there is no way to assert on what a configuration produced
+    // short of running cargo llvm-cov for real.
+    #[must_use]
+    pub fn arguments(&self) -> Vec<String> {
+        self.command
+            .get_args()
+            .map(|argument| argument.to_string_lossy().into_owned())
+            .collect()
     }
 
     // stderr is captured rather than discarded: it is noise on a successful run,

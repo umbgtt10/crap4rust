@@ -113,17 +113,6 @@ impl App {
         Ok(report_data.exit_code(&self.config))
     }
 
-    fn discover_all_functions(&self, packages: &[PackageContext]) -> Result<Vec<SourceFunction>> {
-        let mut functions = Vec::new();
-        for package in packages {
-            let mut package_functions = self.discovery.discover(package).with_context(|| {
-                format!("failed to discover functions in package {}", package.name)
-            })?;
-            functions.append(&mut package_functions);
-        }
-        Ok(functions)
-    }
-
     // The crate's entry point, on the App it builds rather than in the crate
     // root. lib.rs is an index of the modules beneath it; a reader looking for
     // what happens when this tool runs should find it here.
@@ -134,5 +123,16 @@ impl App {
     {
         let args = <Args as Parser>::parse_from(args);
         Self::new(Config::from_args(args)).run()
+    }
+
+    fn discover_all_functions(&self, packages: &[PackageContext]) -> Result<Vec<SourceFunction>> {
+        let mut functions = Vec::new();
+        for package in packages {
+            let mut package_functions = self.discovery.discover(package).with_context(|| {
+                format!("failed to discover functions in package {}", package.name)
+            })?;
+            functions.append(&mut package_functions);
+        }
+        Ok(functions)
     }
 }
