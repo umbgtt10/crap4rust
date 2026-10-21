@@ -3,7 +3,21 @@
 // SPDX-License-Identifier: MIT
 
 use crap4rust::analysis::file_walker::FileWalker;
+use crap4rust::invocation::package_context::PackageContext;
+use std::fs;
 use std::path::Path;
+use tempfile::TempDir;
+
+fn package(root: &Path) -> PackageContext {
+    PackageContext {
+        name: String::from("probe"),
+        manifest_dir: root.to_path_buf(),
+        workspace_root: root.to_path_buf(),
+        source_roots: vec![root.join("src")],
+        include_test_targets: false,
+        exclude_paths: vec![],
+    }
+}
 
 #[test]
 fn is_excluded_relative_file_exact_match() {
@@ -93,6 +107,49 @@ fn is_selected_relative_file_without_test_targets_excludes_tests() {
 
     // Assert
     assert!(!result);
+}
+
+#[test]
+fn process_source_root_finds_the_functions_of_its_files() {
+    // Arrange
+    let dir = TempDir::new().expect("temp dir");
+    let src = dir.path().join("src");
+    fs::create_dir_all(&src).expect("create src dir");
+    fs::write(
+        src.join("lib.rs"),
+        "pub fn alpha() {}\n\npub fn beta() {}\n",
+    )
+    .expect("write lib.rs");
+    let package = package(dir.path());
+
+    // Act
+    let functions = FileWalker::new(&package)
+        .process_source_root(&src)
+        .expect("walks");
+
+    // Assert
+    let names: Vec<&str> = functions
+        .iter()
+        .map(|function| function.name.as_str())
+        .collect();
+    assert_eq!(names, vec!["alpha", "beta"]);
+}
+
+// A package without the directory has nothing there to score, which is not a
+// failure.
+#[test]
+fn process_source_root_of_a_missing_directory_finds_nothing() {
+    // Arrange
+    let dir = TempDir::new().expect("temp dir");
+    let package = package(dir.path());
+
+    // Act
+    let functions = FileWalker::new(&package)
+        .process_source_root(&dir.path().join("src"))
+        .expect("walks");
+
+    // Assert
+    assert!(functions.is_empty());
 }
 
 #[test]

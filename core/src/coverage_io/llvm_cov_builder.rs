@@ -55,7 +55,7 @@ impl LlvmCovBuilder {
         self
     }
 
-    pub(crate) fn add_packages(mut self, packages: &[PackageContext]) -> Self {
+    pub fn add_packages(mut self, packages: &[PackageContext]) -> Self {
         for package in packages {
             self.command.arg("--package");
             self.command.arg(&package.name);
@@ -68,7 +68,7 @@ impl LlvmCovBuilder {
     // cargo's own "no such command" and left a bare exit code to explain a
     // missing install. stdout stays inherited so a long coverage run still
     // reports progress.
-    pub(crate) fn execute(mut self) -> Result<()> {
+    pub fn execute(mut self) -> Result<()> {
         self.command.stderr(Stdio::piped());
         let output = self
             .command

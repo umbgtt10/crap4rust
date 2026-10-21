@@ -19,6 +19,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   ones -- are associated functions of `ImplCollector`. Both for stern4rust
   0.17.0's `owned-functions`: a file with a subject holds no free function. All
   twenty-four stern4rust rules apply to every workspace member.
+- `FileWalker::process_source_root`, `LlvmCovBuilder::add_packages` and
+  `execute`, and `ProjectReport::exit_code` are `pub`, each with tests of its
+  own, where they were `pub(crate)`: other files of the library call them, and
+  stern4rust's coming `public-or-private` rule asks that a method be `pub` or
+  private.
 
 ## [0.8.2] - 2026-10-10
 

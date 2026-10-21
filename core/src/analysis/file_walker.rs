@@ -33,7 +33,7 @@ impl<'a> FileWalker<'a> {
         }
     }
 
-    pub(crate) fn process_source_root(&self, source_root: &Path) -> Result<Vec<SourceFunction>> {
+    pub fn process_source_root(&self, source_root: &Path) -> Result<Vec<SourceFunction>> {
         if !source_root.exists() {
             return Ok(Vec::new());
         }

@@ -4,8 +4,10 @@
 
 use crap4rust::coverage_io::llvm_cov_builder::LlvmCovBuilder;
 use crap4rust::invocation::config::Config;
+use crap4rust::invocation::package_context::PackageContext;
 use crap4rust::reporting::output_format::OutputFormat;
 use std::path::{Path, PathBuf};
+use tempfile::TempDir;
 
 fn bare_config() -> Config {
     Config {
@@ -28,6 +30,33 @@ fn bare_config() -> Config {
 
 fn builder() -> LlvmCovBuilder {
     LlvmCovBuilder::new(Path::new("out.json"))
+}
+
+fn package(name: &str) -> PackageContext {
+    PackageContext {
+        name: String::from(name),
+        manifest_dir: PathBuf::from("."),
+        workspace_root: PathBuf::from("."),
+        source_roots: vec![],
+        include_test_targets: false,
+        exclude_paths: vec![],
+    }
+}
+
+#[test]
+fn add_packages_forwards_each_package_by_name() {
+    // Arrange
+    let packages = [package("alpha"), package("beta")];
+
+    // Act
+    let arguments = builder().add_packages(&packages).arguments();
+
+    // Assert
+    let expected: Vec<String> = ["--package", "alpha", "--package", "beta"]
+        .into_iter()
+        .map(String::from)
+        .collect();
+    assert!(arguments.ends_with(&expected), "got {arguments:?}");
 }
 
 #[test]
@@ -145,6 +174,26 @@ fn builder_new_constructs_without_panicking() {
     // Assert
     // Builder was created successfully — no panic
     drop(builder);
+}
+
+// What cargo wrote to stderr is the only account of a failed run, and it reaches
+// the caller as the error rather than a bare exit code.
+#[test]
+fn execute_against_a_manifest_that_does_not_exist_fails() {
+    // Arrange
+    let dir = TempDir::new().expect("temp dir");
+    let config = Config {
+        manifest_path: Some(dir.path().join("Cargo.toml")),
+        ..bare_config()
+    };
+
+    // Act
+    let outcome = LlvmCovBuilder::new(&dir.path().join("out.json"))
+        .apply_config(&config)
+        .execute();
+
+    // Assert
+    assert!(outcome.is_err());
 }
 
 #[test]
