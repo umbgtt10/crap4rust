@@ -148,15 +148,15 @@ impl<'a> ImplCollector<'a> {
                 Some(receiver),
                 &method.sig.ident.to_string(),
             );
-            Some(SourceFunction {
-                package_name: self.package.name.clone(),
+            Some(SourceFunction::new(
+                self.package.name().to_string(),
                 name,
-                path_key: self.path_key.to_string(),
-                relative_file: self.relative_file.to_string(),
-                line: Self::start_line(method.sig.ident.span()),
-                end_line: Self::end_line(method.span()),
-                complexity: cognitive_complexity(&method.block),
-            })
+                self.path_key.to_string(),
+                self.relative_file.to_string(),
+                Self::start_line(method.sig.ident.span()),
+                Self::end_line(method.span()),
+                cognitive_complexity(&method.block),
+            ))
         } else {
             None
         }

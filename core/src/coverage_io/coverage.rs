@@ -19,13 +19,13 @@ pub(crate) fn ensure_coverage_path(
     config: &Config,
     packages: &[PackageContext],
 ) -> Result<PathBuf> {
-    if let Some(path) = &config.coverage_path {
-        return Ok(path.clone());
+    if let Some(path) = config.coverage_path() {
+        return Ok(path.to_path_buf());
     }
 
     let workspace_root = packages
         .first()
-        .map(|package| package.workspace_root.clone())
+        .map(|package| package.workspace_root().to_path_buf())
         .context("no packages were selected for coverage generation")?;
 
     let output_dir = workspace_root.join("target").join("crap4rust");
@@ -40,7 +40,7 @@ pub(crate) fn ensure_coverage_path(
         "{}-coverage.json",
         packages
             .iter()
-            .map(|package| package.name.replace('-', "_"))
+            .map(|package| package.name().replace('-', "_"))
             .collect::<Vec<_>>()
             .join("__")
     ));
@@ -58,31 +58,31 @@ pub fn load_coverage_records(path: &Path) -> Result<Vec<CoverageRecord>> {
     let export: Export = from_str(&contents).context("failed to parse cargo-llvm-cov JSON")?;
 
     let mut records = Vec::new();
-    for chunk in export.data {
-        for function in chunk.functions {
-            let Some(filename) = function.filenames.first() else {
+    for chunk in export.data() {
+        for function in chunk.functions() {
+            let Some(filename) = function.filenames().first() else {
                 continue;
             };
-            let Some(first_region) = function.regions.first() else {
+            let Some(first_region) = function.regions().first() else {
                 continue;
             };
             if first_region.len() < 5 {
                 continue;
             }
 
-            let total_regions = function.regions.len() as u32;
+            let total_regions = function.regions().len() as u32;
             let covered_regions = function
-                .regions
+                .regions()
                 .iter()
                 .filter(|region| region.get(4).copied().unwrap_or(0) > 0)
                 .count() as u32;
 
-            records.push(CoverageRecord {
-                path_key: normalize_path(Path::new(filename)),
-                line: first_region[0] as usize,
+            records.push(CoverageRecord::new(
+                normalize_path(Path::new(filename)),
+                first_region[0] as usize,
                 covered_regions,
                 total_regions,
-            });
+            ));
         }
     }
 

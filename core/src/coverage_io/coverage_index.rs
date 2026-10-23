@@ -15,7 +15,7 @@ impl CoverageIndex {
     pub fn from_records(records: Vec<CoverageRecord>) -> Self {
         let mut inner: HashMap<(String, usize), CoverageRecord> = HashMap::new();
         for record in records {
-            let key = (record.path_key.clone(), record.line);
+            let key = (record.path_key().to_string(), record.line());
             match inner.remove(&key) {
                 None => {
                     inner.insert(key, record);
@@ -43,9 +43,9 @@ impl CoverageIndex {
         let matching: Vec<&CoverageRecord> = coverage_index
             .iter()
             .filter(|((path_key, line), _)| {
-                path_key == &function.path_key
-                    && *line >= function.line
-                    && *line <= function.end_line
+                path_key == function.path_key()
+                    && *line >= function.line()
+                    && *line <= function.end_line()
             })
             .map(|(_, record)| record)
             .collect();
@@ -54,29 +54,29 @@ impl CoverageIndex {
             return None;
         }
 
-        let covered_regions = matching.iter().map(|r| r.covered_regions).sum();
-        let total_regions = matching.iter().map(|r| r.total_regions).sum();
+        let covered_regions = matching.iter().map(|r| r.covered_regions()).sum();
+        let total_regions = matching.iter().map(|r| r.total_regions()).sum();
 
-        Some(CoverageRecord {
-            path_key: function.path_key.clone(),
-            line: function.line,
+        Some(CoverageRecord::new(
+            function.path_key().to_string(),
+            function.line(),
             covered_regions,
             total_regions,
-        })
+        ))
     }
 
     fn merge_duplicate(existing: CoverageRecord, incoming: CoverageRecord) -> CoverageRecord {
-        if incoming.covered_regions == 0 && existing.covered_regions > 0 {
+        if incoming.covered_regions() == 0 && existing.covered_regions() > 0 {
             return existing;
         }
-        if existing.covered_regions == 0 && incoming.covered_regions > 0 {
+        if existing.covered_regions() == 0 && incoming.covered_regions() > 0 {
             return incoming;
         }
-        CoverageRecord {
-            path_key: existing.path_key,
-            line: existing.line,
-            covered_regions: existing.covered_regions + incoming.covered_regions,
-            total_regions: existing.total_regions + incoming.total_regions,
-        }
+        CoverageRecord::new(
+            existing.path_key().to_string(),
+            existing.line(),
+            existing.covered_regions() + incoming.covered_regions(),
+            existing.total_regions() + incoming.total_regions(),
+        )
     }
 }

@@ -35,8 +35,8 @@ fn load_coverage_records_counts_covered_regions() {
 
     // Assert
     assert_eq!(records.len(), 1);
-    assert_eq!(records[0].total_regions, 3);
-    assert_eq!(records[0].covered_regions, 2);
+    assert_eq!(records[0].total_regions(), 3);
+    assert_eq!(records[0].covered_regions(), 2);
 }
 
 #[test]
@@ -97,8 +97,8 @@ fn load_coverage_records_parses_valid_json() {
 
     // Assert
     assert_eq!(records.len(), 1);
-    assert!(records[0].path_key.contains("src/lib.rs"));
-    assert_eq!(records[0].line, 10);
+    assert!(records[0].path_key().contains("src/lib.rs"));
+    assert_eq!(records[0].line(), 10);
 }
 
 #[test]

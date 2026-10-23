@@ -15,14 +15,14 @@ fn discover_finds_public_function_in_source_root() {
     let src_dir = dir.path().join("src");
     fs::create_dir_all(&src_dir).expect("create src dir");
     fs::write(src_dir.join("lib.rs"), "pub fn risky() { if true {} }").expect("write lib.rs");
-    let package = PackageContext {
-        name: String::from("probe"),
-        manifest_dir: dir.path().to_path_buf(),
-        workspace_root: dir.path().to_path_buf(),
-        source_roots: vec![src_dir],
-        include_test_targets: false,
-        exclude_paths: vec![],
-    };
+    let package = PackageContext::new(
+        String::from("probe"),
+        dir.path().to_path_buf(),
+        dir.path().to_path_buf(),
+        vec![src_dir],
+        false,
+        vec![],
+    );
     let discovery = SourceFunctionDiscovery::new();
 
     // Act
@@ -30,21 +30,21 @@ fn discover_finds_public_function_in_source_root() {
 
     // Assert
     assert_eq!(functions.len(), 1);
-    assert_eq!(functions[0].name, "risky");
+    assert_eq!(functions[0].name(), "risky");
 }
 
 #[test]
 fn discover_missing_source_root_returns_empty() {
     // Arrange
     let dir = TempDir::new().expect("temp dir");
-    let package = PackageContext {
-        name: String::from("probe"),
-        manifest_dir: dir.path().to_path_buf(),
-        workspace_root: dir.path().to_path_buf(),
-        source_roots: vec![dir.path().join("src")],
-        include_test_targets: false,
-        exclude_paths: vec![],
-    };
+    let package = PackageContext::new(
+        String::from("probe"),
+        dir.path().to_path_buf(),
+        dir.path().to_path_buf(),
+        vec![dir.path().join("src")],
+        false,
+        vec![],
+    );
     let discovery = SourceFunctionDiscovery::new();
 
     // Act

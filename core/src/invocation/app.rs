@@ -95,18 +95,18 @@ impl App {
             .score_functions(functions, &coverage_index, &self.config);
         let metrics = self.scorer.project_metrics(&reports, &self.config);
 
-        let report_data = ProjectReport {
-            scope_name: packages
+        let report_data = ProjectReport::new(
+            packages
                 .iter()
-                .map(|package| package.name.clone())
+                .map(|package| package.name().to_string())
                 .collect::<Vec<_>>()
                 .join(", "),
-            total_functions: metrics.total_functions,
-            crappy_functions: metrics.crappy_functions,
-            crappy_percent: metrics.crappy_percent,
-            verdict: metrics.verdict,
-            functions: reports,
-        };
+            metrics.total_functions(),
+            metrics.crappy_functions(),
+            metrics.crappy_percent(),
+            metrics.verdict(),
+            reports,
+        );
 
         self.reporter.render(&report_data, &self.config);
 
@@ -129,7 +129,7 @@ impl App {
         let mut functions = Vec::new();
         for package in packages {
             let mut package_functions = self.discovery.discover(package).with_context(|| {
-                format!("failed to discover functions in package {}", package.name)
+                format!("failed to discover functions in package {}", package.name())
             })?;
             functions.append(&mut package_functions);
         }

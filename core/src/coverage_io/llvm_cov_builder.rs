@@ -28,24 +28,24 @@ impl LlvmCovBuilder {
     pub fn add_packages(mut self, packages: &[PackageContext]) -> Self {
         for package in packages {
             self.command.arg("--package");
-            self.command.arg(&package.name);
+            self.command.arg(package.name());
         }
         self
     }
 
     pub fn apply_config(mut self, config: &Config) -> Self {
-        if let Some(manifest_path) = &config.manifest_path {
+        if let Some(manifest_path) = &config.manifest_path() {
             self.command.arg("--manifest-path");
             self.command.arg(manifest_path);
         }
-        if let Some(features) = &config.features {
+        if let Some(features) = &config.features() {
             self.command.arg("--features");
             self.command.arg(features);
         }
-        if config.all_features {
+        if config.all_features() {
             self.command.arg("--all-features");
         }
-        if config.no_default_features {
+        if config.no_default_features() {
             self.command.arg("--no-default-features");
         }
         self

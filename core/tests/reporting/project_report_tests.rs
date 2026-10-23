@@ -11,33 +11,24 @@ use serde_json::to_string;
 use std::process::ExitCode;
 
 fn config(warn_only: bool) -> Config {
-    Config {
-        coverage_path: None,
-        manifest_path: None,
-        packages: vec![],
-        features: None,
-        all_features: false,
-        no_default_features: false,
-        include_test_targets: false,
-        exclude_paths: vec![],
-        threshold: 30.0,
-        warn_threshold: 20.0,
-        project_threshold: 5.0,
-        strict: true,
-        warn_only,
-        output_format: OutputFormat::Human,
-    }
+    Config::default()
+        .with_threshold(30.0)
+        .with_warn_threshold(20.0)
+        .with_project_threshold(5.0)
+        .with_strict(true)
+        .with_warn_only(warn_only)
+        .with_output_format(OutputFormat::Human)
 }
 
 fn report(crappy_functions: usize) -> ProjectReport {
-    ProjectReport {
-        scope_name: String::from("probe"),
-        total_functions: 4,
+    ProjectReport::new(
+        String::from("probe"),
+        4,
         crappy_functions,
-        crappy_percent: crappy_functions as f64 * 25.0,
-        verdict: Verdict::Clean,
-        functions: vec![],
-    }
+        crappy_functions as f64 * 25.0,
+        Verdict::Clean,
+        vec![],
+    )
 }
 
 #[test]
@@ -71,23 +62,24 @@ fn exit_code_with_warn_only_is_success_whatever_it_finds() {
 #[test]
 fn project_report_serialization_contains_expected_fields() {
     // Arrange
-    let report = ProjectReport {
-        scope_name: String::from("test"),
-        total_functions: 1,
-        crappy_functions: 0,
-        crappy_percent: 0.0,
-        verdict: Verdict::Clean,
-        functions: vec![FunctionReport {
-            package_name: String::from("test"),
-            name: String::from("foo"),
-            relative_file: String::from("src/lib.rs"),
-            line: 10,
-            complexity: 1,
-            coverage: 1.0,
-            crap_score: 1.0,
-            verdict: Verdict::Clean,
-        }],
-    };
+    let report = ProjectReport::new(
+        String::from("test"),
+        1,
+        0,
+        0.0,
+        Verdict::Clean,
+        vec![
+            FunctionReport::default()
+                .with_package_name(String::from("test"))
+                .with_name(String::from("foo"))
+                .with_relative_file(String::from("src/lib.rs"))
+                .with_line(10)
+                .with_complexity(1)
+                .with_coverage(1.0)
+                .with_crap_score(1.0)
+                .with_verdict(Verdict::Clean),
+        ],
+    );
 
     // Act
     let json = to_string(&report).expect("serialization");
@@ -96,4 +88,16 @@ fn project_report_serialization_contains_expected_fields() {
     assert!(json.contains(r#""scope_name":"test""#));
     assert!(json.contains(r#""verdict":"Clean""#));
     assert!(json.contains(r#""name":"foo""#));
+}
+
+#[test]
+fn scope_name_returns_the_scope_the_report_covers() {
+    // Arrange
+    let report = report(0);
+
+    // Act
+    let scope_name = report.scope_name();
+
+    // Assert
+    assert_eq!(scope_name, "probe");
 }

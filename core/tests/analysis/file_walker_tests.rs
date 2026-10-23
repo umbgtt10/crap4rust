@@ -9,14 +9,14 @@ use std::path::Path;
 use tempfile::TempDir;
 
 fn package(root: &Path) -> PackageContext {
-    PackageContext {
-        name: String::from("probe"),
-        manifest_dir: root.to_path_buf(),
-        workspace_root: root.to_path_buf(),
-        source_roots: vec![root.join("src")],
-        include_test_targets: false,
-        exclude_paths: vec![],
-    }
+    PackageContext::new(
+        String::from("probe"),
+        root.to_path_buf(),
+        root.to_path_buf(),
+        vec![root.join("src")],
+        false,
+        vec![],
+    )
 }
 
 #[test]
@@ -128,10 +128,7 @@ fn process_source_root_finds_the_functions_of_its_files() {
         .expect("walks");
 
     // Assert
-    let names: Vec<&str> = functions
-        .iter()
-        .map(|function| function.name.as_str())
-        .collect();
+    let names: Vec<&str> = functions.iter().map(|function| function.name()).collect();
     assert_eq!(names, vec!["alpha", "beta"]);
 }
 

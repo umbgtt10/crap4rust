@@ -40,14 +40,14 @@ impl CargoPackageResolver {
         collector.collect(&package.targets);
         let source_roots = collector.finalize();
 
-        Ok(PackageContext {
-            name: package.name.to_string(),
+        Ok(PackageContext::new(
+            package.name.to_string(),
             manifest_dir,
-            workspace_root: workspace_root.to_path_buf(),
+            workspace_root.to_path_buf(),
             source_roots,
             include_test_targets,
             exclude_paths,
-        })
+        ))
     }
 
     fn select_packages<'a>(
@@ -97,13 +97,13 @@ impl PackageResolver for CargoPackageResolver {
     fn resolve(&self, config: &Config) -> Result<Vec<PackageContext>> {
         let mut command = MetadataCommand::new();
         command.no_deps();
-        if let Some(manifest_path) = &config.manifest_path {
+        if let Some(manifest_path) = &config.manifest_path() {
             command.manifest_path(manifest_path);
         }
 
         let metadata = command.exec().context("failed to read Cargo metadata")?;
         let workspace_root = metadata.workspace_root.clone().into_std_path_buf();
-        let packages = Self::select_packages(&metadata, &config.packages)?;
+        let packages = Self::select_packages(&metadata, config.packages())?;
 
         packages
             .into_iter()
@@ -111,8 +111,8 @@ impl PackageResolver for CargoPackageResolver {
                 Self::build_package_context(
                     package,
                     &workspace_root,
-                    config.include_test_targets,
-                    config.exclude_paths.clone(),
+                    config.include_test_targets(),
+                    config.exclude_paths().to_vec(),
                 )
             })
             .collect()

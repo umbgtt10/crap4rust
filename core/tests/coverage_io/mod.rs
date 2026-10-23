@@ -5,6 +5,8 @@
 pub mod coverage_index_tests;
 pub mod coverage_record_tests;
 pub mod coverage_tests;
+pub mod export_chunk_tests;
+pub mod export_function_tests;
 pub mod export_tests;
 pub mod llvm_cov_builder_tests;
 pub mod llvm_cov_failure_tests;

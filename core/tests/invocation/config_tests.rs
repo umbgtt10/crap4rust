@@ -4,6 +4,8 @@
 
 use crap4rust::invocation::args::Args;
 use crap4rust::invocation::config::Config;
+use std::path::Path;
+use std::path::PathBuf;
 
 fn test_config(strict: bool, project_threshold: f64) -> Config {
     let mut args = vec!["crap4rust".to_string()];
@@ -72,7 +74,7 @@ fn from_args_preserves_packages() {
     let config = Config::from_args(args);
 
     // Assert
-    assert_eq!(config.packages, vec!["foo", "bar"]);
+    assert_eq!(config.packages(), vec!["foo", "bar"]);
 }
 
 #[test]
@@ -84,8 +86,8 @@ fn from_args_preserves_strict_and_warn_only() {
     let config = Config::from_args(args);
 
     // Assert
-    assert!(config.strict);
-    assert!(config.warn_only);
+    assert!(config.strict());
+    assert!(config.warn_only());
 }
 
 #[test]
@@ -97,6 +99,42 @@ fn from_args_preserves_threshold_fields() {
     let config = Config::from_args(args);
 
     // Assert
-    assert_eq!(config.threshold, 42.0);
-    assert_eq!(config.warn_threshold, 7.0);
+    assert_eq!(config.threshold(), 42.0);
+    assert_eq!(config.warn_threshold(), 7.0);
+}
+
+#[test]
+fn with_coverage_path_keeps_the_path() {
+    // Arrange
+    let config = Config::default();
+
+    // Act
+    let config = config.with_coverage_path(Some(PathBuf::from("coverage.json")));
+
+    // Assert
+    assert_eq!(config.coverage_path(), Some(Path::new("coverage.json")));
+}
+
+#[test]
+fn with_exclude_paths_keeps_every_path() {
+    // Arrange
+    let config = Config::default();
+
+    // Act
+    let config = config.with_exclude_paths(vec![String::from("benches"), String::from("examples")]);
+
+    // Assert
+    assert_eq!(config.exclude_paths(), ["benches", "examples"]);
+}
+
+#[test]
+fn with_include_test_targets_keeps_the_flag() {
+    // Arrange
+    let config = Config::default();
+
+    // Act
+    let config = config.with_include_test_targets(true);
+
+    // Assert
+    assert!(config.include_test_targets());
 }

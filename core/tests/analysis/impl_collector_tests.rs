@@ -12,14 +12,14 @@ use syn::parse_quote;
 use syn::spanned::Spanned;
 
 fn test_package() -> PackageContext {
-    PackageContext {
-        name: String::from("test-package"),
-        manifest_dir: PathBuf::from("/project"),
-        workspace_root: PathBuf::from("/project"),
-        source_roots: Vec::new(),
-        include_test_targets: false,
-        exclude_paths: Vec::new(),
-    }
+    PackageContext::new(
+        String::from("test-package"),
+        PathBuf::from("/project"),
+        PathBuf::from("/project"),
+        Vec::new(),
+        false,
+        Vec::new(),
+    )
 }
 
 #[test]
@@ -48,7 +48,7 @@ fn collect_excludes_test_attributed_methods() {
 
     // Assert
     assert_eq!(functions.len(), 1);
-    assert_eq!(functions[0].name, "Foo::real_method");
+    assert_eq!(functions[0].name(), "Foo::real_method");
 }
 
 #[test]
@@ -166,5 +166,5 @@ fn visit_impl_qualifies_method_name_with_receiver() {
 
     // Assert
     assert_eq!(functions.len(), 1);
-    assert_eq!(functions[0].name, "Foo::bar");
+    assert_eq!(functions[0].name(), "Foo::bar");
 }

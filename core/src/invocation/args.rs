@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 use std::ffi::OsString;
+use std::path::Path;
 use std::path::PathBuf;
 
 use clap::Parser;
@@ -14,33 +15,33 @@ use crate::reporting::output_format::OutputFormat;
 #[command(about = "Compute CRAP scores for Rust functions")]
 pub struct Args {
     #[arg(long)]
-    pub coverage: Option<PathBuf>,
+    coverage: Option<PathBuf>,
     #[arg(long)]
-    pub manifest_path: Option<PathBuf>,
+    manifest_path: Option<PathBuf>,
     #[arg(long)]
-    pub package: Vec<String>,
+    package: Vec<String>,
     #[arg(long)]
-    pub features: Option<String>,
+    features: Option<String>,
     #[arg(long, default_value_t = false)]
-    pub all_features: bool,
+    all_features: bool,
     #[arg(long, default_value_t = false)]
-    pub no_default_features: bool,
+    no_default_features: bool,
     #[arg(long, default_value_t = false)]
-    pub include_test_targets: bool,
+    include_test_targets: bool,
     #[arg(long)]
-    pub exclude_path: Vec<String>,
+    exclude_path: Vec<String>,
     #[arg(long, default_value_t = 30.0)]
-    pub threshold: f64,
+    threshold: f64,
     #[arg(long, default_value_t = 5.0)]
-    pub project_threshold: f64,
+    project_threshold: f64,
     #[arg(long, default_value_t = false)]
-    pub strict: bool,
+    strict: bool,
     #[arg(long, default_value_t = false)]
-    pub warn_only: bool,
+    warn_only: bool,
     #[arg(long, default_value_t = 20.0)]
-    pub warn_threshold: f64,
+    warn_threshold: f64,
     #[arg(long, default_value_t = OutputFormat::Human, value_enum)]
-    pub output_format: OutputFormat,
+    output_format: OutputFormat,
 }
 
 impl Args {
@@ -50,5 +51,61 @@ impl Args {
         T: Into<OsString> + Clone,
     {
         Self::parse_from(args)
+    }
+
+    pub fn all_features(&self) -> bool {
+        self.all_features
+    }
+
+    pub fn coverage(&self) -> Option<&Path> {
+        self.coverage.as_deref()
+    }
+
+    pub fn exclude_path(&self) -> &[String] {
+        &self.exclude_path
+    }
+
+    pub fn features(&self) -> Option<&str> {
+        self.features.as_deref()
+    }
+
+    pub fn include_test_targets(&self) -> bool {
+        self.include_test_targets
+    }
+
+    pub fn manifest_path(&self) -> Option<&Path> {
+        self.manifest_path.as_deref()
+    }
+
+    pub fn no_default_features(&self) -> bool {
+        self.no_default_features
+    }
+
+    pub fn output_format(&self) -> OutputFormat {
+        self.output_format
+    }
+
+    pub fn package(&self) -> &[String] {
+        &self.package
+    }
+
+    pub fn project_threshold(&self) -> f64 {
+        self.project_threshold
+    }
+
+    pub fn strict(&self) -> bool {
+        self.strict
+    }
+
+    pub fn threshold(&self) -> f64 {
+        self.threshold
+    }
+
+    pub fn warn_only(&self) -> bool {
+        self.warn_only
+    }
+
+    pub fn warn_threshold(&self) -> f64 {
+        self.warn_threshold
     }
 }

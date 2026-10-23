@@ -24,33 +24,23 @@ fn solo_package_manifest(temp_dir: &TempDir) -> PathBuf {
 }
 
 fn test_config() -> Config {
-    Config {
-        coverage_path: None,
-        manifest_path: Some(PathBuf::from("Cargo.toml")),
-        packages: vec![String::from("cargo-crap4rust")],
-        features: None,
-        all_features: false,
-        no_default_features: false,
-        include_test_targets: false,
-        exclude_paths: vec![],
-        threshold: 30.0,
-        warn_threshold: 20.0,
-        project_threshold: 5.0,
-        strict: true,
-        warn_only: false,
-        output_format: OutputFormat::Human,
-    }
+    Config::default()
+        .with_manifest_path(Some(PathBuf::from("Cargo.toml")))
+        .with_packages(vec![String::from("cargo-crap4rust")])
+        .with_threshold(30.0)
+        .with_warn_threshold(20.0)
+        .with_project_threshold(5.0)
+        .with_strict(true)
+        .with_output_format(OutputFormat::Human)
 }
 
 #[test]
 fn resolve_at_a_single_package_manifest_without_packages_selects_the_root() {
     // Arrange
     let temp_dir = TempDir::new().expect("temp dir");
-    let config = Config {
-        manifest_path: Some(solo_package_manifest(&temp_dir)),
-        packages: vec![],
-        ..test_config()
-    };
+    let config = test_config()
+        .with_manifest_path(Some(solo_package_manifest(&temp_dir)))
+        .with_packages(vec![]);
     let resolver = CargoPackageResolver::new();
 
     // Act
@@ -58,17 +48,15 @@ fn resolve_at_a_single_package_manifest_without_packages_selects_the_root() {
 
     // Assert
     assert_eq!(packages.len(), 1);
-    assert_eq!(packages[0].name, "solo");
+    assert_eq!(packages[0].name(), "solo");
 }
 
 #[test]
 fn resolve_at_a_workspace_root_without_packages_selects_every_member() {
     // Arrange
-    let config = Config {
-        manifest_path: Some(PathBuf::from("..").join("Cargo.toml")),
-        packages: vec![],
-        ..test_config()
-    };
+    let config = test_config()
+        .with_manifest_path(Some(PathBuf::from("..").join("Cargo.toml")))
+        .with_packages(vec![]);
     let resolver = CargoPackageResolver::new();
 
     // Act
@@ -77,7 +65,7 @@ fn resolve_at_a_workspace_root_without_packages_selects_every_member() {
     // Assert
     let mut names = packages
         .iter()
-        .map(|package| package.name.clone())
+        .map(|package| package.name().to_string())
         .collect::<Vec<_>>();
     names.sort();
     assert_eq!(
@@ -101,7 +89,7 @@ fn resolve_finds_cargo_crap4rust() {
 
     // Assert
     assert_eq!(packages.len(), 1);
-    assert_eq!(packages[0].name, "cargo-crap4rust");
+    assert_eq!(packages[0].name(), "cargo-crap4rust");
 }
 
 #[test]
@@ -114,7 +102,7 @@ fn resolve_has_source_roots() {
     let packages = resolver.resolve(&config).expect("resolve packages");
 
     // Assert
-    assert!(!packages[0].source_roots.is_empty());
+    assert!(!packages[0].source_roots().is_empty());
 }
 
 #[test]
@@ -128,16 +116,13 @@ fn resolve_via_dyn_package_resolver_finds_cargo_crap4rust() {
 
     // Assert
     assert_eq!(packages.len(), 1);
-    assert_eq!(packages[0].name, "cargo-crap4rust");
+    assert_eq!(packages[0].name(), "cargo-crap4rust");
 }
 
 #[test]
 fn resolve_with_an_unknown_package_returns_an_error() {
     // Arrange
-    let config = Config {
-        packages: vec![String::from("no-such-package")],
-        ..test_config()
-    };
+    let config = test_config().with_packages(vec![String::from("no-such-package")]);
     let resolver = CargoPackageResolver::new();
 
     // Act
@@ -154,11 +139,12 @@ fn resolve_with_an_unknown_package_returns_an_error() {
 #[test]
 fn resolve_with_two_requested_packages_returns_them_in_request_order() {
     // Arrange
-    let config = Config {
-        manifest_path: Some(PathBuf::from("..").join("Cargo.toml")),
-        packages: vec![String::from("validation"), String::from("cargo-crap4rust")],
-        ..test_config()
-    };
+    let config = test_config()
+        .with_manifest_path(Some(PathBuf::from("..").join("Cargo.toml")))
+        .with_packages(vec![
+            String::from("validation"),
+            String::from("cargo-crap4rust"),
+        ]);
     let resolver = CargoPackageResolver::new();
 
     // Act
@@ -167,7 +153,7 @@ fn resolve_with_two_requested_packages_returns_them_in_request_order() {
     // Assert
     let names = packages
         .iter()
-        .map(|package| package.name.clone())
+        .map(|package| package.name().to_string())
         .collect::<Vec<_>>();
     assert_eq!(
         names,

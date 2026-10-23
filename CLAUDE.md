@@ -79,6 +79,14 @@ Re-record the baseline only to drop groups that are gone, never to admit new
 ones, and at the same floor -- a baseline matches only at the floor it was
 recorded at: `cargo dry4rust --path core/src --min-nodes 25 --baseline "$PWD/dry4rust-baseline.json" baseline`.
 
+`core/src/.dry4rust-ignore.toml` holds two fingerprints, with their reason:
+plain constructors -- `Self { a, b, c, d }` -- which stern4rust's
+`private-fields` gives every struct, so two of them with as many fields look
+alike. One of them is the baseline's group, grown by three. dry4rust leaves
+plain constructors out from its next release
+(ADR-PlainConstructorsAreTheStructsShape, in dry4rust); until the gate installs
+it, these entries bridge, and the file goes when the release does.
+
 All twenty-four of its rules apply to every workspace member, with nothing
 skipped, nothing selected and nothing unconfigured: `stern4rust.toml` holds no
 `skip`, no `rules` and no per-package section. `docs/header.txt` holds the

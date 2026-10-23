@@ -4,18 +4,15 @@
 
 use serde::Deserialize;
 
+use crate::coverage_io::export_chunk::ExportChunk;
+
 #[derive(Debug, Deserialize)]
 pub struct Export {
-    pub data: Vec<ExportChunk>,
+    data: Vec<ExportChunk>,
 }
 
-#[derive(Debug, Deserialize)]
-pub struct ExportChunk {
-    pub functions: Vec<ExportFunction>,
-}
-
-#[derive(Debug, Deserialize)]
-pub struct ExportFunction {
-    pub filenames: Vec<String>,
-    pub regions: Vec<Vec<u64>>,
+impl Export {
+    pub fn data(&self) -> &[ExportChunk] {
+        &self.data
+    }
 }

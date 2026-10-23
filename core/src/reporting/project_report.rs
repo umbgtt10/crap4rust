@@ -12,18 +12,44 @@ use crate::reporting::verdict::Verdict;
 
 #[derive(Debug, Clone, Serialize)]
 pub struct ProjectReport {
-    pub scope_name: String,
-    pub total_functions: usize,
-    pub crappy_functions: usize,
-    pub crappy_percent: f64,
-    pub verdict: Verdict,
-    pub functions: Vec<FunctionReport>,
+    scope_name: String,
+    total_functions: usize,
+    crappy_functions: usize,
+    crappy_percent: f64,
+    verdict: Verdict,
+    functions: Vec<FunctionReport>,
 }
 
 impl ProjectReport {
+    pub fn new(
+        scope_name: String,
+        total_functions: usize,
+        crappy_functions: usize,
+        crappy_percent: f64,
+        verdict: Verdict,
+        functions: Vec<FunctionReport>,
+    ) -> Self {
+        Self {
+            scope_name,
+            total_functions,
+            crappy_functions,
+            crappy_percent,
+            verdict,
+            functions,
+        }
+    }
+
+    pub fn crappy_functions(&self) -> usize {
+        self.crappy_functions
+    }
+
+    pub fn crappy_percent(&self) -> f64 {
+        self.crappy_percent
+    }
+
     #[must_use]
     pub fn exit_code(&self, config: &Config) -> ExitCode {
-        if config.warn_only {
+        if config.warn_only() {
             return ExitCode::SUCCESS;
         }
         if config.fails(self.crappy_functions, self.crappy_percent) {
@@ -31,5 +57,21 @@ impl ProjectReport {
         } else {
             ExitCode::SUCCESS
         }
+    }
+
+    pub fn functions(&self) -> &[FunctionReport] {
+        &self.functions
+    }
+
+    pub fn scope_name(&self) -> &str {
+        &self.scope_name
+    }
+
+    pub fn total_functions(&self) -> usize {
+        self.total_functions
+    }
+
+    pub fn verdict(&self) -> Verdict {
+        self.verdict
     }
 }

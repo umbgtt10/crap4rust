@@ -10,22 +10,12 @@ use std::path::{Path, PathBuf};
 use tempfile::TempDir;
 
 fn bare_config() -> Config {
-    Config {
-        coverage_path: None,
-        manifest_path: None,
-        packages: vec![],
-        features: None,
-        all_features: false,
-        no_default_features: false,
-        include_test_targets: false,
-        exclude_paths: vec![],
-        threshold: 30.0,
-        warn_threshold: 20.0,
-        project_threshold: 5.0,
-        strict: true,
-        warn_only: false,
-        output_format: OutputFormat::Human,
-    }
+    Config::default()
+        .with_threshold(30.0)
+        .with_warn_threshold(20.0)
+        .with_project_threshold(5.0)
+        .with_strict(true)
+        .with_output_format(OutputFormat::Human)
 }
 
 fn builder() -> LlvmCovBuilder {
@@ -33,14 +23,14 @@ fn builder() -> LlvmCovBuilder {
 }
 
 fn package(name: &str) -> PackageContext {
-    PackageContext {
-        name: String::from(name),
-        manifest_dir: PathBuf::from("."),
-        workspace_root: PathBuf::from("."),
-        source_roots: vec![],
-        include_test_targets: false,
-        exclude_paths: vec![],
-    }
+    PackageContext::new(
+        String::from(name),
+        PathBuf::from("."),
+        PathBuf::from("."),
+        vec![],
+        false,
+        vec![],
+    )
 }
 
 #[test]
@@ -62,10 +52,7 @@ fn add_packages_forwards_each_package_by_name() {
 #[test]
 fn apply_config_with_a_manifest_path_forwards_it() {
     // Arrange
-    let config = Config {
-        manifest_path: Some(PathBuf::from("core").join("Cargo.toml")),
-        ..bare_config()
-    };
+    let config = bare_config().with_manifest_path(Some(PathBuf::from("core").join("Cargo.toml")));
 
     // Act
     let arguments = builder().apply_config(&config).arguments();
@@ -84,10 +71,7 @@ fn apply_config_with_a_manifest_path_forwards_it() {
 #[test]
 fn apply_config_with_all_features_forwards_the_flag() {
     // Arrange
-    let config = Config {
-        all_features: true,
-        ..bare_config()
-    };
+    let config = bare_config().with_all_features(true);
 
     // Act
     let arguments = builder().apply_config(&config).arguments();
@@ -99,13 +83,11 @@ fn apply_config_with_all_features_forwards_the_flag() {
 #[test]
 fn apply_config_with_every_option_set_forwards_them_in_declaration_order() {
     // Arrange
-    let config = Config {
-        manifest_path: Some(PathBuf::from("Cargo.toml")),
-        features: Some(String::from("demo-feature")),
-        all_features: true,
-        no_default_features: true,
-        ..bare_config()
-    };
+    let config = bare_config()
+        .with_manifest_path(Some(PathBuf::from("Cargo.toml")))
+        .with_features(Some(String::from("demo-feature")))
+        .with_all_features(true)
+        .with_no_default_features(true);
 
     // Act
     let arguments = builder().apply_config(&config).arguments();
@@ -127,10 +109,7 @@ fn apply_config_with_every_option_set_forwards_them_in_declaration_order() {
 #[test]
 fn apply_config_with_features_forwards_them() {
     // Arrange
-    let config = Config {
-        features: Some(String::from("demo-feature")),
-        ..bare_config()
-    };
+    let config = bare_config().with_features(Some(String::from("demo-feature")));
 
     // Act
     let arguments = builder().apply_config(&config).arguments();
@@ -142,10 +121,7 @@ fn apply_config_with_features_forwards_them() {
 #[test]
 fn apply_config_with_no_default_features_forwards_the_flag() {
     // Arrange
-    let config = Config {
-        no_default_features: true,
-        ..bare_config()
-    };
+    let config = bare_config().with_no_default_features(true);
 
     // Act
     let arguments = builder().apply_config(&config).arguments();
@@ -182,10 +158,7 @@ fn builder_new_constructs_without_panicking() {
 fn execute_against_a_manifest_that_does_not_exist_fails() {
     // Arrange
     let dir = TempDir::new().expect("temp dir");
-    let config = Config {
-        manifest_path: Some(dir.path().join("Cargo.toml")),
-        ..bare_config()
-    };
+    let config = bare_config().with_manifest_path(Some(dir.path().join("Cargo.toml")));
 
     // Act
     let outcome = LlvmCovBuilder::new(&dir.path().join("out.json"))

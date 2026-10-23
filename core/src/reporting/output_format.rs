@@ -4,8 +4,9 @@
 
 use clap::ValueEnum;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum)]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, ValueEnum)]
 pub enum OutputFormat {
+    #[default]
     Human,
     Json,
 }

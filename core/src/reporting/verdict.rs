@@ -4,8 +4,9 @@
 
 use serde::Serialize;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize)]
 pub enum Verdict {
+    #[default]
     Clean,
     Warn,
     Crappy,

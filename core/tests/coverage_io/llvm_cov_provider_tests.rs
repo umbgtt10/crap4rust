@@ -30,5 +30,5 @@ fn provide_reads_precomputed_coverage_file_without_generating() {
 
     // Assert
     assert_eq!(records.len(), 1);
-    assert_eq!(records[0].line, 10);
+    assert_eq!(records[0].line(), 10);
 }

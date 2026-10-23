@@ -7,12 +7,7 @@ use crap4rust::coverage_io::coverage_record::CoverageRecord;
 #[test]
 fn coverage_ratio_fully_covered_returns_one() {
     // Arrange
-    let record = CoverageRecord {
-        path_key: String::new(),
-        line: 0,
-        covered_regions: 10,
-        total_regions: 10,
-    };
+    let record = CoverageRecord::new(String::new(), 0, 10, 10);
 
     // Act
     let ratio = record.coverage_ratio();
@@ -24,12 +19,7 @@ fn coverage_ratio_fully_covered_returns_one() {
 #[test]
 fn coverage_ratio_half_covered_returns_half() {
     // Arrange
-    let record = CoverageRecord {
-        path_key: String::new(),
-        line: 0,
-        covered_regions: 5,
-        total_regions: 10,
-    };
+    let record = CoverageRecord::new(String::new(), 0, 5, 10);
 
     // Act
     let ratio = record.coverage_ratio();
@@ -41,12 +31,7 @@ fn coverage_ratio_half_covered_returns_half() {
 #[test]
 fn coverage_ratio_zero_total_regions_returns_zero() {
     // Arrange
-    let record = CoverageRecord {
-        path_key: String::new(),
-        line: 0,
-        covered_regions: 0,
-        total_regions: 0,
-    };
+    let record = CoverageRecord::new(String::new(), 0, 0, 0);
 
     // Act
     let ratio = record.coverage_ratio();

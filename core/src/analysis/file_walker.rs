@@ -28,8 +28,8 @@ impl<'a> FileWalker<'a> {
     pub fn new(package: &'a PackageContext) -> Self {
         Self {
             package,
-            include_test_targets: package.include_test_targets,
-            exclude_paths: &package.exclude_paths,
+            include_test_targets: package.include_test_targets(),
+            exclude_paths: package.exclude_paths(),
         }
     }
 
@@ -105,10 +105,10 @@ impl<'a> FileWalker<'a> {
     }
 
     fn is_selected(&self, file_path: &Path) -> bool {
-        let relative_file = Self::relative_file(&self.package.manifest_dir, file_path);
+        let relative_file = Self::relative_file(self.package.manifest_dir(), file_path);
         Self::is_selected_relative_file(&relative_file, self.include_test_targets)
             && Self::is_selected_source_file(
-                &self.package.manifest_dir,
+                self.package.manifest_dir(),
                 file_path,
                 self.include_test_targets,
             )
@@ -170,7 +170,7 @@ impl<'a> FileWalker<'a> {
         file_path: &Path,
         syntax: &File,
     ) -> Vec<SourceFunction> {
-        let relative_file = Self::relative_file(&self.package.manifest_dir, file_path);
+        let relative_file = Self::relative_file(self.package.manifest_dir(), file_path);
         let module_prefix = Self::module_prefix(source_root, file_path);
         let path_key = normalize_path(file_path);
         let visitor = ItemVisitor::new(self.package, &path_key, &relative_file, &module_prefix);
