@@ -119,10 +119,8 @@ name = "cargo-crap4rust"
 version = "0.8.2"
 dependencies = [
  "anyhow",
- "assert_cmd",
  "cargo_metadata",
  "clap",
- "predicates",
  "proc-macro2",
  "serde",
  "serde_json",
