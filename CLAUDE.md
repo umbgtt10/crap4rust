@@ -34,12 +34,13 @@ Stage 1 is formatting, clippy and tests. It is cargo built-ins plus
 `cargo-llvm-cov`: this repository is the coverage tool, so its validation tests
 drive the built binary through the path that generates coverage, and a checkout
 without that install fails stage 1 rather than stage 2. Stage 2 is
-`cargo xtask stage2`, which orchestrates five
+`cargo xtask stage2`, which orchestrates six
 installed cargo subcommands in this order:
 
 | gate | asks |
 |---|---|
 | `cargo stern4rust` | do the house coding rules hold |
+| `cargo shear` | is every declared dependency used, in the section that uses it |
 | `cargo dry4rust` | did this change add duplicated code |
 | `cargo crap4rust` | is any function complex and untested |
 | `cargo twin4rust` | does every source file have a mirrored test file |
@@ -49,7 +50,18 @@ stern4rust runs **first** because its corrections are renames, file moves and
 directory splits: a layout it is about to reject is a layout the others would
 have measured for nothing. Its findings are also the cheapest to act on.
 
-`dry4rust` runs **second** for the same reason: removing a duplicate moves code
+cargo-shear runs **second**: its corrections edit manifests only -- a
+dependency removed, or moved to the section that uses it -- so they change
+nothing the gates behind it measure, and it takes a second. It runs `--locked`,
+reading the lock file and never writing it, and `--deny-warnings`, so an
+optional dependency no feature's code uses fails as an unused one does. A
+dependency it cannot see used -- linked only for what it provides, declared
+only to switch on a feature, used only by generated code -- goes in
+`[package.metadata.cargo-shear] ignored`, and the gate refuses an entry without
+its reason in the same table's `reasons`; there are none today. Pinned at
+1.14.0, as CI installs it.
+
+`dry4rust` runs **third** for the same reason: removing a duplicate moves code
 between files, which changes what the three behind it measure. It scans
 `core/src` only -- tests repeat their arrangement by design -- and checks with
 zero ceilings against `dry4rust-baseline.json`, the duplication already there
@@ -81,6 +93,7 @@ which is the same set a bare `cargo stern4rust` at the root scans.
 `cargo install cargo-crap4rust`
 `cargo install cargo-twin4rust`
 `cargo install cargo-iceberg4rust`
+`cargo install --locked cargo-shear --version 1.14.0`
 `cargo install cargo-llvm-cov`
 `rustup component add llvm-tools`
 
