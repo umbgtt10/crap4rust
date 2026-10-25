@@ -2,23 +2,15 @@
 // Licensed under the MIT License
 // SPDX-License-Identifier: MIT
 
-use std::ffi::OsString;
 use std::process::ExitCode;
 
 use anyhow::{Context, Result, bail};
-use clap::Parser;
 
 use crate::analysis::source_function::SourceFunction;
-use crate::analysis::source_function_discovery::SourceFunctionDiscovery;
 use crate::coverage_io::coverage_index::CoverageIndex;
-use crate::coverage_io::llvm_cov_provider::LlvmCovProvider;
-use crate::invocation::args::Args;
-use crate::invocation::cargo_package_resolver::CargoPackageResolver;
 use crate::invocation::config::Config;
 use crate::invocation::package_context::PackageContext;
-use crate::reporting::default_scorer::DefaultScorer;
 use crate::reporting::project_report::ProjectReport;
-use crate::reporting::stdout_reporter::StdoutReporter;
 use crate::traits::coverage_provider::CoverageProvider;
 use crate::traits::function_discovery::FunctionDiscovery;
 use crate::traits::package_resolver::PackageResolver;
@@ -36,19 +28,7 @@ pub struct App {
 
 impl App {
     #[must_use]
-    pub fn new(config: Config) -> Self {
-        Self {
-            resolver: Box::new(CargoPackageResolver::new()),
-            discovery: Box::new(SourceFunctionDiscovery::new()),
-            coverage_provider: Box::new(LlvmCovProvider::new()),
-            scorer: Box::new(DefaultScorer::new()),
-            reporter: Box::new(StdoutReporter::new()),
-            config,
-        }
-    }
-
-    #[must_use]
-    pub fn with_deps(
+    pub fn new(
         resolver: Box<dyn PackageResolver>,
         discovery: Box<dyn FunctionDiscovery>,
         coverage_provider: Box<dyn CoverageProvider>,
@@ -111,18 +91,6 @@ impl App {
         self.reporter.render(&report_data, &self.config);
 
         Ok(report_data.exit_code(&self.config))
-    }
-
-    // The crate's entry point, on the App it builds rather than in the crate
-    // root. lib.rs is an index of the modules beneath it; a reader looking for
-    // what happens when this tool runs should find it here.
-    pub fn run_from_args<I, T>(args: I) -> Result<ExitCode>
-    where
-        I: IntoIterator<Item = T>,
-        T: Into<OsString> + Clone,
-    {
-        let args = <Args as Parser>::parse_from(args);
-        Self::new(Config::from_args(args)).run()
     }
 
     fn discover_all_functions(&self, packages: &[PackageContext]) -> Result<Vec<SourceFunction>> {

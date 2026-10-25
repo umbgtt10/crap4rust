@@ -2,8 +2,20 @@
 // Licensed under the MIT License
 // SPDX-License-Identifier: MIT
 
-use crate::invocation::app::App;
+use std::ffi::OsString;
 use std::process::ExitCode;
+
+use anyhow::Result;
+use clap::Parser;
+
+use crate::analysis::source_function_discovery::SourceFunctionDiscovery;
+use crate::coverage_io::llvm_cov_provider::LlvmCovProvider;
+use crate::invocation::app::App;
+use crate::invocation::args::Args;
+use crate::invocation::cargo_package_resolver::CargoPackageResolver;
+use crate::invocation::config::Config;
+use crate::reporting::default_scorer::DefaultScorer;
+use crate::reporting::stdout_reporter::StdoutReporter;
 
 // Everything `main` used to do, moved somewhere a test can reach it.
 //
@@ -25,13 +37,32 @@ impl EntryPoint {
     // An error is exit 2, the same code a broken rule uses, because a run that
     // could not finish must never read as a clean project.
     pub fn run(args: Vec<String>) -> ExitCode {
-        match App::run_from_args(Self::without_cargo_subcommand(args)) {
+        match Self::run_from_args(Self::without_cargo_subcommand(args)) {
             Ok(code) => code,
             Err(error) => {
                 println!("error: {error:#}");
                 ExitCode::from(2)
             }
         }
+    }
+
+    // The composition root: App takes every part it runs on, and this is where
+    // the concrete ones are chosen.
+    pub fn run_from_args<I, T>(args: I) -> Result<ExitCode>
+    where
+        I: IntoIterator<Item = T>,
+        T: Into<OsString> + Clone,
+    {
+        let args = <Args as Parser>::parse_from(args);
+        App::new(
+            Box::new(CargoPackageResolver::new()),
+            Box::new(SourceFunctionDiscovery::new()),
+            Box::new(LlvmCovProvider::new()),
+            Box::new(DefaultScorer::new()),
+            Box::new(StdoutReporter::new()),
+            Config::from_args(args),
+        )
+        .run()
     }
 
     // Conditional and positional: only a repeated name in argv[1] goes.

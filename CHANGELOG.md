@@ -12,7 +12,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   holds, which stern4rust 0.16.0's new `named-subject` rule asks for: a source
   file is named after its subject. The command line, output and exit codes are
   unchanged; the test file moves with it, to `args_tests.rs`.
-- `invocation::app::run_from_args` is `App::run_from_args`, and the free `run`,
+- `invocation::app::run_from_args` is
+  `invocation::entry_point::EntryPoint::run_from_args`, and the free `run`,
   which nothing called, is gone with the `Args::parse_args` only it used:
   `main.rs` already enters through `EntryPoint`. `impl_collector`'s six helpers
   -- `qualified_name`, `is_test_attrs`, `start_line`, `end_line` and two private
@@ -24,6 +25,32 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   own, where they were `pub(crate)`: other files of the library call them, and
   stern4rust's coming `public-or-private` rule asks that a method be `pub` or
   private.
+- `App::new(config)`, which built its own parts, is gone: `App::with_deps` is
+  renamed `App::new` and is the only constructor, taking every dependency, for
+  stern4rust's coming `injected-dependencies` rule -- a field declared as a
+  trait holds only what the caller passed in. The concrete parts are built by
+  the composition root `invocation::entry_point::EntryPoint`, in its
+  `run_from_args`.
+- `Config`, `Args`, `ProjectReport` and `CoverageRecord` keep their fields
+  private behind getters: they have behaviour, and stern4rust's coming
+  `records-and-objects` rule asks an object to hide its fields. Each field,
+  `pub` in 0.8.2, is read through a getter named after it; `ProjectReport` and
+  `CoverageRecord` are built by `new`, and `Config`, fourteen fields wide, by
+  `Config::from_args` as before or by `Config::default()` and a `with_<field>`
+  step per field. `SourceFunction`, `PackageContext`, `FunctionReport`,
+  `ProjectMetrics` and the `Export` types keep the `pub` fields they had.
+- `ExportChunk` and `ExportFunction` live in `coverage_io::export_chunk` and
+  `coverage_io::export_function`, a file each, where 0.8.2 declared them beside
+  `Export` in `coverage_io::export`: each is named in the public API, as the
+  type of a `pub` field, and stern4rust's coming `record-home` rule puts such a
+  record in a file named after it.
+
+### Added
+
+- `Config`, `FunctionReport`, `Verdict` and `OutputFormat` derive `Default` --
+  `Verdict::Clean`, and `OutputFormat::Human`, the command line's default -- so
+  a wide `FunctionReport` literal can end in `..Default::default()` and a
+  `Config` can start from `Config::default()`.
 
 ## [0.8.2] - 2026-10-10
 

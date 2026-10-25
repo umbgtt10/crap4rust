@@ -100,32 +100,10 @@ fn test_config() -> Config {
         .with_output_format(OutputFormat::Human)
 }
 
-// The one entry point the binary itself calls. Every other test here drives App
-// directly, which left the argv-to-exit-code path -- the whole tool, as a user
-// invokes it -- uncovered.
-#[test]
-fn run_from_args_against_a_manifest_that_does_not_exist_is_an_error() {
-    // Arrange
-    let args = [
-        "cargo-crap4rust",
-        "--manifest-path",
-        "no/such/directory/Cargo.toml",
-    ];
-
-    // Act
-    let outcome = App::run_from_args(args);
-
-    // Assert
-    assert!(
-        outcome.is_err(),
-        "a manifest that cannot be read must fail the run rather than report a clean project"
-    );
-}
-
 #[test]
 fn run_matched_functions_and_coverage_succeeds() {
     // Arrange
-    let app = App::with_deps(
+    let app = App::new(
         Box::new(FakePackageResolver {
             packages: vec![sample_package()],
         }),
@@ -150,7 +128,7 @@ fn run_matched_functions_and_coverage_succeeds() {
 #[test]
 fn run_no_coverage_records_bails() {
     // Arrange
-    let app = App::with_deps(
+    let app = App::new(
         Box::new(FakePackageResolver {
             packages: vec![sample_package()],
         }),
@@ -178,7 +156,7 @@ fn run_no_coverage_records_bails() {
 #[test]
 fn run_no_functions_discovered_bails() {
     // Arrange
-    let app = App::with_deps(
+    let app = App::new(
         Box::new(FakePackageResolver {
             packages: vec![sample_package()],
         }),
@@ -206,7 +184,7 @@ fn run_no_functions_discovered_bails() {
 #[test]
 fn run_package_resolver_failure_propagates_error() {
     // Arrange
-    let app = App::with_deps(
+    let app = App::new(
         Box::new(FailingPackageResolver),
         Box::new(FakeFunctionDiscovery { functions: vec![] }),
         Box::new(FakeCoverageProvider { records: vec![] }),
@@ -232,7 +210,7 @@ fn run_package_resolver_failure_propagates_error() {
 fn run_unmatched_coverage_bails() {
     // Arrange
     let unmatched_record = CoverageRecord::new(String::from("src/lib.rs"), 999, 1, 2);
-    let app = App::with_deps(
+    let app = App::new(
         Box::new(FakePackageResolver {
             packages: vec![sample_package()],
         }),

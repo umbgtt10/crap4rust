@@ -71,9 +71,9 @@ not.
 
 It counts only code units of 25 AST nodes or more, the floor the family gates
 at. The baseline holds no group. The one it was recorded with --
-`App::with_deps` and `ImplCollector::new`, two constructors that each store
-their arguments field by field -- no longer matches: `ProjectReport::new`
-joined it, and the three are the first ignore entry below.
+`App::with_deps`, now `App::new`, and `ImplCollector::new`, two constructors
+that each store their arguments field by field -- no longer matches:
+`ProjectReport::new` joined it, and the three are the first ignore entry below.
 
 Re-record the baseline only to drop groups that are gone, never to admit new
 ones, and at the same floor -- a baseline matches only at the floor it was
@@ -83,8 +83,8 @@ recorded at: `cargo dry4rust --path core/src --min-nodes 25 --baseline "$PWD/dry
 plain constructors -- `Self { a, b, c, d }` -- which look alike when they fill
 as many fields. What is left of them belongs to objects: stern4rust's
 `records-and-objects` lets an object keep its constructor and builds a record
-by literal. `App::with_deps`, `ImplCollector::new` and `ProjectReport::new` are
-one group, `CoverageRecord::new` and `ItemVisitor::new` the other. dry4rust
+by literal. `App::new`, `ImplCollector::new` and `ProjectReport::new` are one
+group, `CoverageRecord::new` and `ItemVisitor::new` the other. dry4rust
 leaves plain constructors out from its next release
 (ADR-PlainConstructorsAreTheStructsShape, in dry4rust); until the gate installs
 it, these entries bridge, and the file goes when the release does.

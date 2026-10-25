@@ -38,14 +38,16 @@ Args (clap)
 
 The four bail points (empty functions, empty coverage, no matches, plus
 whatever error `resolve`/`provide`/`discover` themselves return) all
-surface as `Result::Err` from `App::run()`, printed by `main.rs` as
+surface as `Result::Err` from `App::run()`, printed by `EntryPoint::run` as
 `error: {message}` with exit code `2` — distinct from a *successful* run
 that nonetheless found crappy functions and exits `1`.
 
-`App` (`app.rs`) is the only place that wires concrete types to trait
-objects — everywhere else in the codebase depends on the `traits/`
-interfaces, never on `CargoPackageResolver`/`SourceFunctionDiscovery`/
-`LlvmCovProvider`/`DefaultScorer`/`StdoutReporter` directly. See
+`EntryPoint::run_from_args` (`entry_point.rs`) is the only place that wires
+concrete types to trait objects: it builds `CargoPackageResolver`,
+`SourceFunctionDiscovery`, `LlvmCovProvider`, `DefaultScorer` and
+`StdoutReporter` and hands them to `App::new`, `App`'s only constructor.
+Everywhere else in the codebase, `App` included, depends on the `traits/`
+interfaces, never on those five directly. See
 `docs/ADRs/ADR-DynDispatchAppOverGenerics.md` for why these are `Box<dyn
 Trait>` fields rather than generic parameters.
 
@@ -64,7 +66,7 @@ directly-unit-testable functions in the same file (`resolve_packages`,
 `discover_functions`, `ensure_coverage_path`/`load_coverage_records`) —
 the trait `impl` itself is a thin delegator, not a rewrite. `tests/app_tests.rs`
 is the seam these five traits exist for: it builds `App` via
-`App::with_deps()` with fakes standing in for whichever one dependency a
+`App::new()` with fakes standing in for whichever one dependency a
 given test wants to fail or return edge-case data from, without touching a
 real Cargo workspace, filesystem, or `cargo llvm-cov` subprocess for the
 other four.
@@ -127,12 +129,13 @@ single shape both output modes are projections of, and the same shape
 
 ## CLI layer
 
-`Args` (`cli.rs`, `clap::Parser`) parses argv into flags; `Config`
-(`config.rs`) is the plain-data form `App` actually consumes, built once via
-`Config::from_args(args)`. `main.rs` strips a leading `crap4rust` argument
-(present when invoked as `cargo crap4rust ...` rather than the raw binary)
-and `lib.rs::run()`/`run_from_args()` are thin entry points — all real logic
-lives in `App` and below.
+`Args` (`args.rs`, `clap::Parser`) parses argv into flags; `Config`
+(`config.rs`) is the form `App` actually consumes, built once via
+`Config::from_args(args)`. `main.rs` hands argv to `EntryPoint::run`
+(`entry_point.rs`), which strips a repeated leading `crap4rust` argument
+(present when invoked as `cargo crap4rust ...` rather than the raw binary),
+and `EntryPoint::run_from_args` parses the rest, builds the concrete parts
+and runs `App` on them — all real logic lives in `App` and below.
 
 ## Related
 

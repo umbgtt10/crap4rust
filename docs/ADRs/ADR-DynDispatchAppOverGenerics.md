@@ -91,6 +91,19 @@ N/A — structural; enforced only by `App`'s own type signature (there is no
 generic parameter to reintroduce accidentally) and by `tests/app_tests.rs`
 exercising `with_deps` directly.
 
+## Amendment (2026-10-25)
+
+`App::new(config)`, which built the five real implementations itself, is
+gone. `App::with_deps` is renamed `App::new` and is the only constructor,
+taking all five boxes and the `Config`, for stern4rust's coming
+`injected-dependencies` rule: a field declared as a trait holds only what the
+caller passed in. The real implementations are built by the composition root,
+`EntryPoint::run_from_args` (`invocation/entry_point.rs`), which `main.rs`
+reaches through `EntryPoint::run`; it was `App::run_from_args`. The decision
+itself -- `Box<dyn Trait>` fields, no generic parameters -- stands. Where the
+text above says `with_deps`, read `App::new`; where it says `App::new(config)`
+wires the real implementations, read `EntryPoint::run_from_args`.
+
 ## Related
 
 - `grip`'s and `braintax`'s own `ADR-DynDispatchAppOverGenerics.md` — the

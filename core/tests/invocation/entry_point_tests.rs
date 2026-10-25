@@ -25,6 +25,25 @@ fn run_against_a_manifest_that_does_not_exist_returns_the_error_code() {
 }
 
 #[test]
+fn run_from_args_against_a_manifest_that_does_not_exist_is_an_error() {
+    // Arrange
+    let args = [
+        "cargo-crap4rust",
+        "--manifest-path",
+        "no/such/directory/Cargo.toml",
+    ];
+
+    // Act
+    let outcome = EntryPoint::run_from_args(args);
+
+    // Assert
+    assert!(
+        outcome.is_err(),
+        "a manifest that cannot be read must fail the run rather than report a clean project"
+    );
+}
+
+#[test]
 fn without_cargo_subcommand_drops_only_the_first_repeat() {
     // Arrange
     let args = ["cargo-crap4rust", "crap4rust", "--package", "crap4rust"]
