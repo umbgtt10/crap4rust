@@ -98,13 +98,13 @@ impl App {
         let report_data = ProjectReport::new(
             packages
                 .iter()
-                .map(|package| package.name().to_string())
+                .map(|package| package.name.clone())
                 .collect::<Vec<_>>()
                 .join(", "),
-            metrics.total_functions(),
-            metrics.crappy_functions(),
-            metrics.crappy_percent(),
-            metrics.verdict(),
+            metrics.total_functions,
+            metrics.crappy_functions,
+            metrics.crappy_percent,
+            metrics.verdict,
             reports,
         );
 
@@ -129,7 +129,7 @@ impl App {
         let mut functions = Vec::new();
         for package in packages {
             let mut package_functions = self.discovery.discover(package).with_context(|| {
-                format!("failed to discover functions in package {}", package.name())
+                format!("failed to discover functions in package {}", package.name)
             })?;
             functions.append(&mut package_functions);
         }

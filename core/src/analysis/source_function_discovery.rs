@@ -21,7 +21,7 @@ impl SourceFunctionDiscovery {
     fn discover_functions(package: &PackageContext) -> Result<Vec<SourceFunction>> {
         let walker = FileWalker::new(package);
         let mut functions = Vec::new();
-        for source_root in package.source_roots() {
+        for source_root in &package.source_roots {
             functions.extend(walker.process_source_root(source_root)?);
         }
         Ok(functions)

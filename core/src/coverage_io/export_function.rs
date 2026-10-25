@@ -6,16 +6,6 @@ use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
 pub struct ExportFunction {
-    filenames: Vec<String>,
-    regions: Vec<Vec<u64>>,
-}
-
-impl ExportFunction {
-    pub fn filenames(&self) -> &[String] {
-        &self.filenames
-    }
-
-    pub fn regions(&self) -> &[Vec<u64>] {
-        &self.regions
-    }
+    pub filenames: Vec<String>,
+    pub regions: Vec<Vec<u64>>,
 }

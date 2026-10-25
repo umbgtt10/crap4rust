@@ -22,15 +22,15 @@ fn coverage(entries: &[(usize, u32, u32)]) -> CoverageIndex {
 }
 
 fn function(name: &str, complexity: u32, line: usize) -> SourceFunction {
-    SourceFunction::new(
-        String::from("pkg"),
-        String::from(name),
-        String::from("src/lib.rs"),
-        String::from("src/lib.rs"),
+    SourceFunction {
+        package_name: String::from("pkg"),
+        name: String::from(name),
+        path_key: String::from("src/lib.rs"),
+        relative_file: String::from("src/lib.rs"),
         line,
-        line + 5,
+        end_line: line + 5,
         complexity,
-    )
+    }
 }
 
 fn test_config(
@@ -66,9 +66,9 @@ fn project_metrics_all_clean_returns_clean_verdict() {
     let metrics = scorer.project_metrics(&reports, &config);
 
     // Assert
-    assert_eq!(metrics.verdict(), Verdict::Clean);
-    assert_eq!(metrics.crappy_functions(), 0);
-    assert_eq!(metrics.total_functions(), 1);
+    assert_eq!(metrics.verdict, Verdict::Clean);
+    assert_eq!(metrics.crappy_functions, 0);
+    assert_eq!(metrics.total_functions, 1);
 }
 
 #[test]
@@ -89,9 +89,9 @@ fn project_metrics_computes_crappy_percent() {
     let metrics = scorer.project_metrics(&reports, &config);
 
     // Assert
-    assert_eq!(metrics.total_functions(), 4);
-    assert_eq!(metrics.crappy_functions(), 1);
-    assert!((metrics.crappy_percent() - 25.0).abs() < 0.001);
+    assert_eq!(metrics.total_functions, 4);
+    assert_eq!(metrics.crappy_functions, 1);
+    assert!((metrics.crappy_percent - 25.0).abs() < 0.001);
 }
 
 #[test]
@@ -106,8 +106,8 @@ fn project_metrics_exceeding_project_threshold_returns_crappy_verdict() {
     let metrics = scorer.project_metrics(&reports, &config);
 
     // Assert
-    assert_eq!(metrics.verdict(), Verdict::Crappy);
-    assert_eq!(metrics.crappy_functions(), 1);
+    assert_eq!(metrics.verdict, Verdict::Crappy);
+    assert_eq!(metrics.crappy_functions, 1);
 }
 
 #[test]
@@ -122,7 +122,7 @@ fn project_metrics_with_warn_function_returns_warn_verdict() {
     let metrics = scorer.project_metrics(&reports, &config);
 
     // Assert
-    assert_eq!(metrics.verdict(), Verdict::Warn);
+    assert_eq!(metrics.verdict, Verdict::Warn);
 }
 
 #[test]
@@ -137,8 +137,8 @@ fn score_functions_sorts_by_crap_score_descending() {
     let reports = scorer.score_functions(functions, &index, &config);
 
     // Assert
-    assert_eq!(reports[0].name(), "high_risk");
-    assert_eq!(reports[1].name(), "low_risk");
+    assert_eq!(reports[0].name, "high_risk");
+    assert_eq!(reports[1].name, "low_risk");
 }
 
 #[test]
@@ -153,8 +153,8 @@ fn score_functions_ties_break_by_name_ascending() {
     let reports = scorer.score_functions(functions, &index, &config);
 
     // Assert
-    assert_eq!(reports[0].name(), "alpha");
-    assert_eq!(reports[1].name(), "zeta");
+    assert_eq!(reports[0].name, "alpha");
+    assert_eq!(reports[1].name, "zeta");
 }
 
 #[test]
@@ -169,5 +169,5 @@ fn score_functions_unmatched_coverage_defaults_to_zero() {
     let reports = scorer.score_functions(functions, &index, &config);
 
     // Assert
-    assert!((reports[0].coverage() - 0.0).abs() < 0.001);
+    assert!((reports[0].coverage - 0.0).abs() < 0.001);
 }

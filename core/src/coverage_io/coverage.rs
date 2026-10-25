@@ -25,7 +25,7 @@ pub(crate) fn ensure_coverage_path(
 
     let workspace_root = packages
         .first()
-        .map(|package| package.workspace_root().to_path_buf())
+        .map(|package| package.workspace_root.clone())
         .context("no packages were selected for coverage generation")?;
 
     let output_dir = workspace_root.join("target").join("crap4rust");
@@ -40,7 +40,7 @@ pub(crate) fn ensure_coverage_path(
         "{}-coverage.json",
         packages
             .iter()
-            .map(|package| package.name().replace('-', "_"))
+            .map(|package| package.name.replace('-', "_"))
             .collect::<Vec<_>>()
             .join("__")
     ));
@@ -58,21 +58,21 @@ pub fn load_coverage_records(path: &Path) -> Result<Vec<CoverageRecord>> {
     let export: Export = from_str(&contents).context("failed to parse cargo-llvm-cov JSON")?;
 
     let mut records = Vec::new();
-    for chunk in export.data() {
-        for function in chunk.functions() {
-            let Some(filename) = function.filenames().first() else {
+    for chunk in export.data {
+        for function in chunk.functions {
+            let Some(filename) = function.filenames.first() else {
                 continue;
             };
-            let Some(first_region) = function.regions().first() else {
+            let Some(first_region) = function.regions.first() else {
                 continue;
             };
             if first_region.len() < 5 {
                 continue;
             }
 
-            let total_regions = function.regions().len() as u32;
+            let total_regions = function.regions.len() as u32;
             let covered_regions = function
-                .regions()
+                .regions
                 .iter()
                 .filter(|region| region.get(4).copied().unwrap_or(0) > 0)
                 .count() as u32;

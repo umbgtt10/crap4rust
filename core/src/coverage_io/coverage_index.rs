@@ -43,9 +43,9 @@ impl CoverageIndex {
         let matching: Vec<&CoverageRecord> = coverage_index
             .iter()
             .filter(|((path_key, line), _)| {
-                path_key == function.path_key()
-                    && *line >= function.line()
-                    && *line <= function.end_line()
+                path_key == &function.path_key
+                    && *line >= function.line
+                    && *line <= function.end_line
             })
             .map(|(_, record)| record)
             .collect();
@@ -58,8 +58,8 @@ impl CoverageIndex {
         let total_regions = matching.iter().map(|r| r.total_regions()).sum();
 
         Some(CoverageRecord::new(
-            function.path_key().to_string(),
-            function.line(),
+            function.path_key.clone(),
+            function.line,
             covered_regions,
             total_regions,
         ))

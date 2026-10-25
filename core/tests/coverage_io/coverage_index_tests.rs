@@ -14,15 +14,15 @@ fn from_records_aggregates_duplicate_entries() {
         CoverageRecord::new(String::from("src/lib.rs"), 10, 3, 5),
         CoverageRecord::new(String::from("src/lib.rs"), 10, 2, 5),
     ];
-    let function = SourceFunction::new(
-        String::from("test"),
-        String::from("foo"),
-        String::from("src/lib.rs"),
-        String::from("src/lib.rs"),
-        10,
-        20,
-        1,
-    );
+    let function = SourceFunction {
+        package_name: String::from("test"),
+        name: String::from("foo"),
+        path_key: String::from("src/lib.rs"),
+        relative_file: String::from("src/lib.rs"),
+        line: 10,
+        end_line: 20,
+        complexity: 1,
+    };
 
     // Act
     let index = CoverageIndex::from_records(records);
@@ -79,15 +79,15 @@ fn match_function_coverage_aggregates_all_regions_within_span() {
         (String::from("src/lib.rs"), 15),
         CoverageRecord::new(String::from("src/lib.rs"), 15, 3, 6),
     );
-    let function = SourceFunction::new(
-        String::from("test"),
-        String::from("foo"),
-        String::from("src/lib.rs"),
-        String::from("src/lib.rs"),
-        10,
-        20,
-        1,
-    );
+    let function = SourceFunction {
+        package_name: String::from("test"),
+        name: String::from("foo"),
+        path_key: String::from("src/lib.rs"),
+        relative_file: String::from("src/lib.rs"),
+        line: 10,
+        end_line: 20,
+        complexity: 1,
+    };
 
     // Act
     let result = CoverageIndex::match_function_coverage(&function, &index);
@@ -107,15 +107,15 @@ fn match_function_coverage_exact_match_returns_record() {
         (String::from("src/lib.rs"), 10),
         CoverageRecord::new(String::from("src/lib.rs"), 10, 3, 5),
     );
-    let function = SourceFunction::new(
-        String::from("test"),
-        String::from("foo"),
-        String::from("src/lib.rs"),
-        String::from("src/lib.rs"),
-        10,
-        20,
-        1,
-    );
+    let function = SourceFunction {
+        package_name: String::from("test"),
+        name: String::from("foo"),
+        path_key: String::from("src/lib.rs"),
+        relative_file: String::from("src/lib.rs"),
+        line: 10,
+        end_line: 20,
+        complexity: 1,
+    };
 
     // Act
     let result = CoverageIndex::match_function_coverage(&function, &index);
@@ -133,15 +133,15 @@ fn match_function_coverage_fuzzy_match_within_span_returns_nearest() {
         (String::from("src/lib.rs"), 12),
         CoverageRecord::new(String::from("src/lib.rs"), 12, 7, 10),
     );
-    let function = SourceFunction::new(
-        String::from("test"),
-        String::from("foo"),
-        String::from("src/lib.rs"),
-        String::from("src/lib.rs"),
-        10,
-        20,
-        1,
-    );
+    let function = SourceFunction {
+        package_name: String::from("test"),
+        name: String::from("foo"),
+        path_key: String::from("src/lib.rs"),
+        relative_file: String::from("src/lib.rs"),
+        line: 10,
+        end_line: 20,
+        complexity: 1,
+    };
 
     // Act
     let result = CoverageIndex::match_function_coverage(&function, &index);
@@ -159,15 +159,15 @@ fn match_function_coverage_no_match_returns_none() {
         (String::from("src/other.rs"), 10),
         CoverageRecord::new(String::from("src/other.rs"), 10, 1, 1),
     );
-    let function = SourceFunction::new(
-        String::from("test"),
-        String::from("foo"),
-        String::from("src/lib.rs"),
-        String::from("src/lib.rs"),
-        10,
-        20,
-        1,
-    );
+    let function = SourceFunction {
+        package_name: String::from("test"),
+        name: String::from("foo"),
+        path_key: String::from("src/lib.rs"),
+        relative_file: String::from("src/lib.rs"),
+        line: 10,
+        end_line: 20,
+        complexity: 1,
+    };
 
     // Act
     let result = CoverageIndex::match_function_coverage(&function, &index);

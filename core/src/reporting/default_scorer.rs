@@ -33,20 +33,21 @@ impl DefaultScorer {
         config: &Config,
     ) -> FunctionReport {
         let coverage_ratio = coverage.match_function(&function).unwrap_or(0.0);
-        let crap_score = self.formula.score(function.complexity(), coverage_ratio);
+        let crap_score = self.formula.score(function.complexity, coverage_ratio);
         let verdict =
             self.formula
                 .classify(crap_score, config.threshold(), config.warn_threshold());
 
-        FunctionReport::default()
-            .with_package_name(function.package_name().to_string())
-            .with_name(function.name().to_string())
-            .with_relative_file(function.relative_file().to_string())
-            .with_line(function.line())
-            .with_complexity(function.complexity())
-            .with_coverage(coverage_ratio)
-            .with_crap_score(crap_score)
-            .with_verdict(verdict)
+        FunctionReport {
+            package_name: function.package_name,
+            name: function.name,
+            relative_file: function.relative_file,
+            line: function.line,
+            complexity: function.complexity,
+            coverage: coverage_ratio,
+            crap_score,
+            verdict,
+        }
     }
 }
 
@@ -64,10 +65,10 @@ impl Scorer for DefaultScorer {
 
         reports.sort_by(|left, right| {
             right
-                .crap_score()
-                .partial_cmp(&left.crap_score())
+                .crap_score
+                .partial_cmp(&left.crap_score)
                 .unwrap_or(Ordering::Equal)
-                .then_with(|| left.name().cmp(right.name()))
+                .then_with(|| left.name.cmp(&right.name))
         });
 
         reports
@@ -76,7 +77,7 @@ impl Scorer for DefaultScorer {
     fn project_metrics(&self, reports: &[FunctionReport], config: &Config) -> ProjectMetrics {
         let crappy_functions = reports
             .iter()
-            .filter(|function| function.verdict() == Verdict::Crappy)
+            .filter(|function| function.verdict == Verdict::Crappy)
             .count();
         let total_functions = reports.len();
         let crappy_percent = if total_functions == 0 {
@@ -89,13 +90,18 @@ impl Scorer for DefaultScorer {
         } else if crappy_functions > 0
             || reports
                 .iter()
-                .any(|function| function.verdict() == Verdict::Warn)
+                .any(|function| function.verdict == Verdict::Warn)
         {
             Verdict::Warn
         } else {
             Verdict::Clean
         };
 
-        ProjectMetrics::new(verdict, crappy_functions, total_functions, crappy_percent)
+        ProjectMetrics {
+            verdict,
+            crappy_functions,
+            total_functions,
+            crappy_percent,
+        }
     }
 }

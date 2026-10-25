@@ -32,6 +32,30 @@ fn report(crappy_functions: usize) -> ProjectReport {
 }
 
 #[test]
+fn crappy_functions_returns_how_many_functions_are_crappy() {
+    // Arrange
+    let report = report(1);
+
+    // Act
+    let crappy_functions = report.crappy_functions();
+
+    // Assert
+    assert_eq!(crappy_functions, 1);
+}
+
+#[test]
+fn crappy_percent_returns_the_share_of_crappy_functions() {
+    // Arrange
+    let report = report(2);
+
+    // Act
+    let crappy_percent = report.crappy_percent();
+
+    // Assert
+    assert!((crappy_percent - 50.0).abs() < f64::EPSILON);
+}
+
+#[test]
 fn exit_code_of_a_clean_report_is_success() {
     // Arrange & Act
     let code = report(0).exit_code(&config(false));
@@ -60,6 +84,29 @@ fn exit_code_with_warn_only_is_success_whatever_it_finds() {
 }
 
 #[test]
+fn functions_lists_every_function_the_report_covers() {
+    // Arrange
+    let report = ProjectReport::new(
+        String::from("probe"),
+        1,
+        0,
+        0.0,
+        Verdict::Clean,
+        vec![FunctionReport {
+            name: String::from("foo"),
+            ..Default::default()
+        }],
+    );
+
+    // Act
+    let functions = report.functions();
+
+    // Assert
+    assert_eq!(functions.len(), 1);
+    assert_eq!(functions[0].name, "foo");
+}
+
+#[test]
 fn project_report_serialization_contains_expected_fields() {
     // Arrange
     let report = ProjectReport::new(
@@ -68,17 +115,16 @@ fn project_report_serialization_contains_expected_fields() {
         0,
         0.0,
         Verdict::Clean,
-        vec![
-            FunctionReport::default()
-                .with_package_name(String::from("test"))
-                .with_name(String::from("foo"))
-                .with_relative_file(String::from("src/lib.rs"))
-                .with_line(10)
-                .with_complexity(1)
-                .with_coverage(1.0)
-                .with_crap_score(1.0)
-                .with_verdict(Verdict::Clean),
-        ],
+        vec![FunctionReport {
+            package_name: String::from("test"),
+            name: String::from("foo"),
+            relative_file: String::from("src/lib.rs"),
+            line: 10,
+            complexity: 1,
+            coverage: 1.0,
+            crap_score: 1.0,
+            verdict: Verdict::Clean,
+        }],
     );
 
     // Act
@@ -100,4 +146,28 @@ fn scope_name_returns_the_scope_the_report_covers() {
 
     // Assert
     assert_eq!(scope_name, "probe");
+}
+
+#[test]
+fn total_functions_returns_how_many_functions_the_report_covers() {
+    // Arrange
+    let report = report(0);
+
+    // Act
+    let total_functions = report.total_functions();
+
+    // Assert
+    assert_eq!(total_functions, 4);
+}
+
+#[test]
+fn verdict_returns_the_verdict_of_the_project() {
+    // Arrange
+    let report = report(0);
+
+    // Act
+    let verdict = report.verdict();
+
+    // Assert
+    assert_eq!(verdict, Verdict::Clean);
 }

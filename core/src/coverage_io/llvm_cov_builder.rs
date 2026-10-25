@@ -28,7 +28,7 @@ impl LlvmCovBuilder {
     pub fn add_packages(mut self, packages: &[PackageContext]) -> Self {
         for package in packages {
             self.command.arg("--package");
-            self.command.arg(package.name());
+            self.command.arg(&package.name);
         }
         self
     }

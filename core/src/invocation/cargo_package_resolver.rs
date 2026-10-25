@@ -40,14 +40,14 @@ impl CargoPackageResolver {
         collector.collect(&package.targets);
         let source_roots = collector.finalize();
 
-        Ok(PackageContext::new(
-            package.name.to_string(),
+        Ok(PackageContext {
+            name: package.name.to_string(),
             manifest_dir,
-            workspace_root.to_path_buf(),
+            workspace_root: workspace_root.to_path_buf(),
             source_roots,
             include_test_targets,
             exclude_paths,
-        ))
+        })
     }
 
     fn select_packages<'a>(

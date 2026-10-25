@@ -23,14 +23,14 @@ fn builder() -> LlvmCovBuilder {
 }
 
 fn package(name: &str) -> PackageContext {
-    PackageContext::new(
-        String::from(name),
-        PathBuf::from("."),
-        PathBuf::from("."),
-        vec![],
-        false,
-        vec![],
-    )
+    PackageContext {
+        name: String::from(name),
+        manifest_dir: PathBuf::from("."),
+        workspace_root: PathBuf::from("."),
+        source_roots: vec![],
+        include_test_targets: false,
+        exclude_paths: vec![],
+    }
 }
 
 #[test]

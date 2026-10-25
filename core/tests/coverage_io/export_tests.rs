@@ -14,7 +14,7 @@ fn export_deserializes_empty_data_array() {
     let export: Export = from_str(json).expect("deserialize export");
 
     // Assert
-    assert!(export.data().is_empty());
+    assert!(export.data.is_empty());
 }
 
 #[test]
@@ -35,8 +35,8 @@ fn export_deserializes_multiple_functions_in_one_chunk() {
     let export: Export = from_str(json).expect("deserialize export");
 
     // Assert
-    assert_eq!(export.data().len(), 1);
-    assert_eq!(export.data()[0].functions().len(), 2);
+    assert_eq!(export.data.len(), 1);
+    assert_eq!(export.data[0].functions.len(), 2);
 }
 
 #[test]
@@ -57,7 +57,7 @@ fn export_function_deserializes_multiple_filenames() {
 
     // Assert
     assert_eq!(
-        export.data()[0].functions()[0].filenames(),
+        export.data[0].functions[0].filenames,
         vec!["src/a.rs", "src/a_alias.rs"]
     );
 }

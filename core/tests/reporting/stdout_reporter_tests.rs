@@ -47,16 +47,16 @@ fn render_with_crappy_functions_shows_table() {
         1,
         100.0,
         Verdict::Crappy,
-        vec![
-            FunctionReport::default()
-                .with_package_name(String::from("pkg"))
-                .with_name(String::from("risky_fn"))
-                .with_relative_file(String::from("src/lib.rs"))
-                .with_line(10)
-                .with_complexity(10)
-                .with_crap_score(110.0)
-                .with_verdict(Verdict::Crappy),
-        ],
+        vec![FunctionReport {
+            package_name: String::from("pkg"),
+            name: String::from("risky_fn"),
+            relative_file: String::from("src/lib.rs"),
+            line: 10,
+            complexity: 10,
+            crap_score: 110.0,
+            verdict: Verdict::Crappy,
+            ..Default::default()
+        }],
     );
     let config = test_config();
 

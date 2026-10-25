@@ -8,11 +8,5 @@ use crate::coverage_io::export_chunk::ExportChunk;
 
 #[derive(Debug, Deserialize)]
 pub struct Export {
-    data: Vec<ExportChunk>,
-}
-
-impl Export {
-    pub fn data(&self) -> &[ExportChunk] {
-        &self.data
-    }
+    pub data: Vec<ExportChunk>,
 }

@@ -1,14 +1,4 @@
 {
   "version": 1,
-  "entries": [
-    {
-      "kind": "near",
-      "fingerprint": "7b5819af5440b748",
-      "members": 2,
-      "names": [
-        "App::with_deps",
-        "ImplCollector::new"
-      ]
-    }
-  ]
+  "entries": []
 }

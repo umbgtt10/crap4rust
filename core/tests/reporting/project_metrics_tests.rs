@@ -8,8 +8,18 @@ use crap4rust::reporting::verdict::Verdict;
 #[test]
 fn eq_differing_verdict_are_not_equal() {
     // Arrange
-    let left = ProjectMetrics::new(Verdict::Clean, 0, 5, 0.0);
-    let right = ProjectMetrics::new(Verdict::Crappy, 0, 5, 0.0);
+    let left = ProjectMetrics {
+        verdict: Verdict::Clean,
+        crappy_functions: 0,
+        total_functions: 5,
+        crappy_percent: 0.0,
+    };
+    let right = ProjectMetrics {
+        verdict: Verdict::Crappy,
+        crappy_functions: 0,
+        total_functions: 5,
+        crappy_percent: 0.0,
+    };
 
     // Act & Assert
     assert_ne!(left, right);
@@ -18,7 +28,12 @@ fn eq_differing_verdict_are_not_equal() {
 #[test]
 fn eq_identical_metrics_are_equal() {
     // Arrange
-    let left = ProjectMetrics::new(Verdict::Warn, 2, 10, 20.0);
+    let left = ProjectMetrics {
+        verdict: Verdict::Warn,
+        crappy_functions: 2,
+        total_functions: 10,
+        crappy_percent: 20.0,
+    };
     let right = left;
 
     // Act & Assert

@@ -48,7 +48,7 @@ fn resolve_at_a_single_package_manifest_without_packages_selects_the_root() {
 
     // Assert
     assert_eq!(packages.len(), 1);
-    assert_eq!(packages[0].name(), "solo");
+    assert_eq!(packages[0].name, "solo");
 }
 
 #[test]
@@ -65,7 +65,7 @@ fn resolve_at_a_workspace_root_without_packages_selects_every_member() {
     // Assert
     let mut names = packages
         .iter()
-        .map(|package| package.name().to_string())
+        .map(|package| package.name.to_string())
         .collect::<Vec<_>>();
     names.sort();
     assert_eq!(
@@ -89,7 +89,7 @@ fn resolve_finds_cargo_crap4rust() {
 
     // Assert
     assert_eq!(packages.len(), 1);
-    assert_eq!(packages[0].name(), "cargo-crap4rust");
+    assert_eq!(packages[0].name, "cargo-crap4rust");
 }
 
 #[test]
@@ -102,7 +102,7 @@ fn resolve_has_source_roots() {
     let packages = resolver.resolve(&config).expect("resolve packages");
 
     // Assert
-    assert!(!packages[0].source_roots().is_empty());
+    assert!(!packages[0].source_roots.is_empty());
 }
 
 #[test]
@@ -116,7 +116,7 @@ fn resolve_via_dyn_package_resolver_finds_cargo_crap4rust() {
 
     // Assert
     assert_eq!(packages.len(), 1);
-    assert_eq!(packages[0].name(), "cargo-crap4rust");
+    assert_eq!(packages[0].name, "cargo-crap4rust");
 }
 
 #[test]
@@ -153,7 +153,7 @@ fn resolve_with_two_requested_packages_returns_them_in_request_order() {
     // Assert
     let names = packages
         .iter()
-        .map(|package| package.name().to_string())
+        .map(|package| package.name.to_string())
         .collect::<Vec<_>>();
     assert_eq!(
         names,

@@ -58,15 +58,15 @@ impl<'a> ItemVisitor<'a> {
             receiver,
             &item_fn.sig.ident.to_string(),
         );
-        Some(SourceFunction::new(
-            self.package.name().to_string(),
+        Some(SourceFunction {
+            package_name: self.package.name.clone(),
             name,
-            self.path_key.to_string(),
-            self.relative_file.to_string(),
-            ImplCollector::start_line(item_fn.sig.ident.span()),
-            ImplCollector::end_line(item_fn.span()),
-            cognitive_complexity(&item_fn.block),
-        ))
+            path_key: self.path_key.to_string(),
+            relative_file: self.relative_file.to_string(),
+            line: ImplCollector::start_line(item_fn.sig.ident.span()),
+            end_line: ImplCollector::end_line(item_fn.span()),
+            complexity: cognitive_complexity(&item_fn.block),
+        })
     }
 
     fn visit_item(&self, item: &Item, inline_modules: &[String]) -> Vec<SourceFunction> {

@@ -66,26 +66,26 @@ impl Reporter for NoOpReporter {
 }
 
 fn sample_function() -> SourceFunction {
-    SourceFunction::new(
-        String::from("probe"),
-        String::from("risky"),
-        String::from("src/lib.rs"),
-        String::from("src/lib.rs"),
-        10,
-        20,
-        5,
-    )
+    SourceFunction {
+        package_name: String::from("probe"),
+        name: String::from("risky"),
+        path_key: String::from("src/lib.rs"),
+        relative_file: String::from("src/lib.rs"),
+        line: 10,
+        end_line: 20,
+        complexity: 5,
+    }
 }
 
 fn sample_package() -> PackageContext {
-    PackageContext::new(
-        String::from("probe"),
-        PathBuf::from("/probe"),
-        PathBuf::from("/probe"),
-        vec![],
-        false,
-        vec![],
-    )
+    PackageContext {
+        name: String::from("probe"),
+        manifest_dir: PathBuf::from("/probe"),
+        workspace_root: PathBuf::from("/probe"),
+        source_roots: vec![],
+        include_test_targets: false,
+        exclude_paths: vec![],
+    }
 }
 
 fn sample_record() -> CoverageRecord {

@@ -7,15 +7,16 @@ use crap4rust::reporting::verdict::Verdict;
 use serde_json::to_string;
 
 fn sample() -> FunctionReport {
-    FunctionReport::default()
-        .with_package_name(String::from("cargo-crap4rust"))
-        .with_name(String::from("compute_crap_score"))
-        .with_relative_file(String::from("src/app.rs"))
-        .with_line(42)
-        .with_complexity(5)
-        .with_coverage(0.5)
-        .with_crap_score(22.5)
-        .with_verdict(Verdict::Warn)
+    FunctionReport {
+        package_name: String::from("cargo-crap4rust"),
+        name: String::from("compute_crap_score"),
+        relative_file: String::from("src/app.rs"),
+        line: 42,
+        complexity: 5,
+        coverage: 0.5,
+        crap_score: 22.5,
+        verdict: Verdict::Warn,
+    }
 }
 
 #[test]
@@ -27,8 +28,8 @@ fn clone_produces_an_equal_copy() {
     let cloned = report.clone();
 
     // Assert
-    assert_eq!(cloned.name(), report.name());
-    assert_eq!(cloned.crap_score(), report.crap_score());
+    assert_eq!(cloned.name, report.name);
+    assert_eq!(cloned.crap_score, report.crap_score);
 }
 
 #[test]

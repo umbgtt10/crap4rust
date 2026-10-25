@@ -8,11 +8,5 @@ use crate::coverage_io::export_function::ExportFunction;
 
 #[derive(Debug, Deserialize)]
 pub struct ExportChunk {
-    functions: Vec<ExportFunction>,
-}
-
-impl ExportChunk {
-    pub fn functions(&self) -> &[ExportFunction] {
-        &self.functions
-    }
+    pub functions: Vec<ExportFunction>,
 }

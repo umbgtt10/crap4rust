@@ -25,7 +25,7 @@ impl StdoutReporter {
         let visible_functions = report
             .functions()
             .iter()
-            .filter(|function| function.verdict() != Verdict::Clean)
+            .filter(|function| function.verdict != Verdict::Clean)
             .collect::<Vec<_>>();
 
         if visible_functions.is_empty() {
@@ -36,19 +36,19 @@ impl StdoutReporter {
         } else {
             let package_width = visible_functions
                 .iter()
-                .map(|function| function.package_name().len())
+                .map(|function| function.package_name.len())
                 .max()
                 .unwrap_or(7)
                 .max("package".len());
             let name_width = visible_functions
                 .iter()
-                .map(|function| function.name().len())
+                .map(|function| function.name.len())
                 .max()
                 .unwrap_or(4)
                 .max("name".len());
             let file_width = visible_functions
                 .iter()
-                .map(|function| function.relative_file().len())
+                .map(|function| function.relative_file.len())
                 .max()
                 .unwrap_or(4)
                 .max("file".len());
@@ -72,14 +72,14 @@ impl StdoutReporter {
             for function in visible_functions {
                 println!(
                     "{:<package_width$}  {:<name_width$}  {:<file_width$}  {:>4}  {:>10}  {:>9.1}%  {:>10.1}  {:<7}",
-                    function.package_name(),
-                    function.name(),
-                    function.relative_file(),
-                    function.line(),
-                    function.complexity(),
-                    function.coverage() * 100.0,
-                    function.crap_score(),
-                    function.verdict().as_str(),
+                    function.package_name,
+                    function.name,
+                    function.relative_file,
+                    function.line,
+                    function.complexity,
+                    function.coverage * 100.0,
+                    function.crap_score,
+                    function.verdict.as_str(),
                 );
             }
         }
