@@ -3,11 +3,12 @@
 // SPDX-License-Identifier: MIT
 
 use std::collections::BTreeSet;
-use std::path::{Path, PathBuf};
+use std::path::{MAIN_SEPARATOR, Path, PathBuf};
 
 use anyhow::{Context, Result, bail};
 use cargo_metadata::{Metadata, MetadataCommand, Package};
 
+use crate::analysis::source_path::SourcePath;
 use crate::analysis::source_root_collector::SourceRootCollector;
 use crate::invocation::config::Config;
 use crate::invocation::package_context::PackageContext;
@@ -42,9 +43,12 @@ impl CargoPackageResolver {
 
         Ok(PackageContext {
             name: package.name.to_string(),
-            manifest_dir,
-            workspace_root: workspace_root.to_path_buf(),
-            source_roots,
+            manifest_dir: Self::source_path(&manifest_dir),
+            workspace_root: Self::source_path(workspace_root),
+            source_roots: source_roots
+                .iter()
+                .map(|source_root| Self::source_path(source_root))
+                .collect(),
             include_test_targets,
             exclude_paths,
         })
@@ -90,6 +94,12 @@ impl CargoPackageResolver {
         }
 
         Ok(selected)
+    }
+
+    // Every path cargo reports is UTF-8 (cargo_metadata types them so), and the
+    // core holds `/` as its only separator.
+    fn source_path(path: &Path) -> SourcePath {
+        SourcePath::new(path.to_string_lossy().replace(MAIN_SEPARATOR, "/"))
     }
 }
 

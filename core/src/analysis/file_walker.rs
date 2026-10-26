@@ -2,32 +2,38 @@
 // Licensed under the MIT License
 // SPDX-License-Identifier: MIT
 
-use std::fs;
-use std::path::{Path, PathBuf};
-
 use anyhow::{Context, Result};
 use syn::File;
-use walkdir::WalkDir;
-
-use crate::analysis::item_visitor::ItemVisitor;
-use crate::analysis::normalize_path::normalize_path;
-use crate::analysis::source_function::SourceFunction;
-use crate::analysis::test_module_registry::TestModuleRegistry;
-use crate::invocation::package_context::PackageContext;
 use syn::parse_file;
 
-type ParsedFile = (PathBuf, File);
+use crate::analysis::item_visitor::ItemVisitor;
+use crate::analysis::source_function::SourceFunction;
+use crate::analysis::source_path::SourcePath;
+use crate::analysis::test_module_registry::TestModuleRegistry;
+use crate::invocation::package_context::PackageContext;
+use crate::traits::path_keys::PathKeys;
+use crate::traits::source_tree::SourceTree;
+
+type ParsedFile = (SourcePath, File);
 
 pub struct FileWalker<'a> {
     package: &'a PackageContext,
+    source_tree: &'a dyn SourceTree,
+    path_keys: &'a dyn PathKeys,
     include_test_targets: bool,
     exclude_paths: &'a [String],
 }
 
 impl<'a> FileWalker<'a> {
-    pub fn new(package: &'a PackageContext) -> Self {
+    pub fn new(
+        package: &'a PackageContext,
+        source_tree: &'a dyn SourceTree,
+        path_keys: &'a dyn PathKeys,
+    ) -> Self {
         Self {
             package,
+            source_tree,
+            path_keys,
             include_test_targets: package.include_test_targets,
             exclude_paths: &package.exclude_paths,
         }
@@ -52,13 +58,10 @@ impl<'a> FileWalker<'a> {
             && (include_test_targets || !relative_file.starts_with("tests/"))
     }
 
-    pub fn process_source_root(&self, source_root: &Path) -> Result<Vec<SourceFunction>> {
-        if !source_root.exists() {
-            return Ok(Vec::new());
-        }
-
-        let parsed_files = self.collect_parsed_files(source_root)?;
-        let test_modules = TestModuleRegistry::build(&parsed_files);
+    pub fn process_source_root(&self, source_root: &SourcePath) -> Result<Vec<SourceFunction>> {
+        let listed_files = self.source_tree.rust_files(source_root)?;
+        let parsed_files = self.collect_parsed_files(&listed_files)?;
+        let test_modules = TestModuleRegistry::build(&parsed_files, &listed_files, self.path_keys);
 
         let mut functions = Vec::new();
         for (file_path, syntax) in &parsed_files {
@@ -70,58 +73,37 @@ impl<'a> FileWalker<'a> {
         Ok(functions)
     }
 
-    pub fn relative_file(base_dir: &Path, file_path: &Path) -> String {
+    pub fn relative_file(base_dir: &SourcePath, file_path: &SourcePath) -> String {
         file_path
             .strip_prefix(base_dir)
-            .unwrap_or(file_path)
-            .to_string_lossy()
+            .unwrap_or(file_path.as_str())
             .replace('\\', "/")
     }
 
-    fn collect_parsed_files(&self, source_root: &Path) -> Result<Vec<ParsedFile>> {
+    fn collect_parsed_files(&self, listed_files: &[SourcePath]) -> Result<Vec<ParsedFile>> {
         let mut parsed_files = Vec::new();
-        for entry in WalkDir::new(source_root)
-            .into_iter()
-            .filter_map(|entry| entry.ok())
-            .filter(|entry| entry.file_type().is_file())
-            .filter(|entry| {
-                entry
-                    .path()
-                    .extension()
-                    .is_some_and(|extension| extension == "rs")
-            })
-        {
-            let file_path = entry.path();
+        for file_path in listed_files {
             if !self.is_selected(file_path) {
                 continue;
             }
-            let source = fs::read_to_string(file_path)
-                .with_context(|| format!("failed to read source file {}", file_path.display()))?;
+            let source = self.source_tree.read_source(file_path)?;
             let syntax = parse_file(&source)
-                .with_context(|| format!("failed to parse source file {}", file_path.display()))?;
-            parsed_files.push((file_path.to_path_buf(), syntax));
+                .with_context(|| format!("failed to parse source file {file_path}"))?;
+            parsed_files.push((file_path.clone(), syntax));
         }
         Ok(parsed_files)
     }
 
-    fn is_selected(&self, file_path: &Path) -> bool {
+    fn is_selected(&self, file_path: &SourcePath) -> bool {
         let relative_file = Self::relative_file(&self.package.manifest_dir, file_path);
         Self::is_selected_relative_file(&relative_file, self.include_test_targets)
-            && Self::is_selected_source_file(
-                &self.package.manifest_dir,
-                file_path,
-                self.include_test_targets,
-            )
+            && self.is_selected_source_file(file_path)
             && !Self::is_excluded_relative_file(&relative_file, self.exclude_paths)
     }
 
-    fn is_selected_source_file(
-        base_dir: &Path,
-        file_path: &Path,
-        include_test_targets: bool,
-    ) -> bool {
-        let base_dir = normalize_path(base_dir);
-        let file_path = normalize_path(file_path);
+    fn is_selected_source_file(&self, file_path: &SourcePath) -> bool {
+        let base_dir = self.path_keys.key_of(&self.package.manifest_dir);
+        let file_path = self.path_keys.key_of(file_path);
         let Some(relative) = file_path.strip_prefix(&base_dir) else {
             return true;
         };
@@ -137,27 +119,29 @@ impl<'a> FileWalker<'a> {
         }
 
         if first == "tests" {
-            return include_test_targets;
+            return self.include_test_targets;
         }
 
         !relative.ends_with("/build.rs") && relative != "build.rs"
     }
 
-    fn module_prefix(source_root: &Path, file_path: &Path) -> Vec<String> {
-        let relative = file_path.strip_prefix(source_root).unwrap_or(file_path);
+    fn module_prefix(source_root: &SourcePath, file_path: &SourcePath) -> Vec<String> {
+        let relative = SourcePath::new(String::from(
+            file_path
+                .strip_prefix(source_root)
+                .unwrap_or(file_path.as_str()),
+        ));
         let mut prefix = relative
             .parent()
             .map(|parent| {
                 parent
                     .components()
-                    .map(|component| component.as_os_str().to_string_lossy().to_string())
+                    .into_iter()
+                    .map(ToString::to_string)
                     .collect::<Vec<_>>()
             })
             .unwrap_or_default();
-        let file_stem = file_path
-            .file_stem()
-            .and_then(|stem| stem.to_str())
-            .unwrap_or_default();
+        let file_stem = file_path.file_stem().unwrap_or_default();
         if !matches!(file_stem, "lib" | "main" | "mod") {
             prefix.push(file_stem.to_string());
         }
@@ -166,13 +150,13 @@ impl<'a> FileWalker<'a> {
 
     fn visit_parsed_file(
         &self,
-        source_root: &Path,
-        file_path: &Path,
+        source_root: &SourcePath,
+        file_path: &SourcePath,
         syntax: &File,
     ) -> Vec<SourceFunction> {
         let relative_file = Self::relative_file(&self.package.manifest_dir, file_path);
         let module_prefix = Self::module_prefix(source_root, file_path);
-        let path_key = normalize_path(file_path);
+        let path_key = self.path_keys.key_of(file_path);
         let visitor = ItemVisitor::new(self.package, &path_key, &relative_file, &module_prefix);
         visitor.visit_items(syntax, &[])
     }

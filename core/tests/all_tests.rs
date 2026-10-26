@@ -6,3 +6,4 @@ pub mod analysis;
 pub mod coverage_io;
 pub mod invocation;
 pub mod reporting;
+pub mod support;

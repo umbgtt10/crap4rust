@@ -8,28 +8,31 @@ use crate::analysis::file_walker::FileWalker;
 use crate::analysis::source_function::SourceFunction;
 use crate::invocation::package_context::PackageContext;
 use crate::traits::function_discovery::FunctionDiscovery;
+use crate::traits::path_keys::PathKeys;
+use crate::traits::source_tree::SourceTree;
 
-#[derive(Debug, Clone, Copy, Default)]
-pub struct SourceFunctionDiscovery;
+pub struct SourceFunctionDiscovery<'a> {
+    source_tree: &'a dyn SourceTree,
+    path_keys: &'a dyn PathKeys,
+}
 
-impl SourceFunctionDiscovery {
+impl<'a> SourceFunctionDiscovery<'a> {
     #[must_use]
-    pub const fn new() -> Self {
-        Self
+    pub fn new(source_tree: &'a dyn SourceTree, path_keys: &'a dyn PathKeys) -> Self {
+        Self {
+            source_tree,
+            path_keys,
+        }
     }
+}
 
-    fn discover_functions(package: &PackageContext) -> Result<Vec<SourceFunction>> {
-        let walker = FileWalker::new(package);
+impl FunctionDiscovery for SourceFunctionDiscovery<'_> {
+    fn discover(&self, package: &PackageContext) -> Result<Vec<SourceFunction>> {
+        let walker = FileWalker::new(package, self.source_tree, self.path_keys);
         let mut functions = Vec::new();
         for source_root in &package.source_roots {
             functions.extend(walker.process_source_root(source_root)?);
         }
         Ok(functions)
-    }
-}
-
-impl FunctionDiscovery for SourceFunctionDiscovery {
-    fn discover(&self, package: &PackageContext) -> Result<Vec<SourceFunction>> {
-        Self::discover_functions(package)
     }
 }

@@ -2,6 +2,7 @@
 // Licensed under the MIT License
 // SPDX-License-Identifier: MIT
 
+use crap4rust::analysis::source_path::SourcePath;
 use crap4rust::coverage_io::llvm_cov_builder::LlvmCovBuilder;
 use crap4rust::invocation::config::Config;
 use crap4rust::invocation::package_context::PackageContext;
@@ -25,8 +26,8 @@ fn builder() -> LlvmCovBuilder {
 fn package(name: &str) -> PackageContext {
     PackageContext {
         name: String::from(name),
-        manifest_dir: PathBuf::from("."),
-        workspace_root: PathBuf::from("."),
+        manifest_dir: SourcePath::new(String::from(".")),
+        workspace_root: SourcePath::new(String::from(".")),
         source_roots: vec![],
         include_test_targets: false,
         exclude_paths: vec![],

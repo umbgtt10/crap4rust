@@ -2,15 +2,15 @@
 // Licensed under the MIT License
 // SPDX-License-Identifier: MIT
 
+use crap4rust::analysis::source_path::SourcePath;
 use crap4rust::invocation::package_context::PackageContext;
-use std::path::PathBuf;
 
 fn sample() -> PackageContext {
     PackageContext {
         name: String::from("cargo-crap4rust"),
-        manifest_dir: PathBuf::from("/workspace/crap4rust"),
-        workspace_root: PathBuf::from("/workspace"),
-        source_roots: vec![PathBuf::from("/workspace/crap4rust/src")],
+        manifest_dir: SourcePath::new(String::from("/workspace/crap4rust")),
+        workspace_root: SourcePath::new(String::from("/workspace")),
+        source_roots: vec![SourcePath::new(String::from("/workspace/crap4rust/src"))],
         include_test_targets: false,
         exclude_paths: vec![String::from("tests/fixtures")],
     }

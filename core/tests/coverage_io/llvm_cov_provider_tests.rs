@@ -2,6 +2,7 @@
 // Licensed under the MIT License
 // SPDX-License-Identifier: MIT
 
+use crate::support::verbatim_path_keys::VerbatimPathKeys;
 use crap4rust::coverage_io::llvm_cov_provider::LlvmCovProvider;
 use crap4rust::invocation::config::Config;
 use crap4rust::traits::coverage_provider::CoverageProvider;
@@ -19,7 +20,7 @@ fn provide_reads_precomputed_coverage_file_without_generating() {
     )
     .expect("write coverage file");
     let config = Config::default().with_coverage_path(Some(coverage_path));
-    let provider = LlvmCovProvider::new();
+    let provider = LlvmCovProvider::new(&VerbatimPathKeys);
 
     // Act
     let records = provider

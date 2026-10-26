@@ -17,23 +17,23 @@ use crate::traits::package_resolver::PackageResolver;
 use crate::traits::reporter::Reporter;
 use crate::traits::scorer::Scorer;
 
-pub struct App {
-    resolver: Box<dyn PackageResolver>,
-    discovery: Box<dyn FunctionDiscovery>,
-    coverage_provider: Box<dyn CoverageProvider>,
-    scorer: Box<dyn Scorer>,
-    reporter: Box<dyn Reporter>,
+pub struct App<'a> {
+    resolver: Box<dyn PackageResolver + 'a>,
+    discovery: Box<dyn FunctionDiscovery + 'a>,
+    coverage_provider: Box<dyn CoverageProvider + 'a>,
+    scorer: Box<dyn Scorer + 'a>,
+    reporter: Box<dyn Reporter + 'a>,
     config: Config,
 }
 
-impl App {
+impl<'a> App<'a> {
     #[must_use]
     pub fn new(
-        resolver: Box<dyn PackageResolver>,
-        discovery: Box<dyn FunctionDiscovery>,
-        coverage_provider: Box<dyn CoverageProvider>,
-        scorer: Box<dyn Scorer>,
-        reporter: Box<dyn Reporter>,
+        resolver: Box<dyn PackageResolver + 'a>,
+        discovery: Box<dyn FunctionDiscovery + 'a>,
+        coverage_provider: Box<dyn CoverageProvider + 'a>,
+        scorer: Box<dyn Scorer + 'a>,
+        reporter: Box<dyn Reporter + 'a>,
         config: Config,
     ) -> Self {
         Self {

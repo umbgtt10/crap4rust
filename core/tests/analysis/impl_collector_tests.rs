@@ -3,8 +3,8 @@
 // SPDX-License-Identifier: MIT
 
 use crap4rust::analysis::impl_collector::ImplCollector;
+use crap4rust::analysis::source_path::SourcePath;
 use crap4rust::invocation::package_context::PackageContext;
-use std::path::PathBuf;
 use syn::Attribute;
 use syn::ItemImpl;
 use syn::parse_file;
@@ -14,8 +14,8 @@ use syn::spanned::Spanned;
 fn test_package() -> PackageContext {
     PackageContext {
         name: String::from("test-package"),
-        manifest_dir: PathBuf::from("/project"),
-        workspace_root: PathBuf::from("/project"),
+        manifest_dir: SourcePath::new(String::from("/project")),
+        workspace_root: SourcePath::new(String::from("/project")),
         source_roots: Vec::new(),
         include_test_targets: false,
         exclude_paths: Vec::new(),

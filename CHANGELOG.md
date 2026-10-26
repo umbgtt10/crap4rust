@@ -6,8 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
-The tool's behaviour and command line are unchanged: its stdout, stderr and
-exit codes are compared byte for byte against 0.8.2. The repository splits
+The tool's behaviour and command line are unchanged -- its stdout, stderr and
+exit codes are compared byte for byte against 0.8.2 -- with one exception: a
+`.rs` file whose path is not UTF-8 now fails the run, naming the file, where
+0.8.2 scored it under a lossy name. Such a file cannot be a `mod` (identifiers
+are UTF-8), only a `#[path]` target. The repository splits
 into a technology-free core and a cli crate (`docs/CORE_CLI_SPLIT.md`), which
 changes how the library is packaged and much of its API.
 
@@ -22,6 +25,23 @@ changes how the library is packaged and much of its API.
   `invocation::entry_point::EntryPoint` to
   `crap4rust_cli::invocation::entry_point::EntryPoint`, unchanged.
 - `Config::from_args(Args)` is gone: `Args::config()` builds the `Config`.
+- Two new ports, implemented on disk by cli: `traits::source_tree::SourceTree`
+  (`rust_files`, `read_source`; `crap4rust_cli::system::walkdir_source_tree::WalkdirSourceTree`)
+  and `traits::path_keys::PathKeys` (`key_of`, the key a source file and a
+  coverage record are matched by; `crap4rust_cli::system::canonical_path_keys::CanonicalPathKeys`,
+  which is what `analysis::normalize_path::normalize_path` was).
+- Paths in the core are `analysis::source_path::SourcePath`, text with `/` as
+  its only separator: `PackageContext`'s `manifest_dir`, `workspace_root` and
+  `source_roots`, `FileWalker::process_source_root` and `relative_file`,
+  `TestModuleRegistry::is_excluded`. A file the tree cannot read fails with
+  `analysis::source_read_failure::SourceReadFailure`.
+- `SourceFunctionDiscovery::new(&dyn SourceTree, &dyn PathKeys)`,
+  `FileWalker::new(&PackageContext, &dyn SourceTree, &dyn PathKeys)`,
+  `TestModuleRegistry::build(files, listed_files, &dyn PathKeys)` -- a
+  `#[cfg(test)] mod` file is found among the files the tree listed rather than
+  on disk -- and `LlvmCovProvider::new(&dyn PathKeys)`, with
+  `load_coverage_records(path, &dyn PathKeys)`. `App` takes a lifetime, so its
+  parts may borrow the ports.
 
 ### Changed
 

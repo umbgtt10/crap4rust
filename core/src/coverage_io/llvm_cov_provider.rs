@@ -9,20 +9,22 @@ use crate::coverage_io::coverage_record::CoverageRecord;
 use crate::invocation::config::Config;
 use crate::invocation::package_context::PackageContext;
 use crate::traits::coverage_provider::CoverageProvider;
+use crate::traits::path_keys::PathKeys;
 
-#[derive(Debug, Clone, Copy, Default)]
-pub struct LlvmCovProvider;
+pub struct LlvmCovProvider<'a> {
+    path_keys: &'a dyn PathKeys,
+}
 
-impl LlvmCovProvider {
+impl<'a> LlvmCovProvider<'a> {
     #[must_use]
-    pub const fn new() -> Self {
-        Self
+    pub fn new(path_keys: &'a dyn PathKeys) -> Self {
+        Self { path_keys }
     }
 }
 
-impl CoverageProvider for LlvmCovProvider {
+impl CoverageProvider for LlvmCovProvider<'_> {
     fn provide(&self, config: &Config, packages: &[PackageContext]) -> Result<Vec<CoverageRecord>> {
         let coverage_path = ensure_coverage_path(config, packages)?;
-        load_coverage_records(&coverage_path)
+        load_coverage_records(&coverage_path, self.path_keys)
     }
 }

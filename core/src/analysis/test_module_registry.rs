@@ -2,60 +2,93 @@
 // Licensed under the MIT License
 // SPDX-License-Identifier: MIT
 
-use std::collections::HashSet;
-use std::path::{Path, PathBuf};
+use std::collections::BTreeSet;
 
 use syn::{File, Item, ItemMod};
 
 use crate::analysis::impl_collector::ImplCollector;
-use crate::analysis::normalize_path::normalize_path;
+use crate::analysis::source_path::SourcePath;
+use crate::traits::path_keys::PathKeys;
 
-pub struct TestModuleRegistry {
-    excluded_files: HashSet<String>,
+// The files a `#[cfg(test)] mod name;` declaration brings in, which are test
+// code however they are named. A module file is the one rustc would load --
+// `name.rs` beside the declaring file, else `name/mod.rs` -- if the source
+// tree lists it; files are compared by their path keys.
+pub struct TestModuleRegistry<'a> {
+    path_keys: &'a dyn PathKeys,
+    excluded_files: BTreeSet<String>,
 }
 
-impl TestModuleRegistry {
+impl<'a> TestModuleRegistry<'a> {
     #[must_use]
-    pub fn build(files: &[(PathBuf, File)]) -> Self {
-        let mut excluded_files = HashSet::new();
+    pub fn build(
+        files: &[(SourcePath, File)],
+        listed_files: &[SourcePath],
+        path_keys: &'a dyn PathKeys,
+    ) -> Self {
+        let listed_keys = listed_files
+            .iter()
+            .map(|file| path_keys.key_of(file))
+            .collect::<BTreeSet<_>>();
+        let mut excluded_files = BTreeSet::new();
         for (file_path, syntax) in files {
             let base_dir = Self::own_base_dir(file_path);
-            excluded_files.extend(Self::collect_excluded_mods(&syntax.items, &base_dir));
+            excluded_files.extend(Self::collect_excluded_mods(
+                &syntax.items,
+                &base_dir,
+                &listed_keys,
+                path_keys,
+            ));
         }
-        Self { excluded_files }
+        Self {
+            path_keys,
+            excluded_files,
+        }
     }
 
     #[must_use]
-    pub fn is_excluded(&self, file_path: &Path) -> bool {
-        self.excluded_files.contains(&normalize_path(file_path))
+    pub fn is_excluded(&self, file_path: &SourcePath) -> bool {
+        self.excluded_files
+            .contains(&self.path_keys.key_of(file_path))
     }
 
-    fn collect_excluded_mods(items: &[Item], base_dir: &Path) -> HashSet<String> {
-        let mut excluded_files = HashSet::new();
+    fn collect_excluded_mods(
+        items: &[Item],
+        base_dir: &SourcePath,
+        listed_keys: &BTreeSet<String>,
+        path_keys: &dyn PathKeys,
+    ) -> BTreeSet<String> {
+        let mut excluded_files = BTreeSet::new();
         for item in items {
             let Item::Mod(item_mod) = item else {
                 continue;
             };
             match &item_mod.content {
                 Some((_, nested_items)) => {
-                    let nested_dir = base_dir.join(item_mod.ident.to_string());
-                    excluded_files.extend(Self::collect_excluded_mods(nested_items, &nested_dir));
+                    let nested_dir = base_dir.join(&item_mod.ident.to_string());
+                    excluded_files.extend(Self::collect_excluded_mods(
+                        nested_items,
+                        &nested_dir,
+                        listed_keys,
+                        path_keys,
+                    ));
                 }
-                None => excluded_files.extend(Self::register_if_test_gated(item_mod, base_dir)),
+                None => excluded_files.extend(Self::register_if_test_gated(
+                    item_mod,
+                    base_dir,
+                    listed_keys,
+                    path_keys,
+                )),
             }
         }
         excluded_files
     }
 
-    fn own_base_dir(file_path: &Path) -> PathBuf {
+    fn own_base_dir(file_path: &SourcePath) -> SourcePath {
         let parent = file_path
             .parent()
-            .map(Path::to_path_buf)
-            .unwrap_or_default();
-        let stem = file_path
-            .file_stem()
-            .and_then(|stem| stem.to_str())
-            .unwrap_or_default();
+            .unwrap_or_else(|| SourcePath::new(String::new()));
+        let stem = file_path.file_stem().unwrap_or_default();
         if matches!(stem, "lib" | "main" | "mod") {
             parent
         } else {
@@ -63,23 +96,33 @@ impl TestModuleRegistry {
         }
     }
 
-    fn register_if_test_gated(item_mod: &ItemMod, base_dir: &Path) -> Option<String> {
+    fn register_if_test_gated(
+        item_mod: &ItemMod,
+        base_dir: &SourcePath,
+        listed_keys: &BTreeSet<String>,
+        path_keys: &dyn PathKeys,
+    ) -> Option<String> {
         if !ImplCollector::is_test_attrs(&item_mod.attrs) {
             return None;
         }
-        Self::resolve_file_module(base_dir, item_mod).map(|target| normalize_path(&target))
+        Self::resolve_file_module(base_dir, item_mod, listed_keys, path_keys)
     }
 
-    fn resolve_file_module(base_dir: &Path, item_mod: &ItemMod) -> Option<PathBuf> {
+    fn resolve_file_module(
+        base_dir: &SourcePath,
+        item_mod: &ItemMod,
+        listed_keys: &BTreeSet<String>,
+        path_keys: &dyn PathKeys,
+    ) -> Option<String> {
         let name = item_mod.ident.to_string();
 
-        let sibling_file = base_dir.join(format!("{name}.rs"));
-        if sibling_file.exists() {
+        let sibling_file = path_keys.key_of(&base_dir.join(&format!("{name}.rs")));
+        if listed_keys.contains(&sibling_file) {
             return Some(sibling_file);
         }
 
-        let directory_file = base_dir.join(&name).join("mod.rs");
-        if directory_file.exists() {
+        let directory_file = path_keys.key_of(&base_dir.join(&name).join("mod.rs"));
+        if listed_keys.contains(&directory_file) {
             return Some(directory_file);
         }
 

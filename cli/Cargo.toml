@@ -28,3 +28,7 @@ workspace = true
 anyhow = { workspace = true }
 clap = { workspace = true }
 crap4rust-core = { workspace = true }
+walkdir = { workspace = true }
+
+[dev-dependencies]
+tempfile = { workspace = true }

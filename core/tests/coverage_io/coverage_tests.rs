@@ -2,6 +2,7 @@
 // Licensed under the MIT License
 // SPDX-License-Identifier: MIT
 
+use crate::support::verbatim_path_keys::VerbatimPathKeys;
 use crap4rust::coverage_io::coverage::load_coverage_records;
 use std::fs;
 use std::path::Path;
@@ -31,7 +32,7 @@ fn load_coverage_records_counts_covered_regions() {
     fs::write(&path, json).expect("write coverage file");
 
     // Act
-    let records = load_coverage_records(&path).expect("load coverage records");
+    let records = load_coverage_records(&path, &VerbatimPathKeys).expect("load coverage records");
 
     // Assert
     assert_eq!(records.len(), 1);
@@ -67,7 +68,7 @@ fn load_coverage_records_handles_multiple_data_chunks() {
     fs::write(&path, json).expect("write coverage file");
 
     // Act
-    let records = load_coverage_records(&path).expect("load coverage records");
+    let records = load_coverage_records(&path, &VerbatimPathKeys).expect("load coverage records");
 
     // Assert
     assert_eq!(records.len(), 2);
@@ -93,7 +94,7 @@ fn load_coverage_records_parses_valid_json() {
     fs::write(&path, json).expect("write coverage file");
 
     // Act
-    let records = load_coverage_records(&path).expect("load coverage records");
+    let records = load_coverage_records(&path, &VerbatimPathKeys).expect("load coverage records");
 
     // Assert
     assert_eq!(records.len(), 1);
@@ -109,7 +110,7 @@ fn load_coverage_records_returns_error_for_invalid_json() {
     fs::write(&path, "not valid json").expect("write coverage file");
 
     // Act
-    let result = load_coverage_records(&path);
+    let result = load_coverage_records(&path, &VerbatimPathKeys);
 
     // Assert
     assert!(result.is_err());
@@ -121,7 +122,7 @@ fn load_coverage_records_returns_error_for_nonexistent_file() {
     let path = Path::new("/nonexistent/coverage.json");
 
     // Act
-    let result = load_coverage_records(path);
+    let result = load_coverage_records(path, &VerbatimPathKeys);
 
     // Assert
     assert!(result.is_err());
@@ -147,7 +148,7 @@ fn load_coverage_records_skips_functions_without_filenames() {
     fs::write(&path, json).expect("write coverage file");
 
     // Act
-    let records = load_coverage_records(&path).expect("load coverage records");
+    let records = load_coverage_records(&path, &VerbatimPathKeys).expect("load coverage records");
 
     // Assert
     assert!(records.is_empty());

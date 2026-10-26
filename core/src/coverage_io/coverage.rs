@@ -7,12 +7,13 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
 
-use crate::analysis::normalize_path::normalize_path;
+use crate::analysis::source_path::SourcePath;
 use crate::coverage_io::coverage_record::CoverageRecord;
 use crate::coverage_io::export::Export;
 use crate::coverage_io::llvm_cov_builder::LlvmCovBuilder;
 use crate::invocation::config::Config;
 use crate::invocation::package_context::PackageContext;
+use crate::traits::path_keys::PathKeys;
 use serde_json::from_str;
 
 pub(crate) fn ensure_coverage_path(
@@ -25,7 +26,7 @@ pub(crate) fn ensure_coverage_path(
 
     let workspace_root = packages
         .first()
-        .map(|package| package.workspace_root.clone())
+        .map(|package| PathBuf::from(package.workspace_root.as_str()))
         .context("no packages were selected for coverage generation")?;
 
     let output_dir = workspace_root.join("target").join("crap4rust");
@@ -52,7 +53,7 @@ pub(crate) fn ensure_coverage_path(
     Ok(output_path)
 }
 
-pub fn load_coverage_records(path: &Path) -> Result<Vec<CoverageRecord>> {
+pub fn load_coverage_records(path: &Path, path_keys: &dyn PathKeys) -> Result<Vec<CoverageRecord>> {
     let contents = fs::read_to_string(path)
         .with_context(|| format!("failed to read coverage file {}", path.display()))?;
     let export: Export = from_str(&contents).context("failed to parse cargo-llvm-cov JSON")?;
@@ -78,7 +79,7 @@ pub fn load_coverage_records(path: &Path) -> Result<Vec<CoverageRecord>> {
                 .count() as u32;
 
             records.push(CoverageRecord::new(
-                normalize_path(Path::new(filename)),
+                path_keys.key_of(&SourcePath::new(filename.clone())),
                 first_region[0] as usize,
                 covered_regions,
                 total_regions,

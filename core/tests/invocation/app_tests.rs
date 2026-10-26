@@ -4,6 +4,7 @@
 
 use anyhow::{Result, bail};
 use crap4rust::analysis::source_function::SourceFunction;
+use crap4rust::analysis::source_path::SourcePath;
 use crap4rust::coverage_io::coverage_record::CoverageRecord;
 use crap4rust::invocation::app::App;
 use crap4rust::invocation::config::Config;
@@ -15,7 +16,6 @@ use crap4rust::traits::coverage_provider::CoverageProvider;
 use crap4rust::traits::function_discovery::FunctionDiscovery;
 use crap4rust::traits::package_resolver::PackageResolver;
 use crap4rust::traits::reporter::Reporter;
-use std::path::PathBuf;
 
 struct FailingPackageResolver;
 
@@ -80,8 +80,8 @@ fn sample_function() -> SourceFunction {
 fn sample_package() -> PackageContext {
     PackageContext {
         name: String::from("probe"),
-        manifest_dir: PathBuf::from("/probe"),
-        workspace_root: PathBuf::from("/probe"),
+        manifest_dir: SourcePath::new(String::from("/probe")),
+        workspace_root: SourcePath::new(String::from("/probe")),
         source_roots: vec![],
         include_test_targets: false,
         exclude_paths: vec![],

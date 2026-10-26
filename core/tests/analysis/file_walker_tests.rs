@@ -2,21 +2,26 @@
 // Licensed under the MIT License
 // SPDX-License-Identifier: MIT
 
+use crate::support::in_memory_source_tree::InMemorySourceTree;
+use crate::support::verbatim_path_keys::VerbatimPathKeys;
 use crap4rust::analysis::file_walker::FileWalker;
+use crap4rust::analysis::source_path::SourcePath;
 use crap4rust::invocation::package_context::PackageContext;
-use std::fs;
-use std::path::Path;
-use tempfile::TempDir;
 
-fn package(root: &Path) -> PackageContext {
+fn package(root: &str) -> PackageContext {
+    let root = path(root);
     PackageContext {
         name: String::from("probe"),
-        manifest_dir: root.to_path_buf(),
-        workspace_root: root.to_path_buf(),
+        manifest_dir: root.clone(),
+        workspace_root: root.clone(),
         source_roots: vec![root.join("src")],
         include_test_targets: false,
         exclude_paths: vec![],
     }
+}
+
+fn path(text: &str) -> SourcePath {
+    SourcePath::new(String::from(text))
 }
 
 #[test]
@@ -112,19 +117,15 @@ fn is_selected_relative_file_without_test_targets_excludes_tests() {
 #[test]
 fn process_source_root_finds_the_functions_of_its_files() {
     // Arrange
-    let dir = TempDir::new().expect("temp dir");
-    let src = dir.path().join("src");
-    fs::create_dir_all(&src).expect("create src dir");
-    fs::write(
-        src.join("lib.rs"),
+    let source_tree = InMemorySourceTree::new().with_file(
+        "/probe/src/lib.rs",
         "pub fn alpha() {}\n\npub fn beta() {}\n",
-    )
-    .expect("write lib.rs");
-    let package = package(dir.path());
+    );
+    let package = package("/probe");
 
     // Act
-    let functions = FileWalker::new(&package)
-        .process_source_root(&src)
+    let functions = FileWalker::new(&package, &source_tree, &VerbatimPathKeys)
+        .process_source_root(&path("/probe/src"))
         .expect("walks");
 
     // Assert
@@ -140,12 +141,12 @@ fn process_source_root_finds_the_functions_of_its_files() {
 #[test]
 fn process_source_root_of_a_missing_directory_finds_nothing() {
     // Arrange
-    let dir = TempDir::new().expect("temp dir");
-    let package = package(dir.path());
+    let source_tree = InMemorySourceTree::new();
+    let package = package("/probe");
 
     // Act
-    let functions = FileWalker::new(&package)
-        .process_source_root(&dir.path().join("src"))
+    let functions = FileWalker::new(&package, &source_tree, &VerbatimPathKeys)
+        .process_source_root(&path("/probe/src"))
         .expect("walks");
 
     // Assert
@@ -155,11 +156,11 @@ fn process_source_root_of_a_missing_directory_finds_nothing() {
 #[test]
 fn relative_file_outside_base_dir_returns_full_path() {
     // Arrange
-    let base = Path::new("/project/src");
-    let file = Path::new("/other/lib.rs");
+    let base = path("/project/src");
+    let file = path("/other/lib.rs");
 
     // Act
-    let result = FileWalker::relative_file(base, file);
+    let result = FileWalker::relative_file(&base, &file);
 
     // Assert
     assert_eq!(result, "/other/lib.rs");
@@ -168,11 +169,11 @@ fn relative_file_outside_base_dir_returns_full_path() {
 #[test]
 fn relative_file_within_base_dir_strips_prefix() {
     // Arrange
-    let base = Path::new("/project/src");
-    let file = Path::new("/project/src/lib.rs");
+    let base = path("/project/src");
+    let file = path("/project/src/lib.rs");
 
     // Act
-    let result = FileWalker::relative_file(base, file);
+    let result = FileWalker::relative_file(&base, &file);
 
     // Assert
     assert_eq!(result, "lib.rs");

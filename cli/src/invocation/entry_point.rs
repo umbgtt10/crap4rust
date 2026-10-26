@@ -15,6 +15,8 @@ use crap4rust::reporting::default_scorer::DefaultScorer;
 use crap4rust::reporting::stdout_reporter::StdoutReporter;
 
 use crate::invocation::args::Args;
+use crate::system::canonical_path_keys::CanonicalPathKeys;
+use crate::system::walkdir_source_tree::WalkdirSourceTree;
 
 // Everything `main` used to do, moved somewhere a test can reach it.
 //
@@ -53,10 +55,12 @@ impl EntryPoint {
         T: Into<OsString> + Clone,
     {
         let args = <Args as Parser>::parse_from(args);
+        let source_tree = WalkdirSourceTree::new();
+        let path_keys = CanonicalPathKeys::new();
         App::new(
             Box::new(CargoPackageResolver::new()),
-            Box::new(SourceFunctionDiscovery::new()),
-            Box::new(LlvmCovProvider::new()),
+            Box::new(SourceFunctionDiscovery::new(&source_tree, &path_keys)),
+            Box::new(LlvmCovProvider::new(&path_keys)),
             Box::new(DefaultScorer::new()),
             Box::new(StdoutReporter::new()),
             args.config(),

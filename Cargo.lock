@@ -121,6 +121,8 @@ dependencies = [
  "anyhow",
  "clap",
  "crap4rust-core",
+ "tempfile",
+ "walkdir",
 ]
 
 [[package]]
@@ -211,7 +213,6 @@ dependencies = [
  "serde_json",
  "syn",
  "tempfile",
- "walkdir",
 ]
 
 [[package]]
