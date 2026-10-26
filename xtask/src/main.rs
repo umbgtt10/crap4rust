@@ -4,6 +4,7 @@
 
 use std::env::args;
 use std::path::Path;
+use std::path::PathBuf;
 use std::process::ExitCode;
 use xtask::crap::crap_report_parser::CrapReportParser;
 use xtask::gates::crap_gate::CrapGate;
@@ -21,7 +22,12 @@ const VALIDATION_PACKAGE: &str = "validation";
 const XTASK_PACKAGE: &str = "xtask";
 const CRAP_THRESHOLD: &str = "15";
 const ICEBERG_THRESHOLD: &str = "15.3";
-const DRY_PATH: &str = "core/src";
+const DRY_EXCLUDES: [&[&str]; 4] = [
+    &["xtask"],
+    &["validation"],
+    &["fixture"],
+    &["core", "tests"],
+];
 const DRY_BASELINE: &str = "dry4rust-baseline.json";
 const DRY_MIN_NODES: &str = "25";
 
@@ -71,15 +77,21 @@ fn run_stage2() -> ExitCode {
 
     // Third, for the same reason stern4rust is first: removing a duplicate
     // moves code between files, which changes what the three behind it measure.
-    // The published crate's source only -- tests repeat their arrangement by
-    // design -- against a baseline of what was already duplicated when the gate
-    // arrived, so it fails on what a change adds rather than on what it
-    // inherited. The floor is the one the family gates at, and the one the
-    // baseline was recorded at: a baseline matches only at its own floor.
+    // One run over the workspace with the trees it must not judge excluded --
+    // tests repeat their arrangement by design, and xtask, validation and the
+    // fixtures are not published -- against a baseline of what was already
+    // duplicated when the gate arrived, so it fails on what a change adds
+    // rather than on what it inherited. The floor is the one the family gates
+    // at, and the one the baseline was recorded at: a baseline matches only at
+    // its own floor.
     let root = workspace_root();
     let dry = DryGate::new(
         &runner,
-        root.join(DRY_PATH).to_string_lossy().into_owned(),
+        root.to_string_lossy().into_owned(),
+        DRY_EXCLUDES
+            .iter()
+            .map(|exclude| below(root, exclude).to_string_lossy().into_owned())
+            .collect(),
         root.join(DRY_BASELINE).to_string_lossy().into_owned(),
         String::from(DRY_MIN_NODES),
     );
@@ -111,6 +123,14 @@ fn run_stage2() -> ExitCode {
             ExitCode::FAILURE
         }
     }
+}
+
+// Joined a component at a time, so the path carries the platform's separator
+// throughout -- dry4rust matches its exclusions as text.
+fn below(root: &Path, components: &[&str]) -> PathBuf {
+    components
+        .iter()
+        .fold(root.to_path_buf(), |path, component| path.join(component))
 }
 
 fn workspace_root() -> &'static Path {
