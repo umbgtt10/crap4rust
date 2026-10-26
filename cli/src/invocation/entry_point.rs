@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 use std::ffi::OsString;
+use std::path::Path;
 use std::process::ExitCode;
 
 use anyhow::Result;
@@ -16,6 +17,7 @@ use crap4rust::reporting::stdout_reporter::StdoutReporter;
 
 use crate::invocation::args::Args;
 use crate::system::canonical_path_keys::CanonicalPathKeys;
+use crate::system::cargo_workspace_reader::CargoWorkspaceReader;
 use crate::system::walkdir_source_tree::WalkdirSourceTree;
 
 // Everything `main` used to do, moved somewhere a test can reach it.
@@ -55,10 +57,12 @@ impl EntryPoint {
         T: Into<OsString> + Clone,
     {
         let args = <Args as Parser>::parse_from(args);
+        let workspace_reader =
+            CargoWorkspaceReader::new(args.manifest_path().map(Path::to_path_buf));
         let source_tree = WalkdirSourceTree::new();
         let path_keys = CanonicalPathKeys::new();
         App::new(
-            Box::new(CargoPackageResolver::new()),
+            Box::new(CargoPackageResolver::new(&workspace_reader)),
             Box::new(SourceFunctionDiscovery::new(&source_tree, &path_keys)),
             Box::new(LlvmCovProvider::new(&path_keys)),
             Box::new(DefaultScorer::new()),

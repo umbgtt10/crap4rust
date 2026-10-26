@@ -26,6 +26,7 @@ workspace = true
 
 [dependencies]
 anyhow = { workspace = true }
+cargo_metadata = { workspace = true }
 clap = { workspace = true }
 crap4rust-core = { workspace = true }
 walkdir = { workspace = true }

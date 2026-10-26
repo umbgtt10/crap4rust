@@ -119,6 +119,7 @@ name = "cargo-crap4rust"
 version = "0.8.2"
 dependencies = [
  "anyhow",
+ "cargo_metadata",
  "clap",
  "crap4rust-core",
  "tempfile",
@@ -206,7 +207,6 @@ name = "crap4rust-core"
 version = "0.8.2"
 dependencies = [
  "anyhow",
- "cargo_metadata",
  "clap",
  "proc-macro2",
  "serde",

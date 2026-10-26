@@ -42,6 +42,16 @@ changes how the library is packaged and much of its API.
   on disk -- and `LlvmCovProvider::new(&dyn PathKeys)`, with
   `load_coverage_records(path, &dyn PathKeys)`. `App` takes a lifetime, so its
   parts may borrow the ports.
+- The workspace is read through a third port,
+  `traits::workspace_reader::WorkspaceReader` (`describe`), into the core's own
+  records -- `invocation::{workspace_description::WorkspaceDescription,
+  package_description::PackageDescription, target_description::TargetDescription}`
+  -- and fails with `invocation::workspace_read_failure::WorkspaceReadFailure`;
+  `crap4rust_cli::system::cargo_workspace_reader::CargoWorkspaceReader` runs
+  `cargo metadata --no-deps` for it. `CargoPackageResolver::new()` is
+  `CargoPackageResolver::new(&dyn WorkspaceReader)`, and
+  `SourceRootCollector` reads `TargetDescription`s where it read
+  `cargo_metadata::Target`s.
 
 ### Changed
 

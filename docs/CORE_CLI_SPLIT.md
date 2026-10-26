@@ -78,7 +78,7 @@ the file-system methods or `extern crate std`.
 | S1 | `DryGate`: one run over the workspace, with the trees it must not judge excluded by full path; the ignore file moves to the root it scans || done |
 | S2 | the split: `cli` takes `main.rs`, `Args` and `EntryPoint`; core is renamed; `[workspace.lints]` forbids unsafe code; `Config::from_args` becomes `Args::config` || done |
 | S3 | the `SourceTree` and `PathKeys` ports and `SourcePath`; discovery reads through them; the walk becomes cli's `WalkdirSourceTree`, `normalize_path` cli's `CanonicalPathKeys` || done |
-| S4 | the `WorkspaceReader` port and core's workspace records; `CargoWorkspaceReader` in cli | |
+| S4 | the `WorkspaceReader` port and core's workspace records; `CargoWorkspaceReader` in cli || done |
 | S5 | the `CoverageSource` port: the region arithmetic stays in core, cargo llvm-cov, the coverage file and its JSON go to cli; `Config`'s cargo-facing options become cli's `CargoConfig` | |
 | S6 | the report as a string: `HumanReporter` in core, `JsonReporter` in cli; printing and the exit code go to cli; clap and serde leave core | |
 | S7 | `#![no_std]`, typed errors; anyhow leaves core | |

@@ -3,4 +3,5 @@
 // SPDX-License-Identifier: MIT
 
 pub mod in_memory_source_tree;
+pub mod in_memory_workspace_reader;
 pub mod verbatim_path_keys;

@@ -3,18 +3,18 @@
 // SPDX-License-Identifier: MIT
 
 use std::collections::BTreeSet;
-use std::path::{Path, PathBuf};
 
-use cargo_metadata::Target;
+use crate::analysis::source_path::SourcePath;
+use crate::invocation::target_description::TargetDescription;
 
 pub struct SourceRootCollector<'a> {
     include_test_targets: bool,
-    manifest_dir: &'a Path,
-    source_roots: BTreeSet<PathBuf>,
+    manifest_dir: &'a SourcePath,
+    source_roots: BTreeSet<SourcePath>,
 }
 
 impl<'a> SourceRootCollector<'a> {
-    pub fn new(include_test_targets: bool, manifest_dir: &'a Path) -> Self {
+    pub fn new(include_test_targets: bool, manifest_dir: &'a SourcePath) -> Self {
         Self {
             include_test_targets,
             manifest_dir,
@@ -22,25 +22,21 @@ impl<'a> SourceRootCollector<'a> {
         }
     }
 
-    pub fn collect(&mut self, targets: &[Target]) {
+    pub fn collect(&mut self, targets: &[TargetDescription]) {
         for target in targets {
             self.process_target(target);
         }
     }
 
-    pub fn finalize(mut self) -> Vec<PathBuf> {
+    pub fn finalize(mut self) -> Vec<SourcePath> {
         if self.source_roots.is_empty() {
             self.source_roots.insert(self.manifest_dir.join("src"));
         }
         self.source_roots.into_iter().collect()
     }
 
-    pub fn is_selected_target(target: &Target, include_test_targets: bool) -> bool {
-        let kinds = target
-            .kind
-            .iter()
-            .map(|kind| kind.to_string())
-            .collect::<Vec<_>>();
+    pub fn is_selected_target(target: &TargetDescription, include_test_targets: bool) -> bool {
+        let kinds: &[String] = &target.kinds;
 
         if kinds.iter().any(|kind| kind == "custom-build") {
             return false;
@@ -77,20 +73,15 @@ impl<'a> SourceRootCollector<'a> {
         })
     }
 
-    fn process_target(&mut self, target: &Target) {
+    fn process_target(&mut self, target: &TargetDescription) {
         if !Self::is_selected_target(target, self.include_test_targets) {
             return;
         }
 
-        if target
-            .src_path
-            .extension()
-            .is_some_and(|extension| extension == "rs")
+        if target.src_path.extension() == Some("rs")
+            && let Some(parent) = target.src_path.parent()
         {
-            let path = target.src_path.clone().into_std_path_buf();
-            if let Some(parent) = path.parent() {
-                self.source_roots.insert(parent.to_path_buf());
-            }
+            self.source_roots.insert(parent);
         }
     }
 }

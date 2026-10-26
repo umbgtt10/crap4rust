@@ -2,39 +2,39 @@
 // Licensed under the MIT License
 // SPDX-License-Identifier: MIT
 
-use std::collections::BTreeSet;
-use std::path::{MAIN_SEPARATOR, Path, PathBuf};
-
 use anyhow::{Context, Result, bail};
-use cargo_metadata::{Metadata, MetadataCommand, Package};
 
 use crate::analysis::source_path::SourcePath;
 use crate::analysis::source_root_collector::SourceRootCollector;
 use crate::invocation::config::Config;
 use crate::invocation::package_context::PackageContext;
+use crate::invocation::package_description::PackageDescription;
+use crate::invocation::workspace_description::WorkspaceDescription;
 use crate::traits::package_resolver::PackageResolver;
+use crate::traits::workspace_reader::WorkspaceReader;
 
-#[derive(Debug, Clone, Copy, Default)]
-pub struct CargoPackageResolver;
+// Cargo's rules for which packages a run covers, applied to the workspace the
+// reader describes: the ones asked for, in the order asked; else the root
+// package of a workspace of one; else every member.
+pub struct CargoPackageResolver<'a> {
+    workspace_reader: &'a dyn WorkspaceReader,
+}
 
-impl CargoPackageResolver {
+impl<'a> CargoPackageResolver<'a> {
     #[must_use]
-    pub const fn new() -> Self {
-        Self
+    pub fn new(workspace_reader: &'a dyn WorkspaceReader) -> Self {
+        Self { workspace_reader }
     }
 
     fn build_package_context(
-        package: &Package,
-        workspace_root: &Path,
+        package: &PackageDescription,
+        workspace_root: &SourcePath,
         include_test_targets: bool,
         exclude_paths: Vec<String>,
     ) -> Result<PackageContext> {
         let manifest_dir = package
             .manifest_path
-            .clone()
-            .into_std_path_buf()
             .parent()
-            .map(PathBuf::from)
             .context("package manifest has no parent directory")?;
 
         let mut collector = SourceRootCollector::new(include_test_targets, &manifest_dir);
@@ -42,29 +42,26 @@ impl CargoPackageResolver {
         let source_roots = collector.finalize();
 
         Ok(PackageContext {
-            name: package.name.to_string(),
-            manifest_dir: Self::source_path(&manifest_dir),
-            workspace_root: Self::source_path(workspace_root),
-            source_roots: source_roots
-                .iter()
-                .map(|source_root| Self::source_path(source_root))
-                .collect(),
+            name: package.name.clone(),
+            manifest_dir,
+            workspace_root: workspace_root.clone(),
+            source_roots,
             include_test_targets,
             exclude_paths,
         })
     }
 
-    fn select_packages<'a>(
-        metadata: &'a Metadata,
+    fn select_packages<'w>(
+        workspace: &'w WorkspaceDescription,
         requested: &[String],
-    ) -> Result<Vec<&'a Package>> {
+    ) -> Result<Vec<&'w PackageDescription>> {
         if !requested.is_empty() {
             let mut selected = Vec::new();
             for package_name in requested {
-                let package = metadata
+                let package = workspace
                     .packages
                     .iter()
-                    .find(|package| package.name == package_name)
+                    .find(|package| &package.name == package_name)
                     .with_context(|| {
                         format!("package {package_name} was not found in the manifest")
                     })?;
@@ -73,54 +70,36 @@ impl CargoPackageResolver {
             return Ok(selected);
         }
 
-        if let Some(root) = metadata.root_package()
-            && metadata.workspace_members.len() <= 1
+        if let Some(root) = workspace.root_package.as_ref().and_then(|root| {
+            workspace
+                .packages
+                .iter()
+                .find(|package| &package.name == root)
+        }) && workspace.packages.len() <= 1
         {
             return Ok(vec![root]);
         }
 
-        let workspace_member_ids = metadata
-            .workspace_members
-            .iter()
-            .cloned()
-            .collect::<BTreeSet<_>>();
-        let selected = metadata
-            .packages
-            .iter()
-            .filter(|package| workspace_member_ids.contains(&package.id))
-            .collect::<Vec<_>>();
+        let selected = workspace.packages.iter().collect::<Vec<_>>();
         if selected.is_empty() {
             bail!("manifest contains no workspace member packages");
         }
 
         Ok(selected)
     }
-
-    // Every path cargo reports is UTF-8 (cargo_metadata types them so), and the
-    // core holds `/` as its only separator.
-    fn source_path(path: &Path) -> SourcePath {
-        SourcePath::new(path.to_string_lossy().replace(MAIN_SEPARATOR, "/"))
-    }
 }
 
-impl PackageResolver for CargoPackageResolver {
+impl PackageResolver for CargoPackageResolver<'_> {
     fn resolve(&self, config: &Config) -> Result<Vec<PackageContext>> {
-        let mut command = MetadataCommand::new();
-        command.no_deps();
-        if let Some(manifest_path) = &config.manifest_path() {
-            command.manifest_path(manifest_path);
-        }
-
-        let metadata = command.exec().context("failed to read Cargo metadata")?;
-        let workspace_root = metadata.workspace_root.clone().into_std_path_buf();
-        let packages = Self::select_packages(&metadata, config.packages())?;
+        let workspace = self.workspace_reader.describe()?;
+        let packages = Self::select_packages(&workspace, config.packages())?;
 
         packages
             .into_iter()
             .map(|package| {
                 Self::build_package_context(
                     package,
-                    &workspace_root,
+                    &workspace.workspace_root,
                     config.include_test_targets(),
                     config.exclude_paths().to_vec(),
                 )
