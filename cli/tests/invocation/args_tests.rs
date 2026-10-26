@@ -2,8 +2,8 @@
 // Licensed under the MIT License
 // SPDX-License-Identifier: MIT
 
-use crap4rust::reporting::output_format::OutputFormat;
 use crap4rust_cli::invocation::args::Args;
+use crap4rust_cli::invocation::output_format::OutputFormat;
 use std::path::Path;
 
 #[test]

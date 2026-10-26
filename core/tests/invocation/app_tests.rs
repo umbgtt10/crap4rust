@@ -11,7 +11,6 @@ use crap4rust::invocation::app::App;
 use crap4rust::invocation::config::Config;
 use crap4rust::invocation::package_context::PackageContext;
 use crap4rust::reporting::default_scorer::DefaultScorer;
-use crap4rust::reporting::output_format::OutputFormat;
 use crap4rust::reporting::project_report::ProjectReport;
 use crap4rust::traits::coverage_provider::CoverageProvider;
 use crap4rust::traits::function_discovery::FunctionDiscovery;
@@ -62,7 +61,9 @@ impl PackageResolver for FakePackageResolver {
 struct NoOpReporter;
 
 impl Reporter for NoOpReporter {
-    fn render(&self, _report: &ProjectReport, _config: &Config) {}
+    fn render(&self, _report: &ProjectReport, _config: &Config) -> String {
+        String::new()
+    }
 }
 
 fn sample_function() -> SourceFunction {
@@ -97,7 +98,6 @@ fn test_config() -> Config {
         .with_threshold(30.0)
         .with_warn_threshold(20.0)
         .with_project_threshold(5.0)
-        .with_output_format(OutputFormat::Human)
 }
 
 #[test]

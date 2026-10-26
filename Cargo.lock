@@ -209,10 +209,7 @@ name = "crap4rust-core"
 version = "0.8.2"
 dependencies = [
  "anyhow",
- "clap",
  "proc-macro2",
- "serde",
- "serde_json",
  "syn",
 ]
 

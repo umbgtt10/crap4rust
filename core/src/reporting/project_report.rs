@@ -2,15 +2,11 @@
 // Licensed under the MIT License
 // SPDX-License-Identifier: MIT
 
-use std::process::ExitCode;
-
-use serde::Serialize;
-
 use crate::invocation::config::Config;
 use crate::reporting::function_report::FunctionReport;
 use crate::reporting::verdict::Verdict;
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone)]
 pub struct ProjectReport {
     scope_name: String,
     total_functions: usize,
@@ -48,14 +44,14 @@ impl ProjectReport {
     }
 
     #[must_use]
-    pub fn exit_code(&self, config: &Config) -> ExitCode {
+    pub fn exit_code(&self, config: &Config) -> u8 {
         if config.warn_only() {
-            return ExitCode::SUCCESS;
+            return 0;
         }
         if config.fails(self.crappy_functions, self.crappy_percent) {
-            ExitCode::from(1)
+            1
         } else {
-            ExitCode::SUCCESS
+            0
         }
     }
 

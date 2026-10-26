@@ -5,8 +5,7 @@
 pub mod crap_formula;
 pub mod default_scorer;
 pub mod function_report;
-pub mod output_format;
+pub mod human_reporter;
 pub mod project_metrics;
 pub mod project_report;
-pub mod stdout_reporter;
 pub mod verdict;

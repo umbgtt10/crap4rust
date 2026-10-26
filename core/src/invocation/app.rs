@@ -2,14 +2,13 @@
 // Licensed under the MIT License
 // SPDX-License-Identifier: MIT
 
-use std::process::ExitCode;
-
 use anyhow::{Context, Result, bail};
 
 use crate::analysis::source_function::SourceFunction;
 use crate::coverage_io::coverage_index::CoverageIndex;
 use crate::invocation::config::Config;
 use crate::invocation::package_context::PackageContext;
+use crate::invocation::run_outcome::RunOutcome;
 use crate::reporting::project_report::ProjectReport;
 use crate::traits::coverage_provider::CoverageProvider;
 use crate::traits::function_discovery::FunctionDiscovery;
@@ -46,7 +45,7 @@ impl<'a> App<'a> {
         }
     }
 
-    pub fn run(&self) -> Result<ExitCode> {
+    pub fn run(&self) -> Result<RunOutcome> {
         let packages = self.resolver.resolve(&self.config)?;
         let coverage_records = self.coverage_provider.provide(&packages)?;
 
@@ -88,9 +87,10 @@ impl<'a> App<'a> {
             reports,
         );
 
-        self.reporter.render(&report_data, &self.config);
-
-        Ok(report_data.exit_code(&self.config))
+        Ok(RunOutcome {
+            output: self.reporter.render(&report_data, &self.config),
+            exit_code: report_data.exit_code(&self.config),
+        })
     }
 
     fn discover_all_functions(&self, packages: &[PackageContext]) -> Result<Vec<SourceFunction>> {

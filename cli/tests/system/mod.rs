@@ -4,6 +4,7 @@
 
 pub mod canonical_path_keys_tests;
 pub mod cargo_workspace_reader_tests;
+pub mod json_reporter_tests;
 pub mod llvm_cov_builder_tests;
 pub mod llvm_cov_failure_tests;
 pub mod llvm_cov_source_tests;

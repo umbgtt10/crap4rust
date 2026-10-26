@@ -70,6 +70,20 @@ changes how the library is packaged and much of its API.
   and `no_default_features`, with their getters and `with_` steps: they are
   what reaches cargo, and `Args::cargo_config()` puts them in the record
   `crap4rust_cli::invocation::cargo_config::CargoConfig`.
+- The report is a string: `Reporter::render` returns the text it used to
+  print, and `App::run` returns an `invocation::run_outcome::RunOutcome` --
+  that text and the exit code, 0 or 1 -- where it printed and returned an
+  `ExitCode`; printing it and the process exit code are
+  `crap4rust_cli::invocation::entry_point::EntryPoint`'s.
+  `ProjectReport::exit_code` returns that number as a `u8`.
+- `reporting::stdout_reporter::StdoutReporter` is gone: the human report is
+  `reporting::human_reporter::HumanReporter`, the JSON report
+  `crap4rust_cli::system::json_reporter::JsonReporter`, same text, and
+  `EntryPoint` picks one by `--output-format`. `reporting::output_format::OutputFormat`
+  moves to `crap4rust_cli::invocation::output_format::OutputFormat`, and
+  `Config` loses `output_format` and `with_output_format`.
+  `FunctionReport`, `ProjectReport` and `Verdict` no longer derive `Serialize`:
+  the JSON reporter keeps its own records, field for field.
 
 ### Changed
 

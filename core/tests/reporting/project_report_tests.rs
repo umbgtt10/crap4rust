@@ -4,11 +4,8 @@
 
 use crap4rust::invocation::config::Config;
 use crap4rust::reporting::function_report::FunctionReport;
-use crap4rust::reporting::output_format::OutputFormat;
 use crap4rust::reporting::project_report::ProjectReport;
 use crap4rust::reporting::verdict::Verdict;
-use serde_json::to_string;
-use std::process::ExitCode;
 
 fn config(warn_only: bool) -> Config {
     Config::default()
@@ -17,7 +14,6 @@ fn config(warn_only: bool) -> Config {
         .with_project_threshold(5.0)
         .with_strict(true)
         .with_warn_only(warn_only)
-        .with_output_format(OutputFormat::Human)
 }
 
 fn report(crappy_functions: usize) -> ProjectReport {
@@ -61,7 +57,7 @@ fn exit_code_of_a_clean_report_is_success() {
     let code = report(0).exit_code(&config(false));
 
     // Assert
-    assert_eq!(code, ExitCode::SUCCESS);
+    assert_eq!(code, 0);
 }
 
 #[test]
@@ -70,7 +66,7 @@ fn exit_code_of_a_report_with_a_crappy_function_is_one() {
     let code = report(1).exit_code(&config(false));
 
     // Assert
-    assert_eq!(code, ExitCode::from(1));
+    assert_eq!(code, 1);
 }
 
 // Warn-only reports and never fails the build, whatever it found.
@@ -80,7 +76,7 @@ fn exit_code_with_warn_only_is_success_whatever_it_finds() {
     let code = report(2).exit_code(&config(true));
 
     // Assert
-    assert_eq!(code, ExitCode::SUCCESS);
+    assert_eq!(code, 0);
 }
 
 #[test]
@@ -104,36 +100,6 @@ fn functions_lists_every_function_the_report_covers() {
     // Assert
     assert_eq!(functions.len(), 1);
     assert_eq!(functions[0].name, "foo");
-}
-
-#[test]
-fn project_report_serialization_contains_expected_fields() {
-    // Arrange
-    let report = ProjectReport::new(
-        String::from("test"),
-        1,
-        0,
-        0.0,
-        Verdict::Clean,
-        vec![FunctionReport {
-            package_name: String::from("test"),
-            name: String::from("foo"),
-            relative_file: String::from("src/lib.rs"),
-            line: 10,
-            complexity: 1,
-            coverage: 1.0,
-            crap_score: 1.0,
-            verdict: Verdict::Clean,
-        }],
-    );
-
-    // Act
-    let json = to_string(&report).expect("serialization");
-
-    // Assert
-    assert!(json.contains(r#""scope_name":"test""#));
-    assert!(json.contains(r#""verdict":"Clean""#));
-    assert!(json.contains(r#""name":"foo""#));
 }
 
 #[test]

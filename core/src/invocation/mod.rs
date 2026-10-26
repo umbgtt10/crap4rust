@@ -7,6 +7,7 @@ pub mod cargo_package_resolver;
 pub mod config;
 pub mod package_context;
 pub mod package_description;
+pub mod run_outcome;
 pub mod target_description;
 pub mod workspace_description;
 pub mod workspace_read_failure;

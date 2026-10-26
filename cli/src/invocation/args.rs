@@ -8,9 +8,9 @@ use std::path::PathBuf;
 
 use clap::Parser;
 use crap4rust::invocation::config::Config;
-use crap4rust::reporting::output_format::OutputFormat;
 
 use crate::invocation::cargo_config::CargoConfig;
+use crate::invocation::output_format::OutputFormat;
 
 #[derive(Debug, Clone, Parser)]
 #[command(name = "crap4rust")]
@@ -79,7 +79,6 @@ impl Args {
             .with_project_threshold(self.project_threshold)
             .with_strict(self.strict)
             .with_warn_only(self.warn_only)
-            .with_output_format(self.output_format)
     }
 
     pub fn coverage(&self) -> Option<&Path> {

@@ -12,11 +12,14 @@ use crap4rust::coverage_io::export_coverage_provider::ExportCoverageProvider;
 use crap4rust::invocation::app::App;
 use crap4rust::invocation::cargo_package_resolver::CargoPackageResolver;
 use crap4rust::reporting::default_scorer::DefaultScorer;
-use crap4rust::reporting::stdout_reporter::StdoutReporter;
+use crap4rust::reporting::human_reporter::HumanReporter;
+use crap4rust::traits::reporter::Reporter;
 
 use crate::invocation::args::Args;
+use crate::invocation::output_format::OutputFormat;
 use crate::system::canonical_path_keys::CanonicalPathKeys;
 use crate::system::cargo_workspace_reader::CargoWorkspaceReader;
+use crate::system::json_reporter::JsonReporter;
 use crate::system::llvm_cov_source::LlvmCovSource;
 use crate::system::walkdir_source_tree::WalkdirSourceTree;
 
@@ -50,7 +53,9 @@ impl EntryPoint {
     }
 
     // The composition root: App takes every part it runs on, and this is where
-    // the concrete ones are chosen.
+    // the concrete ones are chosen -- cargo metadata, the file system, cargo
+    // llvm-cov and the report's format. The report reaches stdout here and
+    // nowhere else.
     pub fn run_from_args<I, T>(args: I) -> Result<ExitCode>
     where
         I: IntoIterator<Item = T>,
@@ -62,15 +67,22 @@ impl EntryPoint {
         let source_tree = WalkdirSourceTree::new();
         let path_keys = CanonicalPathKeys::new();
         let coverage_source = LlvmCovSource::new(cargo_config);
-        App::new(
+        let reporter: Box<dyn Reporter> = match args.output_format() {
+            OutputFormat::Json => Box::new(JsonReporter::new()),
+            OutputFormat::Human => Box::new(HumanReporter::new()),
+        };
+        let outcome = App::new(
             Box::new(CargoPackageResolver::new(&workspace_reader)),
             Box::new(SourceFunctionDiscovery::new(&source_tree, &path_keys)),
             Box::new(ExportCoverageProvider::new(&coverage_source, &path_keys)),
             Box::new(DefaultScorer::new()),
-            Box::new(StdoutReporter::new()),
+            reporter,
             args.config(),
         )
-        .run()
+        .run()?;
+
+        print!("{}", outcome.output);
+        Ok(ExitCode::from(outcome.exit_code))
     }
 
     // Conditional and positional: only a repeated name in argv[1] goes.

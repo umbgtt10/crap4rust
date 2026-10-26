@@ -6,5 +6,5 @@ use crate::invocation::config::Config;
 use crate::reporting::project_report::ProjectReport;
 
 pub trait Reporter {
-    fn render(&self, report: &ProjectReport, config: &Config);
+    fn render(&self, report: &ProjectReport, config: &Config) -> String;
 }

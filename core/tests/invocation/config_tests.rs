@@ -3,7 +3,6 @@
 // SPDX-License-Identifier: MIT
 
 use crap4rust::invocation::config::Config;
-use crap4rust::reporting::output_format::OutputFormat;
 
 fn test_config(strict: bool, project_threshold: f64) -> Config {
     Config::default()
@@ -83,18 +82,6 @@ fn with_include_test_targets_keeps_the_flag() {
 
     // Assert
     assert!(config.include_test_targets());
-}
-
-#[test]
-fn with_output_format_keeps_the_format() {
-    // Arrange
-    let config = Config::default();
-
-    // Act
-    let config = config.with_output_format(OutputFormat::Json);
-
-    // Assert
-    assert_eq!(config.output_format(), OutputFormat::Json);
 }
 
 #[test]

@@ -2,11 +2,9 @@
 // Licensed under the MIT License
 // SPDX-License-Identifier: MIT
 
-use serde::Serialize;
-
 use crate::reporting::verdict::Verdict;
 
-#[derive(Debug, Clone, Serialize, Default)]
+#[derive(Debug, Clone, Default)]
 pub struct FunctionReport {
     pub package_name: String,
     pub name: String,

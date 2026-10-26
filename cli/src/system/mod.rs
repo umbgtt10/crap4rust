@@ -4,6 +4,7 @@
 
 pub mod canonical_path_keys;
 pub mod cargo_workspace_reader;
+pub mod json_reporter;
 pub mod llvm_cov_builder;
 pub mod llvm_cov_failure;
 pub mod llvm_cov_source;

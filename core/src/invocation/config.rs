@@ -2,8 +2,6 @@
 // Licensed under the MIT License
 // SPDX-License-Identifier: MIT
 
-use crate::reporting::output_format::OutputFormat;
-
 #[derive(Debug, Clone, Default)]
 pub struct Config {
     packages: Vec<String>,
@@ -14,7 +12,6 @@ pub struct Config {
     project_threshold: f64,
     strict: bool,
     warn_only: bool,
-    output_format: OutputFormat,
 }
 
 impl Config {
@@ -33,10 +30,6 @@ impl Config {
 
     pub fn include_test_targets(&self) -> bool {
         self.include_test_targets
-    }
-
-    pub fn output_format(&self) -> OutputFormat {
-        self.output_format
     }
 
     pub fn packages(&self) -> &[String] {
@@ -73,13 +66,6 @@ impl Config {
     pub fn with_include_test_targets(self, include_test_targets: bool) -> Self {
         Self {
             include_test_targets,
-            ..self
-        }
-    }
-
-    pub fn with_output_format(self, output_format: OutputFormat) -> Self {
-        Self {
-            output_format,
             ..self
         }
     }

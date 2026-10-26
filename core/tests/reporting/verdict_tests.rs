@@ -3,7 +3,6 @@
 // SPDX-License-Identifier: MIT
 
 use crap4rust::reporting::verdict::Verdict;
-use serde_json::to_string;
 
 #[test]
 fn as_str_clean_returns_clean() {
@@ -21,18 +20,6 @@ fn as_str_crappy_returns_crappy() {
 
     // Assert
     assert_eq!(result, "crappy");
-}
-
-#[test]
-fn as_str_serializes_to_json_as_pascal_case_variant_name() {
-    // Arrange
-    let verdict = Verdict::Warn;
-
-    // Act
-    let json = to_string(&verdict).expect("serialize verdict");
-
-    // Assert
-    assert_eq!(json, "\"Warn\"");
 }
 
 #[test]
