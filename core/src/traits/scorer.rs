@@ -2,6 +2,8 @@
 // Licensed under the MIT License
 // SPDX-License-Identifier: MIT
 
+use alloc::vec::Vec;
+
 use crate::analysis::source_function::SourceFunction;
 use crate::coverage_io::coverage_index::CoverageIndex;
 use crate::invocation::config::Config;

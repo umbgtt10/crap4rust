@@ -2,10 +2,14 @@
 // Licensed under the MIT License
 // SPDX-License-Identifier: MIT
 
-use anyhow::{Context, Result};
+use alloc::format;
+use alloc::string::{String, ToString};
+use alloc::vec::Vec;
+
 use syn::File;
 use syn::parse_file;
 
+use crate::analysis::discovery_failure::DiscoveryFailure;
 use crate::analysis::item_visitor::ItemVisitor;
 use crate::analysis::source_function::SourceFunction;
 use crate::analysis::source_path::SourcePath;
@@ -58,7 +62,10 @@ impl<'a> FileWalker<'a> {
             && (include_test_targets || !relative_file.starts_with("tests/"))
     }
 
-    pub fn process_source_root(&self, source_root: &SourcePath) -> Result<Vec<SourceFunction>> {
+    pub fn process_source_root(
+        &self,
+        source_root: &SourcePath,
+    ) -> Result<Vec<SourceFunction>, DiscoveryFailure> {
         let listed_files = self.source_tree.rust_files(source_root)?;
         let parsed_files = self.collect_parsed_files(&listed_files)?;
         let test_modules = TestModuleRegistry::build(&parsed_files, &listed_files, self.path_keys);
@@ -80,15 +87,20 @@ impl<'a> FileWalker<'a> {
             .replace('\\', "/")
     }
 
-    fn collect_parsed_files(&self, listed_files: &[SourcePath]) -> Result<Vec<ParsedFile>> {
+    fn collect_parsed_files(
+        &self,
+        listed_files: &[SourcePath],
+    ) -> Result<Vec<ParsedFile>, DiscoveryFailure> {
         let mut parsed_files = Vec::new();
         for file_path in listed_files {
             if !self.is_selected(file_path) {
                 continue;
             }
             let source = self.source_tree.read_source(file_path)?;
-            let syntax = parse_file(&source)
-                .with_context(|| format!("failed to parse source file {file_path}"))?;
+            let syntax = parse_file(&source).map_err(|cause| DiscoveryFailure::Parse {
+                path: file_path.clone(),
+                cause,
+            })?;
             parsed_files.push((file_path.clone(), syntax));
         }
         Ok(parsed_files)

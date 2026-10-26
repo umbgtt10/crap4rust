@@ -2,7 +2,9 @@
 // Licensed under the MIT License
 // SPDX-License-Identifier: MIT
 
-use std::iter;
+use alloc::string::{String, ToString};
+use alloc::vec::Vec;
+use core::iter;
 
 use syn::spanned::Spanned;
 use syn::{File, Item, ItemEnum, ItemFn, ItemMod, ItemStruct};

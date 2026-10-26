@@ -84,6 +84,15 @@ changes how the library is packaged and much of its API.
   `Config` loses `output_format` and `with_output_format`.
   `FunctionReport`, `ProjectReport` and `Verdict` no longer derive `Serialize`:
   the JSON reporter keeps its own records, field for field.
+- The core library is `#![no_std]` and depends on `proc-macro2` and `syn`
+  only. anyhow leaves it: its functions fail with error types of their own,
+  whose messages and causes are the ones anyhow printed --
+  `invocation::run_failure::RunFailure` (`App::run`, `PackageResolver::resolve`,
+  `CargoPackageResolver`) and `analysis::discovery_failure::DiscoveryFailure`
+  (`FunctionDiscovery::discover`, `FileWalker::process_source_root`).
+  `CoverageIndex` keeps its records in a `BTreeMap`, so
+  `CoverageIndex::match_function_coverage` takes a `BTreeMap` where it took a
+  `HashMap`.
 
 ### Changed
 

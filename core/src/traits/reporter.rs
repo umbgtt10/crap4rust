@@ -2,6 +2,8 @@
 // Licensed under the MIT License
 // SPDX-License-Identifier: MIT
 
+use alloc::string::String;
+
 use crate::invocation::config::Config;
 use crate::reporting::project_report::ProjectReport;
 

@@ -2,7 +2,8 @@
 // Licensed under the MIT License
 // SPDX-License-Identifier: MIT
 
-use std::cmp::Ordering;
+use alloc::vec::Vec;
+use core::cmp::Ordering;
 
 use crate::analysis::source_function::SourceFunction;
 use crate::coverage_io::coverage_index::CoverageIndex;

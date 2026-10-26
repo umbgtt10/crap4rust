@@ -2,11 +2,12 @@
 // Licensed under the MIT License
 // SPDX-License-Identifier: MIT
 
-use anyhow::Result;
+use alloc::vec::Vec;
 
+use crate::analysis::discovery_failure::DiscoveryFailure;
 use crate::analysis::source_function::SourceFunction;
 use crate::invocation::package_context::PackageContext;
 
 pub trait FunctionDiscovery {
-    fn discover(&self, package: &PackageContext) -> Result<Vec<SourceFunction>>;
+    fn discover(&self, package: &PackageContext) -> Result<Vec<SourceFunction>, DiscoveryFailure>;
 }

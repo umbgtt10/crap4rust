@@ -2,13 +2,16 @@
 // Licensed under the MIT License
 // SPDX-License-Identifier: MIT
 
-use anyhow::{Context, Result, bail};
+use alloc::string::String;
+use alloc::vec;
+use alloc::vec::Vec;
 
 use crate::analysis::source_path::SourcePath;
 use crate::analysis::source_root_collector::SourceRootCollector;
 use crate::invocation::config::Config;
 use crate::invocation::package_context::PackageContext;
 use crate::invocation::package_description::PackageDescription;
+use crate::invocation::run_failure::RunFailure;
 use crate::invocation::workspace_description::WorkspaceDescription;
 use crate::traits::package_resolver::PackageResolver;
 use crate::traits::workspace_reader::WorkspaceReader;
@@ -31,11 +34,11 @@ impl<'a> CargoPackageResolver<'a> {
         workspace_root: &SourcePath,
         include_test_targets: bool,
         exclude_paths: Vec<String>,
-    ) -> Result<PackageContext> {
+    ) -> Result<PackageContext, RunFailure> {
         let manifest_dir = package
             .manifest_path
             .parent()
-            .context("package manifest has no parent directory")?;
+            .ok_or(RunFailure::NoParentDirectory)?;
 
         let mut collector = SourceRootCollector::new(include_test_targets, &manifest_dir);
         collector.collect(&package.targets);
@@ -54,7 +57,7 @@ impl<'a> CargoPackageResolver<'a> {
     fn select_packages<'w>(
         workspace: &'w WorkspaceDescription,
         requested: &[String],
-    ) -> Result<Vec<&'w PackageDescription>> {
+    ) -> Result<Vec<&'w PackageDescription>, RunFailure> {
         if !requested.is_empty() {
             let mut selected = Vec::new();
             for package_name in requested {
@@ -62,9 +65,7 @@ impl<'a> CargoPackageResolver<'a> {
                     .packages
                     .iter()
                     .find(|package| &package.name == package_name)
-                    .with_context(|| {
-                        format!("package {package_name} was not found in the manifest")
-                    })?;
+                    .ok_or_else(|| RunFailure::PackageNotFound(package_name.clone()))?;
                 selected.push(package);
             }
             return Ok(selected);
@@ -82,7 +83,7 @@ impl<'a> CargoPackageResolver<'a> {
 
         let selected = workspace.packages.iter().collect::<Vec<_>>();
         if selected.is_empty() {
-            bail!("manifest contains no workspace member packages");
+            return Err(RunFailure::NoWorkspaceMembers);
         }
 
         Ok(selected)
@@ -90,7 +91,7 @@ impl<'a> CargoPackageResolver<'a> {
 }
 
 impl PackageResolver for CargoPackageResolver<'_> {
-    fn resolve(&self, config: &Config) -> Result<Vec<PackageContext>> {
+    fn resolve(&self, config: &Config) -> Result<Vec<PackageContext>, RunFailure> {
         let workspace = self.workspace_reader.describe()?;
         let packages = Self::select_packages(&workspace, config.packages())?;
 

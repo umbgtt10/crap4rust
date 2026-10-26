@@ -2,6 +2,8 @@
 // Licensed under the MIT License
 // SPDX-License-Identifier: MIT
 
+use alloc::vec::Vec;
+
 use crate::coverage_io::export_chunk::ExportChunk;
 
 #[derive(Debug, Clone, Default, PartialEq, Eq)]

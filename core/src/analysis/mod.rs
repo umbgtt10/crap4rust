@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 pub mod complexity;
+pub mod discovery_failure;
 pub mod file_walker;
 pub mod impl_collector;
 pub mod item_visitor;

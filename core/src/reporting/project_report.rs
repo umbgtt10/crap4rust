@@ -2,6 +2,9 @@
 // Licensed under the MIT License
 // SPDX-License-Identifier: MIT
 
+use alloc::string::String;
+use alloc::vec::Vec;
+
 use crate::invocation::config::Config;
 use crate::reporting::function_report::FunctionReport;
 use crate::reporting::verdict::Verdict;

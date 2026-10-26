@@ -2,17 +2,17 @@
 // Licensed under the MIT License
 // SPDX-License-Identifier: MIT
 
-use anyhow::Result;
 use crap4rust::invocation::cargo_package_resolver::CargoPackageResolver;
 use crap4rust::invocation::config::Config;
 use crap4rust::invocation::package_context::PackageContext;
+use crap4rust::invocation::run_failure::RunFailure;
 use crap4rust::traits::package_resolver::PackageResolver;
 use crap4rust_cli::system::cargo_workspace_reader::CargoWorkspaceReader;
 use std::fs;
 use std::path::PathBuf;
 use tempfile::TempDir;
 
-fn resolve(manifest_path: PathBuf, config: &Config) -> Result<Vec<PackageContext>> {
+fn resolve(manifest_path: PathBuf, config: &Config) -> Result<Vec<PackageContext>, RunFailure> {
     let reader = CargoWorkspaceReader::new(Some(manifest_path));
     CargoPackageResolver::new(&reader).resolve(config)
 }

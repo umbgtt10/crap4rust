@@ -2,6 +2,9 @@
 // Licensed under the MIT License
 // SPDX-License-Identifier: MIT
 
+use alloc::string::{String, ToString};
+use alloc::vec::Vec;
+
 use proc_macro2::Span;
 use syn::spanned::Spanned;
 use syn::{Attribute, ImplItem, ItemImpl, Path as SynPath, Type};

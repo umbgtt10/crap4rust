@@ -81,7 +81,7 @@ the file-system methods or `extern crate std`.
 | S4 | the `WorkspaceReader` port and core's workspace records; `CargoWorkspaceReader` in cli || done |
 | S5 | the `CoverageSource` port: the region arithmetic stays in core, cargo llvm-cov, the coverage file and its JSON go to cli; `Config`'s cargo-facing options become cli's `CargoConfig` || done |
 | S6 | the report as a string: `HumanReporter` in core, `JsonReporter` in cli; printing and the exit code go to cli; clap and serde leave core || done |
-| S7 | `#![no_std]`, typed errors; anyhow leaves core | |
+| S7 | `#![no_std]`, typed errors; anyhow leaves core || done |
 | S8 | the technology-free gate, first in stage 2 | |
 | S9 | `.cargo/mutants.toml` scopes mutation testing to core | |
 | S10 | documentation; this record moves to `docs/history/` | |

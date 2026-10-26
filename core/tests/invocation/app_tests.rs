@@ -2,7 +2,7 @@
 // Licensed under the MIT License
 // SPDX-License-Identifier: MIT
 
-use anyhow::{Result, bail};
+use crap4rust::analysis::discovery_failure::DiscoveryFailure;
 use crap4rust::analysis::source_function::SourceFunction;
 use crap4rust::analysis::source_path::SourcePath;
 use crap4rust::coverage_io::coverage_failure::CoverageFailure;
@@ -10,6 +10,7 @@ use crap4rust::coverage_io::coverage_record::CoverageRecord;
 use crap4rust::invocation::app::App;
 use crap4rust::invocation::config::Config;
 use crap4rust::invocation::package_context::PackageContext;
+use crap4rust::invocation::run_failure::RunFailure;
 use crap4rust::reporting::default_scorer::DefaultScorer;
 use crap4rust::reporting::project_report::ProjectReport;
 use crap4rust::traits::coverage_provider::CoverageProvider;
@@ -20,8 +21,8 @@ use crap4rust::traits::reporter::Reporter;
 struct FailingPackageResolver;
 
 impl PackageResolver for FailingPackageResolver {
-    fn resolve(&self, _config: &Config) -> Result<Vec<PackageContext>> {
-        bail!("manifest not found")
+    fn resolve(&self, _config: &Config) -> Result<Vec<PackageContext>, RunFailure> {
+        Err(RunFailure::PackageNotFound(String::from("probe")))
     }
 }
 
@@ -43,7 +44,7 @@ struct FakeFunctionDiscovery {
 }
 
 impl FunctionDiscovery for FakeFunctionDiscovery {
-    fn discover(&self, _package: &PackageContext) -> Result<Vec<SourceFunction>> {
+    fn discover(&self, _package: &PackageContext) -> Result<Vec<SourceFunction>, DiscoveryFailure> {
         Ok(self.functions.clone())
     }
 }
@@ -53,7 +54,7 @@ struct FakePackageResolver {
 }
 
 impl PackageResolver for FakePackageResolver {
-    fn resolve(&self, _config: &Config) -> Result<Vec<PackageContext>> {
+    fn resolve(&self, _config: &Config) -> Result<Vec<PackageContext>, RunFailure> {
         Ok(self.packages.clone())
     }
 }
@@ -202,7 +203,7 @@ fn run_package_resolver_failure_propagates_error() {
         result
             .unwrap_err()
             .to_string()
-            .contains("manifest not found")
+            .contains("package probe was not found in the manifest")
     );
 }
 

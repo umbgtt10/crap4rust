@@ -2,8 +2,9 @@
 // Licensed under the MIT License
 // SPDX-License-Identifier: MIT
 
-use anyhow::Result;
+use alloc::vec::Vec;
 
+use crate::analysis::discovery_failure::DiscoveryFailure;
 use crate::analysis::file_walker::FileWalker;
 use crate::analysis::source_function::SourceFunction;
 use crate::invocation::package_context::PackageContext;
@@ -27,7 +28,7 @@ impl<'a> SourceFunctionDiscovery<'a> {
 }
 
 impl FunctionDiscovery for SourceFunctionDiscovery<'_> {
-    fn discover(&self, package: &PackageContext) -> Result<Vec<SourceFunction>> {
+    fn discover(&self, package: &PackageContext) -> Result<Vec<SourceFunction>, DiscoveryFailure> {
         let walker = FileWalker::new(package, self.source_tree, self.path_keys);
         let mut functions = Vec::new();
         for source_root in &package.source_roots {

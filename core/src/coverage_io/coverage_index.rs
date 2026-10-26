@@ -2,18 +2,20 @@
 // Licensed under the MIT License
 // SPDX-License-Identifier: MIT
 
-use std::collections::HashMap;
+use alloc::collections::BTreeMap;
+use alloc::string::{String, ToString};
+use alloc::vec::Vec;
 
 use crate::analysis::source_function::SourceFunction;
 use crate::coverage_io::coverage_record::CoverageRecord;
 
 pub struct CoverageIndex {
-    inner: HashMap<(String, usize), CoverageRecord>,
+    inner: BTreeMap<(String, usize), CoverageRecord>,
 }
 
 impl CoverageIndex {
     pub fn from_records(records: Vec<CoverageRecord>) -> Self {
-        let mut inner: HashMap<(String, usize), CoverageRecord> = HashMap::new();
+        let mut inner: BTreeMap<(String, usize), CoverageRecord> = BTreeMap::new();
         for record in records {
             let key = (record.path_key().to_string(), record.line());
             match inner.remove(&key) {
@@ -38,7 +40,7 @@ impl CoverageIndex {
 
     pub fn match_function_coverage(
         function: &SourceFunction,
-        coverage_index: &HashMap<(String, usize), CoverageRecord>,
+        coverage_index: &BTreeMap<(String, usize), CoverageRecord>,
     ) -> Option<CoverageRecord> {
         let matching: Vec<&CoverageRecord> = coverage_index
             .iter()

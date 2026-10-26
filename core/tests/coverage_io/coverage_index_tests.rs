@@ -5,7 +5,7 @@
 use crap4rust::analysis::source_function::SourceFunction;
 use crap4rust::coverage_io::coverage_index::CoverageIndex;
 use crap4rust::coverage_io::coverage_record::CoverageRecord;
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 #[test]
 fn from_records_aggregates_duplicate_entries() {
@@ -70,7 +70,7 @@ fn from_records_skips_zero_duplicate_when_nonzero_arrives_first() {
 #[test]
 fn match_function_coverage_aggregates_all_regions_within_span() {
     // Arrange
-    let mut index = HashMap::new();
+    let mut index = BTreeMap::new();
     index.insert(
         (String::from("src/lib.rs"), 12),
         CoverageRecord::new(String::from("src/lib.rs"), 12, 2, 4),
@@ -102,7 +102,7 @@ fn match_function_coverage_aggregates_all_regions_within_span() {
 #[test]
 fn match_function_coverage_exact_match_returns_record() {
     // Arrange
-    let mut index = HashMap::new();
+    let mut index = BTreeMap::new();
     index.insert(
         (String::from("src/lib.rs"), 10),
         CoverageRecord::new(String::from("src/lib.rs"), 10, 3, 5),
@@ -128,7 +128,7 @@ fn match_function_coverage_exact_match_returns_record() {
 #[test]
 fn match_function_coverage_fuzzy_match_within_span_returns_nearest() {
     // Arrange
-    let mut index = HashMap::new();
+    let mut index = BTreeMap::new();
     index.insert(
         (String::from("src/lib.rs"), 12),
         CoverageRecord::new(String::from("src/lib.rs"), 12, 7, 10),
@@ -154,7 +154,7 @@ fn match_function_coverage_fuzzy_match_within_span_returns_nearest() {
 #[test]
 fn match_function_coverage_no_match_returns_none() {
     // Arrange
-    let mut index = HashMap::new();
+    let mut index = BTreeMap::new();
     index.insert(
         (String::from("src/other.rs"), 10),
         CoverageRecord::new(String::from("src/other.rs"), 10, 1, 1),
