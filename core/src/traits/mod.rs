@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 pub mod coverage_provider;
+pub mod coverage_source;
 pub mod function_discovery;
 pub mod package_resolver;
 pub mod path_keys;

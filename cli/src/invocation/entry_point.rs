@@ -3,13 +3,12 @@
 // SPDX-License-Identifier: MIT
 
 use std::ffi::OsString;
-use std::path::Path;
 use std::process::ExitCode;
 
 use anyhow::Result;
 use clap::Parser;
 use crap4rust::analysis::source_function_discovery::SourceFunctionDiscovery;
-use crap4rust::coverage_io::llvm_cov_provider::LlvmCovProvider;
+use crap4rust::coverage_io::export_coverage_provider::ExportCoverageProvider;
 use crap4rust::invocation::app::App;
 use crap4rust::invocation::cargo_package_resolver::CargoPackageResolver;
 use crap4rust::reporting::default_scorer::DefaultScorer;
@@ -18,6 +17,7 @@ use crap4rust::reporting::stdout_reporter::StdoutReporter;
 use crate::invocation::args::Args;
 use crate::system::canonical_path_keys::CanonicalPathKeys;
 use crate::system::cargo_workspace_reader::CargoWorkspaceReader;
+use crate::system::llvm_cov_source::LlvmCovSource;
 use crate::system::walkdir_source_tree::WalkdirSourceTree;
 
 // Everything `main` used to do, moved somewhere a test can reach it.
@@ -57,14 +57,15 @@ impl EntryPoint {
         T: Into<OsString> + Clone,
     {
         let args = <Args as Parser>::parse_from(args);
-        let workspace_reader =
-            CargoWorkspaceReader::new(args.manifest_path().map(Path::to_path_buf));
+        let cargo_config = args.cargo_config();
+        let workspace_reader = CargoWorkspaceReader::new(cargo_config.manifest_path.clone());
         let source_tree = WalkdirSourceTree::new();
         let path_keys = CanonicalPathKeys::new();
+        let coverage_source = LlvmCovSource::new(cargo_config);
         App::new(
             Box::new(CargoPackageResolver::new(&workspace_reader)),
             Box::new(SourceFunctionDiscovery::new(&source_tree, &path_keys)),
-            Box::new(LlvmCovProvider::new(&path_keys)),
+            Box::new(ExportCoverageProvider::new(&coverage_source, &path_keys)),
             Box::new(DefaultScorer::new()),
             Box::new(StdoutReporter::new()),
             args.config(),

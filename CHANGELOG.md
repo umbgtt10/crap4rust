@@ -52,6 +52,24 @@ changes how the library is packaged and much of its API.
   `CargoPackageResolver::new(&dyn WorkspaceReader)`, and
   `SourceRootCollector` reads `TargetDescription`s where it read
   `cargo_metadata::Target`s.
+- Coverage comes through a fourth port, `traits::coverage_source::CoverageSource`
+  (`export`), as the core's export records, and fails with
+  `coverage_io::coverage_failure::CoverageFailure`, which says what its cause
+  says. `crap4rust_cli::system::llvm_cov_source::LlvmCovSource` reads the
+  `--coverage` file or has `cargo llvm-cov` generate one, and parses its JSON;
+  `coverage_io::llvm_cov_provider::LlvmCovProvider`, `llvm_cov_builder::LlvmCovBuilder`
+  and `llvm_cov_failure::LlvmCovFailure` move to `crap4rust_cli::system`
+  (`LlvmCovProvider` as `LlvmCovSource`). What `coverage_io::coverage::load_coverage_records`
+  computed from the export -- regions covered of the total per function, at
+  the line its first region starts -- is
+  `coverage_io::export_coverage_provider::ExportCoverageProvider`, the core's
+  `CoverageProvider`; `CoverageProvider::provide` no longer takes the `Config`.
+  `Export`, `ExportChunk` and `ExportFunction` no longer derive `Deserialize`
+  and now derive `Clone`, `Default`, `PartialEq` and `Eq`.
+- `Config` loses `coverage_path`, `manifest_path`, `features`, `all_features`
+  and `no_default_features`, with their getters and `with_` steps: they are
+  what reaches cargo, and `Args::cargo_config()` puts them in the record
+  `crap4rust_cli::invocation::cargo_config::CargoConfig`.
 
 ### Changed
 

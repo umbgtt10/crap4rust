@@ -4,8 +4,6 @@
 
 use crap4rust::invocation::config::Config;
 use crap4rust::reporting::output_format::OutputFormat;
-use std::path::Path;
-use std::path::PathBuf;
 
 fn test_config(strict: bool, project_threshold: f64) -> Config {
     Config::default()
@@ -64,30 +62,6 @@ fn fails_strict_with_zero_crappy_returns_false() {
 }
 
 #[test]
-fn with_all_features_keeps_the_flag() {
-    // Arrange
-    let config = Config::default();
-
-    // Act
-    let config = config.with_all_features(true);
-
-    // Assert
-    assert!(config.all_features());
-}
-
-#[test]
-fn with_coverage_path_keeps_the_path() {
-    // Arrange
-    let config = Config::default();
-
-    // Act
-    let config = config.with_coverage_path(Some(PathBuf::from("coverage.json")));
-
-    // Assert
-    assert_eq!(config.coverage_path(), Some(Path::new("coverage.json")));
-}
-
-#[test]
 fn with_exclude_paths_keeps_every_path() {
     // Arrange
     let config = Config::default();
@@ -100,18 +74,6 @@ fn with_exclude_paths_keeps_every_path() {
 }
 
 #[test]
-fn with_features_keeps_them() {
-    // Arrange
-    let config = Config::default();
-
-    // Act
-    let config = config.with_features(Some(String::from("demo-feature")));
-
-    // Assert
-    assert_eq!(config.features(), Some("demo-feature"));
-}
-
-#[test]
 fn with_include_test_targets_keeps_the_flag() {
     // Arrange
     let config = Config::default();
@@ -121,30 +83,6 @@ fn with_include_test_targets_keeps_the_flag() {
 
     // Assert
     assert!(config.include_test_targets());
-}
-
-#[test]
-fn with_manifest_path_keeps_the_path() {
-    // Arrange
-    let config = Config::default();
-
-    // Act
-    let config = config.with_manifest_path(Some(PathBuf::from("Cargo.toml")));
-
-    // Assert
-    assert_eq!(config.manifest_path(), Some(Path::new("Cargo.toml")));
-}
-
-#[test]
-fn with_no_default_features_keeps_the_flag() {
-    // Arrange
-    let config = Config::default();
-
-    // Act
-    let config = config.with_no_default_features(true);
-
-    // Assert
-    assert!(config.no_default_features());
 }
 
 #[test]

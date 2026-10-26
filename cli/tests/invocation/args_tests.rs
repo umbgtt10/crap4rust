@@ -4,6 +4,73 @@
 
 use crap4rust::reporting::output_format::OutputFormat;
 use crap4rust_cli::invocation::args::Args;
+use std::path::Path;
+
+#[test]
+fn cargo_config_keeps_the_all_features_flag() {
+    // Arrange
+    let args = Args::parse_from_args(["crap4rust", "--all-features"]);
+
+    // Act
+    let config = args.cargo_config();
+
+    // Assert
+    assert!(config.all_features);
+}
+
+#[test]
+fn cargo_config_keeps_the_coverage_path() {
+    // Arrange
+    let args = Args::parse_from_args(["crap4rust", "--coverage", "coverage.json"]);
+
+    // Act
+    let config = args.cargo_config();
+
+    // Assert
+    assert_eq!(
+        config.coverage_path.as_deref(),
+        Some(Path::new("coverage.json"))
+    );
+}
+
+#[test]
+fn cargo_config_keeps_the_features() {
+    // Arrange
+    let args = Args::parse_from_args(["crap4rust", "--features", "demo-feature"]);
+
+    // Act
+    let config = args.cargo_config();
+
+    // Assert
+    assert_eq!(config.features.as_deref(), Some("demo-feature"));
+}
+
+#[test]
+fn cargo_config_keeps_the_manifest_path() {
+    // Arrange
+    let args = Args::parse_from_args(["crap4rust", "--manifest-path", "Cargo.toml"]);
+
+    // Act
+    let config = args.cargo_config();
+
+    // Assert
+    assert_eq!(
+        config.manifest_path.as_deref(),
+        Some(Path::new("Cargo.toml"))
+    );
+}
+
+#[test]
+fn cargo_config_keeps_the_no_default_features_flag() {
+    // Arrange
+    let args = Args::parse_from_args(["crap4rust", "--no-default-features"]);
+
+    // Act
+    let config = args.cargo_config();
+
+    // Assert
+    assert!(config.no_default_features);
+}
 
 #[test]
 fn config_carries_the_selection_options() {

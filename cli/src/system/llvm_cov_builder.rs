@@ -7,9 +7,10 @@ use std::process::{Command, Stdio};
 
 use anyhow::{Context, Result, bail};
 
-use crate::coverage_io::llvm_cov_failure::LlvmCovFailure;
-use crate::invocation::config::Config;
-use crate::invocation::package_context::PackageContext;
+use crap4rust::invocation::package_context::PackageContext;
+
+use crate::invocation::cargo_config::CargoConfig;
+use crate::system::llvm_cov_failure::LlvmCovFailure;
 
 pub struct LlvmCovBuilder {
     command: Command,
@@ -33,19 +34,19 @@ impl LlvmCovBuilder {
         self
     }
 
-    pub fn apply_config(mut self, config: &Config) -> Self {
-        if let Some(manifest_path) = &config.manifest_path() {
+    pub fn apply_config(mut self, config: &CargoConfig) -> Self {
+        if let Some(manifest_path) = &config.manifest_path {
             self.command.arg("--manifest-path");
             self.command.arg(manifest_path);
         }
-        if let Some(features) = &config.features() {
+        if let Some(features) = &config.features {
             self.command.arg("--features");
             self.command.arg(features);
         }
-        if config.all_features() {
+        if config.all_features {
             self.command.arg("--all-features");
         }
-        if config.no_default_features() {
+        if config.no_default_features {
             self.command.arg("--no-default-features");
         }
         self

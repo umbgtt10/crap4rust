@@ -2,12 +2,10 @@
 // Licensed under the MIT License
 // SPDX-License-Identifier: MIT
 
-use anyhow::Result;
-
+use crate::coverage_io::coverage_failure::CoverageFailure;
 use crate::coverage_io::coverage_record::CoverageRecord;
-use crate::invocation::config::Config;
 use crate::invocation::package_context::PackageContext;
 
 pub trait CoverageProvider {
-    fn provide(&self, config: &Config, packages: &[PackageContext]) -> Result<Vec<CoverageRecord>>;
+    fn provide(&self, packages: &[PackageContext]) -> Result<Vec<CoverageRecord>, CoverageFailure>;
 }

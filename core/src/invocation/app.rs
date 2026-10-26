@@ -48,7 +48,7 @@ impl<'a> App<'a> {
 
     pub fn run(&self) -> Result<ExitCode> {
         let packages = self.resolver.resolve(&self.config)?;
-        let coverage_records = self.coverage_provider.provide(&self.config, &packages)?;
+        let coverage_records = self.coverage_provider.provide(&packages)?;
 
         let functions = self.discover_all_functions(&packages)?;
         if functions.is_empty() {

@@ -2,11 +2,9 @@
 // Licensed under the MIT License
 // SPDX-License-Identifier: MIT
 
-use serde::Deserialize;
-
 use crate::coverage_io::export_chunk::ExportChunk;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct Export {
     pub data: Vec<ExportChunk>,
 }

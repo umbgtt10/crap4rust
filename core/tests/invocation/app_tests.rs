@@ -5,6 +5,7 @@
 use anyhow::{Result, bail};
 use crap4rust::analysis::source_function::SourceFunction;
 use crap4rust::analysis::source_path::SourcePath;
+use crap4rust::coverage_io::coverage_failure::CoverageFailure;
 use crap4rust::coverage_io::coverage_record::CoverageRecord;
 use crap4rust::invocation::app::App;
 use crap4rust::invocation::config::Config;
@@ -32,9 +33,8 @@ struct FakeCoverageProvider {
 impl CoverageProvider for FakeCoverageProvider {
     fn provide(
         &self,
-        _config: &Config,
         _packages: &[PackageContext],
-    ) -> Result<Vec<CoverageRecord>> {
+    ) -> Result<Vec<CoverageRecord>, CoverageFailure> {
         Ok(self.records.clone())
     }
 }

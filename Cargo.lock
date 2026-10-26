@@ -122,6 +122,8 @@ dependencies = [
  "cargo_metadata",
  "clap",
  "crap4rust-core",
+ "serde",
+ "serde_json",
  "tempfile",
  "walkdir",
 ]
@@ -212,7 +214,6 @@ dependencies = [
  "serde",
  "serde_json",
  "syn",
- "tempfile",
 ]
 
 [[package]]

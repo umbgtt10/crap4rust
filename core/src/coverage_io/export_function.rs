@@ -2,9 +2,7 @@
 // Licensed under the MIT License
 // SPDX-License-Identifier: MIT
 
-use serde::Deserialize;
-
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct ExportFunction {
     pub filenames: Vec<String>,
     pub regions: Vec<Vec<u64>>,

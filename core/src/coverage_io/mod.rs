@@ -2,12 +2,10 @@
 // Licensed under the MIT License
 // SPDX-License-Identifier: MIT
 
-pub mod coverage;
+pub mod coverage_failure;
 pub mod coverage_index;
 pub mod coverage_record;
 pub mod export;
 pub mod export_chunk;
+pub mod export_coverage_provider;
 pub mod export_function;
-pub mod llvm_cov_builder;
-pub mod llvm_cov_failure;
-pub mod llvm_cov_provider;

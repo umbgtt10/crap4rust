@@ -10,6 +10,8 @@ use clap::Parser;
 use crap4rust::invocation::config::Config;
 use crap4rust::reporting::output_format::OutputFormat;
 
+use crate::invocation::cargo_config::CargoConfig;
+
 #[derive(Debug, Clone, Parser)]
 #[command(name = "crap4rust")]
 #[command(about = "Compute CRAP scores for Rust functions")]
@@ -57,14 +59,19 @@ impl Args {
         self.all_features
     }
 
+    pub fn cargo_config(&self) -> CargoConfig {
+        CargoConfig {
+            coverage_path: self.coverage.clone(),
+            manifest_path: self.manifest_path.clone(),
+            features: self.features.clone(),
+            all_features: self.all_features,
+            no_default_features: self.no_default_features,
+        }
+    }
+
     pub fn config(&self) -> Config {
         Config::default()
-            .with_coverage_path(self.coverage.clone())
-            .with_manifest_path(self.manifest_path.clone())
             .with_packages(self.package.clone())
-            .with_features(self.features.clone())
-            .with_all_features(self.all_features)
-            .with_no_default_features(self.no_default_features)
             .with_include_test_targets(self.include_test_targets)
             .with_exclude_paths(self.exclude_path.clone())
             .with_threshold(self.threshold)

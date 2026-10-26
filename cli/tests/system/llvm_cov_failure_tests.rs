@@ -2,7 +2,7 @@
 // Licensed under the MIT License
 // SPDX-License-Identifier: MIT
 
-use crap4rust::coverage_io::llvm_cov_failure::LlvmCovFailure;
+use crap4rust_cli::system::llvm_cov_failure::LlvmCovFailure;
 
 // What cargo actually prints when the subcommand is absent. The install is
 // missing, not cargo, so this arrives as a normal non-zero exit rather than a

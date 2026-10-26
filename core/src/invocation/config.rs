@@ -2,19 +2,11 @@
 // Licensed under the MIT License
 // SPDX-License-Identifier: MIT
 
-use std::path::Path;
-use std::path::PathBuf;
-
 use crate::reporting::output_format::OutputFormat;
 
 #[derive(Debug, Clone, Default)]
 pub struct Config {
-    coverage_path: Option<PathBuf>,
-    manifest_path: Option<PathBuf>,
     packages: Vec<String>,
-    features: Option<String>,
-    all_features: bool,
-    no_default_features: bool,
     include_test_targets: bool,
     exclude_paths: Vec<String>,
     threshold: f64,
@@ -26,14 +18,6 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn all_features(&self) -> bool {
-        self.all_features
-    }
-
-    pub fn coverage_path(&self) -> Option<&Path> {
-        self.coverage_path.as_deref()
-    }
-
     pub fn exclude_paths(&self) -> &[String] {
         &self.exclude_paths
     }
@@ -47,20 +31,8 @@ impl Config {
         }
     }
 
-    pub fn features(&self) -> Option<&str> {
-        self.features.as_deref()
-    }
-
     pub fn include_test_targets(&self) -> bool {
         self.include_test_targets
-    }
-
-    pub fn manifest_path(&self) -> Option<&Path> {
-        self.manifest_path.as_deref()
-    }
-
-    pub fn no_default_features(&self) -> bool {
-        self.no_default_features
     }
 
     pub fn output_format(&self) -> OutputFormat {
@@ -91,20 +63,6 @@ impl Config {
         self.warn_threshold
     }
 
-    pub fn with_all_features(self, all_features: bool) -> Self {
-        Self {
-            all_features,
-            ..self
-        }
-    }
-
-    pub fn with_coverage_path(self, coverage_path: Option<PathBuf>) -> Self {
-        Self {
-            coverage_path,
-            ..self
-        }
-    }
-
     pub fn with_exclude_paths(self, exclude_paths: Vec<String>) -> Self {
         Self {
             exclude_paths,
@@ -112,27 +70,9 @@ impl Config {
         }
     }
 
-    pub fn with_features(self, features: Option<String>) -> Self {
-        Self { features, ..self }
-    }
-
     pub fn with_include_test_targets(self, include_test_targets: bool) -> Self {
         Self {
             include_test_targets,
-            ..self
-        }
-    }
-
-    pub fn with_manifest_path(self, manifest_path: Option<PathBuf>) -> Self {
-        Self {
-            manifest_path,
-            ..self
-        }
-    }
-
-    pub fn with_no_default_features(self, no_default_features: bool) -> Self {
-        Self {
-            no_default_features,
             ..self
         }
     }

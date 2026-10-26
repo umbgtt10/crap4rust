@@ -3,20 +3,14 @@
 // SPDX-License-Identifier: MIT
 
 use crap4rust::analysis::source_path::SourcePath;
-use crap4rust::coverage_io::llvm_cov_builder::LlvmCovBuilder;
-use crap4rust::invocation::config::Config;
 use crap4rust::invocation::package_context::PackageContext;
-use crap4rust::reporting::output_format::OutputFormat;
+use crap4rust_cli::invocation::cargo_config::CargoConfig;
+use crap4rust_cli::system::llvm_cov_builder::LlvmCovBuilder;
 use std::path::{Path, PathBuf};
 use tempfile::TempDir;
 
-fn bare_config() -> Config {
-    Config::default()
-        .with_threshold(30.0)
-        .with_warn_threshold(20.0)
-        .with_project_threshold(5.0)
-        .with_strict(true)
-        .with_output_format(OutputFormat::Human)
+fn bare_config() -> CargoConfig {
+    CargoConfig::default()
 }
 
 fn builder() -> LlvmCovBuilder {
@@ -53,7 +47,10 @@ fn add_packages_forwards_each_package_by_name() {
 #[test]
 fn apply_config_with_a_manifest_path_forwards_it() {
     // Arrange
-    let config = bare_config().with_manifest_path(Some(PathBuf::from("core").join("Cargo.toml")));
+    let config = CargoConfig {
+        manifest_path: Some(PathBuf::from("core").join("Cargo.toml")),
+        ..bare_config()
+    };
 
     // Act
     let arguments = builder().apply_config(&config).arguments();
@@ -72,7 +69,10 @@ fn apply_config_with_a_manifest_path_forwards_it() {
 #[test]
 fn apply_config_with_all_features_forwards_the_flag() {
     // Arrange
-    let config = bare_config().with_all_features(true);
+    let config = CargoConfig {
+        all_features: true,
+        ..bare_config()
+    };
 
     // Act
     let arguments = builder().apply_config(&config).arguments();
@@ -84,11 +84,13 @@ fn apply_config_with_all_features_forwards_the_flag() {
 #[test]
 fn apply_config_with_every_option_set_forwards_them_in_declaration_order() {
     // Arrange
-    let config = bare_config()
-        .with_manifest_path(Some(PathBuf::from("Cargo.toml")))
-        .with_features(Some(String::from("demo-feature")))
-        .with_all_features(true)
-        .with_no_default_features(true);
+    let config = CargoConfig {
+        manifest_path: Some(PathBuf::from("Cargo.toml")),
+        features: Some(String::from("demo-feature")),
+        all_features: true,
+        no_default_features: true,
+        ..bare_config()
+    };
 
     // Act
     let arguments = builder().apply_config(&config).arguments();
@@ -110,7 +112,10 @@ fn apply_config_with_every_option_set_forwards_them_in_declaration_order() {
 #[test]
 fn apply_config_with_features_forwards_them() {
     // Arrange
-    let config = bare_config().with_features(Some(String::from("demo-feature")));
+    let config = CargoConfig {
+        features: Some(String::from("demo-feature")),
+        ..bare_config()
+    };
 
     // Act
     let arguments = builder().apply_config(&config).arguments();
@@ -122,7 +127,10 @@ fn apply_config_with_features_forwards_them() {
 #[test]
 fn apply_config_with_no_default_features_forwards_the_flag() {
     // Arrange
-    let config = bare_config().with_no_default_features(true);
+    let config = CargoConfig {
+        no_default_features: true,
+        ..bare_config()
+    };
 
     // Act
     let arguments = builder().apply_config(&config).arguments();
@@ -159,7 +167,10 @@ fn builder_new_constructs_without_panicking() {
 fn execute_against_a_manifest_that_does_not_exist_fails() {
     // Arrange
     let dir = TempDir::new().expect("temp dir");
-    let config = bare_config().with_manifest_path(Some(dir.path().join("Cargo.toml")));
+    let config = CargoConfig {
+        manifest_path: Some(dir.path().join("Cargo.toml")),
+        ..bare_config()
+    };
 
     // Act
     let outcome = LlvmCovBuilder::new(&dir.path().join("out.json"))
