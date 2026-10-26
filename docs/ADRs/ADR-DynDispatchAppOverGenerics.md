@@ -104,6 +104,20 @@ itself -- `Box<dyn Trait>` fields, no generic parameters -- stands. Where the
 text above says `with_deps`, read `App::new`; where it says `App::new(config)`
 wires the real implementations, read `EntryPoint::run_from_args`.
 
+## Amendment (2026-10-26)
+
+The workspace splits into a technology-free core and a cli crate
+([ADR-TechnologyFreeCore](ADR-TechnologyFreeCore.md)). `App` lives in
+`crap4rust-core` and takes a lifetime, `App<'a>`, so its parts may borrow the
+ports core declares for technology. Of the real implementations,
+`CargoPackageResolver`, `SourceFunctionDiscovery`, `ExportCoverageProvider`
+(which replaces `LlvmCovProvider`), `DefaultScorer` and `HumanReporter` (the
+human half of `StdoutReporter`) are core's; `JsonReporter` and the adapters
+they run on are cli's, and `EntryPoint::run_from_args` is in
+`cli/src/invocation/entry_point.rs`. `App::run` returns the rendered report and
+the exit code instead of printing. The decision -- `Box<dyn Trait>` fields, no
+generic parameters -- stands.
+
 ## Related
 
 - `grip`'s and `braintax`'s own `ADR-DynDispatchAppOverGenerics.md` — the

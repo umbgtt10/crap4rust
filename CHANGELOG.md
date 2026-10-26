@@ -11,8 +11,9 @@ exit codes are compared byte for byte against 0.8.2 -- with one exception: a
 `.rs` file whose path is not UTF-8 now fails the run, naming the file, where
 0.8.2 scored it under a lossy name. Such a file cannot be a `mod` (identifiers
 are UTF-8), only a `#[path]` target. The repository splits
-into a technology-free core and a cli crate (`docs/CORE_CLI_SPLIT.md`), which
-changes how the library is packaged and much of its API.
+into a technology-free core and a cli crate
+(`docs/history/[IMPLEMENTED] CORE_CLI_SPLIT.md`), which changes how the library
+is packaged and much of its API.
 
 ### Changed (packages)
 - `cargo-crap4rust` is now the command-line crate (`cli/`): the
@@ -134,6 +135,15 @@ changes how the library is packaged and much of its API.
   record in a file named after it.
 
 ### Added
+- Stage 2 gains a first gate, "Technology-free core": the core's manifest may
+  name only `proc-macro2` and `syn`, in any section; its crate root must carry
+  `#![no_std]` and `#![forbid(unsafe_code)]`; and no file under `core/src` or
+  `core/tests` may reach `std::{env,fs,io,net,os,process}`, the printing
+  macros, the file-system methods of `Path` or `extern crate std`. dry4rust
+  makes one run over both published crates' sources, and crap4rust,
+  twin4rust and iceberg4rust measure both.
+- `.cargo/mutants.toml` scopes cargo-mutants to `core/src`, each mutant
+  tested by core's own tests: 478 mutants.
 
 - `Config`, `FunctionReport`, `Verdict` and `OutputFormat` derive `Default` --
   `Verdict::Clean`, and `OutputFormat::Human`, the command line's default -- so

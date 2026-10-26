@@ -6,7 +6,7 @@ description = "The analysis behind cargo-crap4rust: CRAP scores for Rust functio
 license.workspace = true
 repository.workspace = true
 documentation = "https://docs.rs/crap4rust-core"
-readme = "../README.md"
+readme = "README.md"
 
 autotests = false
 

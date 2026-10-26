@@ -47,6 +47,9 @@ The shipped release already provides:
 - `App` built from five independently swappable traits
   (`PackageResolver`/`FunctionDiscovery`/`CoverageProvider`/`Scorer`/`Reporter`)
   rather than a fixed free-function pipeline
+- the analysis split into a technology-free, `no_std` core crate,
+  `crap4rust-core`, and the command-line crate, `cargo-crap4rust`, so mutation
+  testing builds and tests the core alone
 
 See [CHANGELOG.md](../CHANGELOG.md) for exactly which release each of these
 landed in, and [FORMULA.md](FORMULA.md)/[ARCHITECTURE.md](ARCHITECTURE.md)

@@ -49,11 +49,21 @@ just stage2
 ```
 
 Both must be green before a change is complete. Stage 1 is formatting, clippy
-and tests; stage 2 is `cargo xtask stage2`, which runs, in order:
-`cargo stern4rust` (house coding rules, every one of them, on every workspace
-member), `cargo shear` (every declared dependency used), `cargo dry4rust` (no duplication beyond `dry4rust-baseline.json`),
-`cargo crap4rust` (complexity against coverage), `cargo twin4rust` (every
-source file has a mirrored test file) and `cargo iceberg4rust` (file risk).
+and tests; stage 2 is `cargo xtask stage2`, which runs, in order: the xtask's
+own technology-free gate (the analysis crate depends on `proc-macro2` and `syn`
+only, is `no_std`, and its sources and tests reach no file system, process,
+environment or stdout), `cargo stern4rust` (house coding rules, every one of
+them, on every workspace member), `cargo shear` (every declared dependency
+used), `cargo dry4rust` (no duplication beyond `dry4rust-baseline.json`, one
+run over both published crates' sources), `cargo crap4rust` (complexity
+against coverage), `cargo twin4rust` (every source file has a mirrored test
+file) and `cargo iceberg4rust` (file risk).
+
+The workspace has four members: `core/`, the analysis, published as
+`crap4rust-core` (library `crap4rust`), technology-free and `no_std`; `cli/`,
+the command, published as `cargo-crap4rust`; `validation/`, the end-to-end
+tests that drive the built binary against the crates in `fixture/`; and
+`xtask/`, the gates. `.cargo/mutants.toml` scopes mutation testing to `core/`.
 
 Stage 1 is *not* cargo built-ins alone here, which is the one way this
 repository differs from its siblings: crap4rust is the coverage tool, so its

@@ -12,7 +12,7 @@
 #
 # A workspace member rather than an excluded crate, so `cargo test` at the root
 # still runs every one of them. The measuring gates -- CRAP, mirrored tests,
-# file risk -- are pointed at core/ and leave this alone.
+# file risk -- take core and cli by name and leave this alone.
 [package]
 name = "validation"
 version = "0.7.0"

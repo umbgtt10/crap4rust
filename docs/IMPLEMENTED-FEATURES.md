@@ -43,7 +43,8 @@ This document describes the feature set currently shipped by `cargo-crap4rust`.
   `SourceFunctionDiscovery`, `ImplCollector`, `FileWalker`); functions
   genuinely shared across multiple structs' files (`normalize_path`,
   `qualified_name`, `start_line`, `end_line`, `is_test_attrs`) deliberately
-  stay free functions
+  stay free functions (`normalize_path` has since become the cli crate's
+  `CanonicalPathKeys`; see the CHANGELOG's `[Unreleased]`)
 
 See [CHANGELOG.md](../CHANGELOG.md) for the full entry.
 
