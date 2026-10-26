@@ -6,7 +6,12 @@ use std::env::args;
 use std::path::Path;
 use std::path::PathBuf;
 use std::process::ExitCode;
+use xtask::boundary::boundary_rule::BoundaryRule;
+use xtask::boundary::crate_root_attributes::CrateRootAttributes;
+use xtask::boundary::disk_source_files::DiskSourceFiles;
+use xtask::boundary::package_dependencies::PackageDependencies;
 use xtask::crap::crap_report_parser::CrapReportParser;
+use xtask::gates::boundary_gate::BoundaryGate;
 use xtask::gates::crap_gate::CrapGate;
 use xtask::gates::dry_gate::DryGate;
 use xtask::gates::gate::Gate;
@@ -21,8 +26,9 @@ const CLI_PACKAGE: &str = "cargo-crap4rust";
 const CORE_PACKAGE: &str = "crap4rust-core";
 const VALIDATION_PACKAGE: &str = "validation";
 const XTASK_PACKAGE: &str = "xtask";
-const CRAP_THRESHOLD: &str = "15";
-const ICEBERG_THRESHOLD: &str = "15.3";
+const ALLOWED_CRATES: [&str; 2] = ["proc-macro2", "syn"];
+const CORE_DIRS: [[&str; 2]; 2] = [["core", "src"], ["core", "tests"]];
+const CORE_ROOT: [&str; 3] = ["core", "src", "lib.rs"];
 const DRY_EXCLUDES: [&[&str]; 5] = [
     &["xtask"],
     &["validation"],
@@ -30,6 +36,30 @@ const DRY_EXCLUDES: [&[&str]; 5] = [
     &["core", "tests"],
     &["cli", "tests"],
 ];
+const FORBIDDEN_MODULES: [&str; 6] = [
+    "std::env",
+    "std::fs",
+    "std::io",
+    "std::net",
+    "std::os",
+    "std::process",
+];
+const FORBIDDEN_MACROS: [&str; 5] = ["dbg", "eprint", "eprintln", "print", "println"];
+const REQUIRED_ATTRIBUTES: [&str; 2] = ["no_std", "forbid(unsafe_code)"];
+const FORBIDDEN_METHODS: [&str; 10] = [
+    "canonicalize",
+    "exists",
+    "is_dir",
+    "is_file",
+    "is_symlink",
+    "metadata",
+    "read_dir",
+    "read_link",
+    "symlink_metadata",
+    "try_exists",
+];
+const CRAP_THRESHOLD: &str = "15";
+const ICEBERG_THRESHOLD: &str = "15.3";
 const DRY_BASELINE: &str = "dry4rust-baseline.json";
 const DRY_MIN_NODES: &str = "25";
 
@@ -46,22 +76,49 @@ fn main() -> ExitCode {
 }
 
 fn run_stage2() -> ExitCode {
-    let workspace_manifest = manifest_path(&["Cargo.toml"]);
+    let manifest_path = workspace_manifest_path();
     let runner = SystemCommandRunner::new();
     let parser = CrapReportParser::new();
 
     // The two published crates. The measuring gates take them by name, which
     // keeps them off validation -- its tests drive the built binary end to end
-    // and have no source file to mirror -- and off xtask.
+    // and have no source file to mirror -- and off xtask, as before the split.
     let measured = vec![String::from(CORE_PACKAGE), String::from(CLI_PACKAGE)];
 
-    // The house rules reach every member, which is what a bare hand-run of
-    // `cargo stern4rust` at the root scans too: xtask, so the crate that runs
-    // the gates is held to them, and validation, whose tests are each named for
-    // the apparatus in its src/ they are built on.
+    // First: core stays free of technology -- only its allowed crates in its
+    // manifest, `no_std` and `forbid(unsafe_code)` on its root, and no file
+    // system, process, environment or stdout in its tests -- so mutation testing
+    // it needs nothing but its own tests. A breach is fixed by moving code into
+    // cli, which changes what every later gate, stern4rust's included, measures;
+    // and it costs a second.
+    let root = workspace_root();
+    let sources = DiskSourceFiles::new();
+    let dependencies = PackageDependencies::new();
+    let attributes = CrateRootAttributes::new();
+    let boundary = BoundaryGate::new(
+        &runner,
+        &sources,
+        &dependencies,
+        &attributes,
+        manifest_path.clone(),
+        BoundaryRule {
+            package: String::from(CORE_PACKAGE),
+            source_dirs: CORE_DIRS.iter().map(|dir| below(&root, dir)).collect(),
+            allowed_crates: ALLOWED_CRATES.map(String::from).to_vec(),
+            crate_root: below(&root, &CORE_ROOT),
+            required_attributes: REQUIRED_ATTRIBUTES.map(String::from).to_vec(),
+            forbidden_modules: FORBIDDEN_MODULES.map(String::from).to_vec(),
+            forbidden_macros: FORBIDDEN_MACROS.map(String::from).to_vec(),
+            forbidden_methods: FORBIDDEN_METHODS.map(String::from).to_vec(),
+        },
+    );
+
+    // Second: its corrections are renames, file moves and directory splits, so
+    // a layout it is about to reject is one the later gates would measure for
+    // nothing. Every member, the crate that runs the gates included.
     let stern = SternGate::new(
         &runner,
-        workspace_manifest.clone(),
+        manifest_path.clone(),
         vec![
             String::from(CORE_PACKAGE),
             String::from(CLI_PACKAGE),
@@ -70,28 +127,23 @@ fn run_stage2() -> ExitCode {
         ],
     );
 
-    // Second: every declared dependency used, in the section that uses it. Its
+    // Third: every declared dependency used, in the section that uses it. Its
     // corrections edit manifests only, so they move nothing the gates behind it
     // measure, and it costs a second.
-    let shear = ShearGate::new(&runner, workspace_manifest.clone());
+    let shear = ShearGate::new(&runner, manifest_path.clone());
 
-    // Third, for the same reason stern4rust is first: removing a duplicate
+    // Fourth, for the same reason stern4rust runs early: removing a duplicate
     // moves code between files, which changes what the three behind it measure.
-    // One run over the workspace with the trees it must not judge excluded --
-    // tests repeat their arrangement by design, and xtask, validation and the
-    // fixtures are not published, so what is left is both published crates'
-    // sources, where a copy from one into the other is seen -- against a baseline of what was already
-    // duplicated when the gate arrived, so it fails on what a change adds
-    // rather than on what it inherited. The floor is the one the family gates
-    // at, and the one the baseline was recorded at: a baseline matches only at
-    // its own floor.
-    let root = workspace_root();
+    // One run over both published crates' sources, so a copy from one into the
+    // other is seen -- tests repeat their arrangement by design, and xtask,
+    // validation and the fixtures are not published -- with zero ceilings
+    // against a baseline of what was already duplicated when the gate arrived.
     let dry = DryGate::new(
         &runner,
         root.to_string_lossy().into_owned(),
         DRY_EXCLUDES
             .iter()
-            .map(|exclude| below(root, exclude).to_string_lossy().into_owned())
+            .map(|exclude| below(&root, exclude).to_string_lossy().into_owned())
             .collect(),
         root.join(DRY_BASELINE).to_string_lossy().into_owned(),
         String::from(DRY_MIN_NODES),
@@ -100,19 +152,19 @@ fn run_stage2() -> ExitCode {
     let crap = CrapGate::new(
         &runner,
         &parser,
-        workspace_manifest.clone(),
+        manifest_path.clone(),
         measured.clone(),
         String::from(CRAP_THRESHOLD),
     );
-    let twin = TwinGate::new(&runner, workspace_manifest.clone(), measured.clone());
+    let twin = TwinGate::new(&runner, manifest_path.clone(), measured.clone());
     let iceberg = IcebergGate::new(
         &runner,
-        workspace_manifest,
+        manifest_path,
         measured,
         String::from(ICEBERG_THRESHOLD),
     );
 
-    let gates: Vec<&dyn Gate> = vec![&stern, &shear, &dry, &crap, &twin, &iceberg];
+    let gates: Vec<&dyn Gate> = vec![&boundary, &stern, &shear, &dry, &crap, &twin, &iceberg];
 
     match Stage2::new(gates).run() {
         Ok(()) => {
@@ -126,6 +178,13 @@ fn run_stage2() -> ExitCode {
     }
 }
 
+fn workspace_manifest_path() -> String {
+    workspace_root()
+        .join("Cargo.toml")
+        .to_string_lossy()
+        .into_owned()
+}
+
 // Joined a component at a time, so the path carries the platform's separator
 // throughout -- dry4rust matches its exclusions as text.
 fn below(root: &Path, components: &[&str]) -> PathBuf {
@@ -134,18 +193,9 @@ fn below(root: &Path, components: &[&str]) -> PathBuf {
         .fold(root.to_path_buf(), |path, component| path.join(component))
 }
 
-fn workspace_root() -> &'static Path {
+fn workspace_root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
         .parent()
         .expect("xtask lives one directory below the workspace root")
-}
-
-fn manifest_path(segments: &[&str]) -> String {
-    segments
-        .iter()
-        .fold(workspace_root().to_path_buf(), |path, segment| {
-            path.join(segment)
-        })
-        .to_string_lossy()
-        .into_owned()
+        .to_path_buf()
 }
