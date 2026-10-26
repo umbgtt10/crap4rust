@@ -1,0 +1,10 @@
+# What cargo-mutants mutates here, for a hand run and for sentinel4rust alike:
+# crap4rust-core, the technology-free analysis -- complexity, the coverage
+# arithmetic, the CRAP formula, scoring and the human report -- against core's
+# own tests only. cli (cargo metadata, cargo llvm-cov, the file system, JSON,
+# clap, stdout), validation (the end-to-end runs) and xtask (the gates) are not
+# mutated. From the workspace root every package is selected and this glob
+# keeps core's files; the baseline then tests only the mutated package, and each
+# mutant runs that package's tests, which test_workspace says outright.
+examine_globs = ["core/src/**/*.rs"]
+test_workspace = false

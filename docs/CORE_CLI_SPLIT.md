@@ -83,7 +83,7 @@ the file-system methods or `extern crate std`.
 | S6 | the report as a string: `HumanReporter` in core, `JsonReporter` in cli; printing and the exit code go to cli; clap and serde leave core || done |
 | S7 | `#![no_std]`, typed errors; anyhow leaves core || done |
 | S8 | the technology-free gate, first in stage 2 || done |
-| S9 | `.cargo/mutants.toml` scopes mutation testing to core | |
+| S9 | `.cargo/mutants.toml` scopes mutation testing to core || done |
 | S10 | documentation; this record moves to `docs/history/` | |
 
 ## Tests
