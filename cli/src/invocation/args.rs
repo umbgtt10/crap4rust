@@ -7,8 +7,8 @@ use std::path::Path;
 use std::path::PathBuf;
 
 use clap::Parser;
-
-use crate::reporting::output_format::OutputFormat;
+use crap4rust::invocation::config::Config;
+use crap4rust::reporting::output_format::OutputFormat;
 
 #[derive(Debug, Clone, Parser)]
 #[command(name = "crap4rust")]
@@ -55,6 +55,24 @@ impl Args {
 
     pub fn all_features(&self) -> bool {
         self.all_features
+    }
+
+    pub fn config(&self) -> Config {
+        Config::default()
+            .with_coverage_path(self.coverage.clone())
+            .with_manifest_path(self.manifest_path.clone())
+            .with_packages(self.package.clone())
+            .with_features(self.features.clone())
+            .with_all_features(self.all_features)
+            .with_no_default_features(self.no_default_features)
+            .with_include_test_targets(self.include_test_targets)
+            .with_exclude_paths(self.exclude_path.clone())
+            .with_threshold(self.threshold)
+            .with_warn_threshold(self.warn_threshold)
+            .with_project_threshold(self.project_threshold)
+            .with_strict(self.strict)
+            .with_warn_only(self.warn_only)
+            .with_output_format(self.output_format)
     }
 
     pub fn coverage(&self) -> Option<&Path> {

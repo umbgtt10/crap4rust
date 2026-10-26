@@ -5,7 +5,6 @@
 use crap4rust::analysis::source_function::SourceFunction;
 use crap4rust::coverage_io::coverage_index::CoverageIndex;
 use crap4rust::coverage_io::coverage_record::CoverageRecord;
-use crap4rust::invocation::args::Args;
 use crap4rust::invocation::config::Config;
 use crap4rust::reporting::default_scorer::DefaultScorer;
 use crap4rust::reporting::verdict::Verdict;
@@ -39,19 +38,11 @@ fn test_config(
     strict: bool,
     project_threshold: f64,
 ) -> Config {
-    let mut args = vec![
-        "crap4rust".to_string(),
-        "--threshold".to_string(),
-        threshold.to_string(),
-        "--warn-threshold".to_string(),
-        warn_threshold.to_string(),
-        "--project-threshold".to_string(),
-        project_threshold.to_string(),
-    ];
-    if strict {
-        args.push("--strict".to_string());
-    }
-    Config::from_args(Args::parse_from_args(args))
+    Config::default()
+        .with_threshold(threshold)
+        .with_warn_threshold(warn_threshold)
+        .with_project_threshold(project_threshold)
+        .with_strict(strict)
 }
 
 #[test]

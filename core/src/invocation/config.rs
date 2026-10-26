@@ -5,7 +5,6 @@
 use std::path::Path;
 use std::path::PathBuf;
 
-use crate::invocation::args::Args;
 use crate::reporting::output_format::OutputFormat;
 
 #[derive(Debug, Clone, Default)]
@@ -27,26 +26,6 @@ pub struct Config {
 }
 
 impl Config {
-    #[must_use]
-    pub fn from_args(args: Args) -> Self {
-        Self {
-            coverage_path: args.coverage().map(Path::to_path_buf),
-            manifest_path: args.manifest_path().map(Path::to_path_buf),
-            packages: args.package().to_vec(),
-            features: args.features().map(str::to_string),
-            all_features: args.all_features(),
-            no_default_features: args.no_default_features(),
-            include_test_targets: args.include_test_targets(),
-            exclude_paths: args.exclude_path().to_vec(),
-            threshold: args.threshold(),
-            warn_threshold: args.warn_threshold(),
-            project_threshold: args.project_threshold(),
-            strict: args.strict(),
-            warn_only: args.warn_only(),
-            output_format: args.output_format(),
-        }
-    }
-
     pub fn all_features(&self) -> bool {
         self.all_features
     }

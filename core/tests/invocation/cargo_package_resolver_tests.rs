@@ -25,7 +25,7 @@ fn solo_package_manifest(temp_dir: &TempDir) -> PathBuf {
 
 fn test_config() -> Config {
     Config::default()
-        .with_manifest_path(Some(PathBuf::from("Cargo.toml")))
+        .with_manifest_path(Some(PathBuf::from("..").join("cli").join("Cargo.toml")))
         .with_packages(vec![String::from("cargo-crap4rust")])
         .with_threshold(30.0)
         .with_warn_threshold(20.0)
@@ -72,6 +72,7 @@ fn resolve_at_a_workspace_root_without_packages_selects_every_member() {
         names,
         vec![
             String::from("cargo-crap4rust"),
+            String::from("crap4rust-core"),
             String::from("validation"),
             String::from("xtask"),
         ]

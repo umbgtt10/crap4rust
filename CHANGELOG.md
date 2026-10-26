@@ -6,6 +6,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+The tool's behaviour and command line are unchanged: its stdout, stderr and
+exit codes are compared byte for byte against 0.8.2. The repository splits
+into a technology-free core and a cli crate (`docs/CORE_CLI_SPLIT.md`), which
+changes how the library is packaged and much of its API.
+
+### Changed (packages)
+- `cargo-crap4rust` is now the command-line crate (`cli/`): the
+  `cargo-crap4rust` binary and a library, `crap4rust_cli`. The analysis library
+  `crap4rust` is published by a new package, `crap4rust-core` (`core/`); a
+  dependent replaces `cargo-crap4rust` with `crap4rust-core`, and paths under
+  `crap4rust::` stay for what remains there. Both crates share the workspace's
+  version.
+- `invocation::args::Args` moves to `crap4rust_cli::invocation::args::Args` and
+  `invocation::entry_point::EntryPoint` to
+  `crap4rust_cli::invocation::entry_point::EntryPoint`, unchanged.
+- `Config::from_args(Args)` is gone: `Args::config()` builds the `Config`.
+
 ### Changed
 
 - `invocation::cli` is now `invocation::args`, named after the `Args` it

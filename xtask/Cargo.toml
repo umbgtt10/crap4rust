@@ -23,3 +23,6 @@ path = "tests/all_tests.rs"
 [dependencies]
 serde = { workspace = true }
 serde_json = { workspace = true }
+
+[lints]
+workspace = true

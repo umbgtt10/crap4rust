@@ -7,15 +7,14 @@ use std::process::ExitCode;
 
 use anyhow::Result;
 use clap::Parser;
+use crap4rust::analysis::source_function_discovery::SourceFunctionDiscovery;
+use crap4rust::coverage_io::llvm_cov_provider::LlvmCovProvider;
+use crap4rust::invocation::app::App;
+use crap4rust::invocation::cargo_package_resolver::CargoPackageResolver;
+use crap4rust::reporting::default_scorer::DefaultScorer;
+use crap4rust::reporting::stdout_reporter::StdoutReporter;
 
-use crate::analysis::source_function_discovery::SourceFunctionDiscovery;
-use crate::coverage_io::llvm_cov_provider::LlvmCovProvider;
-use crate::invocation::app::App;
 use crate::invocation::args::Args;
-use crate::invocation::cargo_package_resolver::CargoPackageResolver;
-use crate::invocation::config::Config;
-use crate::reporting::default_scorer::DefaultScorer;
-use crate::reporting::stdout_reporter::StdoutReporter;
 
 // Everything `main` used to do, moved somewhere a test can reach it.
 //
@@ -60,7 +59,7 @@ impl EntryPoint {
             Box::new(LlvmCovProvider::new()),
             Box::new(DefaultScorer::new()),
             Box::new(StdoutReporter::new()),
-            Config::from_args(args),
+            args.config(),
         )
         .run()
     }

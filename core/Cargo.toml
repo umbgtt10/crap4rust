@@ -1,11 +1,11 @@
 [package]
-name = "cargo-crap4rust"
-version = "0.8.2"
-edition = "2024"
-description = "Cargo subcommand for computing CRAP scores across Rust crates"
-license = "MIT"
-repository = "https://github.com/umbgtt10/crap4rust"
-documentation = "https://docs.rs/cargo-crap4rust"
+name = "crap4rust-core"
+version.workspace = true
+edition.workspace = true
+description = "The analysis behind cargo-crap4rust: CRAP scores for Rust functions from their cognitive complexity and test coverage"
+license.workspace = true
+repository.workspace = true
+documentation = "https://docs.rs/crap4rust-core"
 readme = "../README.md"
 
 autotests = false
@@ -16,6 +16,9 @@ name = "crap4rust"
 [[test]]
 name = "all_tests"
 path = "tests/all_tests.rs"
+
+[lints]
+workspace = true
 
 [dependencies]
 anyhow = { workspace = true }

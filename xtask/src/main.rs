@@ -17,16 +17,18 @@ use xtask::gates::stern_gate::SternGate;
 use xtask::gates::twin_gate::TwinGate;
 use xtask::process::system_command_runner::SystemCommandRunner;
 
-const PACKAGE: &str = "cargo-crap4rust";
+const CLI_PACKAGE: &str = "cargo-crap4rust";
+const CORE_PACKAGE: &str = "crap4rust-core";
 const VALIDATION_PACKAGE: &str = "validation";
 const XTASK_PACKAGE: &str = "xtask";
 const CRAP_THRESHOLD: &str = "15";
 const ICEBERG_THRESHOLD: &str = "15.3";
-const DRY_EXCLUDES: [&[&str]; 4] = [
+const DRY_EXCLUDES: [&[&str]; 5] = [
     &["xtask"],
     &["validation"],
     &["fixture"],
     &["core", "tests"],
+    &["cli", "tests"],
 ];
 const DRY_BASELINE: &str = "dry4rust-baseline.json";
 const DRY_MIN_NODES: &str = "25";
@@ -45,26 +47,24 @@ fn main() -> ExitCode {
 
 fn run_stage2() -> ExitCode {
     let workspace_manifest = manifest_path(&["Cargo.toml"]);
-    // The three measuring gates are pointed at core/ rather than the workspace
-    // root, which is what keeps them off the validation crate: those tests drive
-    // the built binary end to end and have no source file in core/ to mirror.
-    let core_manifest = manifest_path(&["core", "Cargo.toml"]);
-
     let runner = SystemCommandRunner::new();
     let parser = CrapReportParser::new();
-    let packages = vec![String::from(PACKAGE)];
+
+    // The two published crates. The measuring gates take them by name, which
+    // keeps them off validation -- its tests drive the built binary end to end
+    // and have no source file to mirror -- and off xtask.
+    let measured = vec![String::from(CORE_PACKAGE), String::from(CLI_PACKAGE)];
 
     // The house rules reach every member, which is what a bare hand-run of
     // `cargo stern4rust` at the root scans too: xtask, so the crate that runs
     // the gates is held to them, and validation, whose tests are each named for
-    // the apparatus in its src/ they are built on. The measuring gates below
-    // cannot follow: they are scoped to core/ to stay off validation, and xtask
-    // lives outside that manifest.
+    // the apparatus in its src/ they are built on.
     let stern = SternGate::new(
         &runner,
         workspace_manifest.clone(),
         vec![
-            String::from(PACKAGE),
+            String::from(CORE_PACKAGE),
+            String::from(CLI_PACKAGE),
             String::from(VALIDATION_PACKAGE),
             String::from(XTASK_PACKAGE),
         ],
@@ -73,13 +73,14 @@ fn run_stage2() -> ExitCode {
     // Second: every declared dependency used, in the section that uses it. Its
     // corrections edit manifests only, so they move nothing the gates behind it
     // measure, and it costs a second.
-    let shear = ShearGate::new(&runner, workspace_manifest);
+    let shear = ShearGate::new(&runner, workspace_manifest.clone());
 
     // Third, for the same reason stern4rust is first: removing a duplicate
     // moves code between files, which changes what the three behind it measure.
     // One run over the workspace with the trees it must not judge excluded --
     // tests repeat their arrangement by design, and xtask, validation and the
-    // fixtures are not published -- against a baseline of what was already
+    // fixtures are not published, so what is left is both published crates'
+    // sources, where a copy from one into the other is seen -- against a baseline of what was already
     // duplicated when the gate arrived, so it fails on what a change adds
     // rather than on what it inherited. The floor is the one the family gates
     // at, and the one the baseline was recorded at: a baseline matches only at
@@ -99,15 +100,15 @@ fn run_stage2() -> ExitCode {
     let crap = CrapGate::new(
         &runner,
         &parser,
-        core_manifest.clone(),
-        packages.clone(),
+        workspace_manifest.clone(),
+        measured.clone(),
         String::from(CRAP_THRESHOLD),
     );
-    let twin = TwinGate::new(&runner, core_manifest.clone(), packages.clone());
+    let twin = TwinGate::new(&runner, workspace_manifest.clone(), measured.clone());
     let iceberg = IcebergGate::new(
         &runner,
-        core_manifest,
-        packages,
+        workspace_manifest,
+        measured,
         String::from(ICEBERG_THRESHOLD),
     );
 

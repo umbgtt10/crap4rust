@@ -3,7 +3,6 @@
 // SPDX-License-Identifier: MIT
 
 use crap4rust::coverage_io::llvm_cov_provider::LlvmCovProvider;
-use crap4rust::invocation::args::Args;
 use crap4rust::invocation::config::Config;
 use crap4rust::traits::coverage_provider::CoverageProvider;
 use std::fs;
@@ -19,8 +18,7 @@ fn provide_reads_precomputed_coverage_file_without_generating() {
         r#"{"data":[{"functions":[{"filenames":["src/lib.rs"],"regions":[[10,1,20,2,1,0,0,0]]}]}]}"#,
     )
     .expect("write coverage file");
-    let args = Args::parse_from_args(["crap4rust", "--coverage", &coverage_path.to_string_lossy()]);
-    let config = Config::from_args(args);
+    let config = Config::default().with_coverage_path(Some(coverage_path));
     let provider = LlvmCovProvider::new();
 
     // Act

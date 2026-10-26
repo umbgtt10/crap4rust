@@ -2,19 +2,17 @@
 // Licensed under the MIT License
 // SPDX-License-Identifier: MIT
 
-use crap4rust::invocation::args::Args;
 use crap4rust::invocation::config::Config;
+use crap4rust::reporting::output_format::OutputFormat;
 use std::path::Path;
 use std::path::PathBuf;
 
 fn test_config(strict: bool, project_threshold: f64) -> Config {
-    let mut args = vec!["crap4rust".to_string()];
-    if strict {
-        args.push("--strict".to_string());
-    }
-    args.push("--project-threshold".to_string());
-    args.push(project_threshold.to_string());
-    Config::from_args(Args::parse_from_args(args))
+    Config::default()
+        .with_threshold(30.0)
+        .with_warn_threshold(20.0)
+        .with_strict(strict)
+        .with_project_threshold(project_threshold)
 }
 
 #[test]
@@ -66,41 +64,15 @@ fn fails_strict_with_zero_crappy_returns_false() {
 }
 
 #[test]
-fn from_args_preserves_packages() {
+fn with_all_features_keeps_the_flag() {
     // Arrange
-    let args = Args::parse_from_args(["crap4rust", "--package", "foo", "--package", "bar"]);
+    let config = Config::default();
 
     // Act
-    let config = Config::from_args(args);
+    let config = config.with_all_features(true);
 
     // Assert
-    assert_eq!(config.packages(), vec!["foo", "bar"]);
-}
-
-#[test]
-fn from_args_preserves_strict_and_warn_only() {
-    // Arrange
-    let args = Args::parse_from_args(["crap4rust", "--strict", "--warn-only"]);
-
-    // Act
-    let config = Config::from_args(args);
-
-    // Assert
-    assert!(config.strict());
-    assert!(config.warn_only());
-}
-
-#[test]
-fn from_args_preserves_threshold_fields() {
-    // Arrange
-    let args = Args::parse_from_args(["crap4rust", "--threshold", "42", "--warn-threshold", "7"]);
-
-    // Act
-    let config = Config::from_args(args);
-
-    // Assert
-    assert_eq!(config.threshold(), 42.0);
-    assert_eq!(config.warn_threshold(), 7.0);
+    assert!(config.all_features());
 }
 
 #[test]
@@ -128,6 +100,18 @@ fn with_exclude_paths_keeps_every_path() {
 }
 
 #[test]
+fn with_features_keeps_them() {
+    // Arrange
+    let config = Config::default();
+
+    // Act
+    let config = config.with_features(Some(String::from("demo-feature")));
+
+    // Assert
+    assert_eq!(config.features(), Some("demo-feature"));
+}
+
+#[test]
 fn with_include_test_targets_keeps_the_flag() {
     // Arrange
     let config = Config::default();
@@ -137,4 +121,112 @@ fn with_include_test_targets_keeps_the_flag() {
 
     // Assert
     assert!(config.include_test_targets());
+}
+
+#[test]
+fn with_manifest_path_keeps_the_path() {
+    // Arrange
+    let config = Config::default();
+
+    // Act
+    let config = config.with_manifest_path(Some(PathBuf::from("Cargo.toml")));
+
+    // Assert
+    assert_eq!(config.manifest_path(), Some(Path::new("Cargo.toml")));
+}
+
+#[test]
+fn with_no_default_features_keeps_the_flag() {
+    // Arrange
+    let config = Config::default();
+
+    // Act
+    let config = config.with_no_default_features(true);
+
+    // Assert
+    assert!(config.no_default_features());
+}
+
+#[test]
+fn with_output_format_keeps_the_format() {
+    // Arrange
+    let config = Config::default();
+
+    // Act
+    let config = config.with_output_format(OutputFormat::Json);
+
+    // Assert
+    assert_eq!(config.output_format(), OutputFormat::Json);
+}
+
+#[test]
+fn with_packages_keeps_every_package_in_order() {
+    // Arrange
+    let config = Config::default();
+
+    // Act
+    let config = config.with_packages(vec![String::from("foo"), String::from("bar")]);
+
+    // Assert
+    assert_eq!(config.packages(), ["foo", "bar"]);
+}
+
+#[test]
+fn with_project_threshold_keeps_the_threshold() {
+    // Arrange
+    let config = Config::default();
+
+    // Act
+    let config = config.with_project_threshold(7.5);
+
+    // Assert
+    assert_eq!(config.project_threshold(), 7.5);
+}
+
+#[test]
+fn with_strict_keeps_the_flag() {
+    // Arrange
+    let config = Config::default();
+
+    // Act
+    let config = config.with_strict(true);
+
+    // Assert
+    assert!(config.strict());
+}
+
+#[test]
+fn with_threshold_keeps_the_threshold() {
+    // Arrange
+    let config = Config::default();
+
+    // Act
+    let config = config.with_threshold(42.0);
+
+    // Assert
+    assert_eq!(config.threshold(), 42.0);
+}
+
+#[test]
+fn with_warn_only_keeps_the_flag() {
+    // Arrange
+    let config = Config::default();
+
+    // Act
+    let config = config.with_warn_only(true);
+
+    // Assert
+    assert!(config.warn_only());
+}
+
+#[test]
+fn with_warn_threshold_keeps_the_threshold() {
+    // Arrange
+    let config = Config::default();
+
+    // Act
+    let config = config.with_warn_threshold(7.0);
+
+    // Assert
+    assert_eq!(config.warn_threshold(), 7.0);
 }

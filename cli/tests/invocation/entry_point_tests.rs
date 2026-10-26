@@ -2,7 +2,7 @@
 // Licensed under the MIT License
 // SPDX-License-Identifier: MIT
 
-use crap4rust::invocation::entry_point::EntryPoint;
+use crap4rust_cli::invocation::entry_point::EntryPoint;
 use std::process::ExitCode;
 
 #[test]

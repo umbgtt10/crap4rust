@@ -2,8 +2,67 @@
 // Licensed under the MIT License
 // SPDX-License-Identifier: MIT
 
-use crap4rust::invocation::args::Args;
 use crap4rust::reporting::output_format::OutputFormat;
+use crap4rust_cli::invocation::args::Args;
+
+#[test]
+fn config_carries_the_selection_options() {
+    // Arrange
+    let args = Args::parse_from_args([
+        "crap4rust",
+        "--include-test-targets",
+        "--exclude-path",
+        "benches",
+        "--project-threshold",
+        "9",
+    ]);
+
+    // Act
+    let config = args.config();
+
+    // Assert
+    assert!(config.include_test_targets());
+    assert_eq!(config.exclude_paths(), ["benches"]);
+    assert_eq!(config.project_threshold(), 9.0);
+}
+
+#[test]
+fn config_preserves_packages() {
+    // Arrange
+    let args = Args::parse_from_args(["crap4rust", "--package", "foo", "--package", "bar"]);
+
+    // Act
+    let config = args.config();
+
+    // Assert
+    assert_eq!(config.packages(), vec!["foo", "bar"]);
+}
+
+#[test]
+fn config_preserves_strict_and_warn_only() {
+    // Arrange
+    let args = Args::parse_from_args(["crap4rust", "--strict", "--warn-only"]);
+
+    // Act
+    let config = args.config();
+
+    // Assert
+    assert!(config.strict());
+    assert!(config.warn_only());
+}
+
+#[test]
+fn config_preserves_threshold_fields() {
+    // Arrange
+    let args = Args::parse_from_args(["crap4rust", "--threshold", "42", "--warn-threshold", "7"]);
+
+    // Act
+    let config = args.config();
+
+    // Assert
+    assert_eq!(config.threshold(), 42.0);
+    assert_eq!(config.warn_threshold(), 7.0);
+}
 
 #[test]
 fn parse_args_all_features() {

@@ -2,6 +2,8 @@
 // Licensed under the MIT License
 // SPDX-License-Identifier: MIT
 
+#![forbid(unsafe_code)]
+
 pub mod analysis;
 pub mod coverage_io;
 pub mod invocation;
