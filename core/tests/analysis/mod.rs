@@ -8,7 +8,6 @@ pub mod file_walker_tests;
 pub mod impl_collector_tests;
 pub mod item_visitor_tests;
 pub mod source_function_discovery_tests;
-pub mod source_function_tests;
 pub mod source_path_tests;
 pub mod source_read_failure_tests;
 pub mod source_root_collector_tests;
