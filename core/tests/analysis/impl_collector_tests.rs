@@ -6,6 +6,7 @@ use crap4rust::analysis::impl_collector::ImplCollector;
 use crap4rust::analysis::source_path::SourcePath;
 use crap4rust::invocation::package_context::PackageContext;
 use syn::Attribute;
+use syn::Item;
 use syn::ItemImpl;
 use syn::parse_file;
 use syn::parse_quote;
@@ -129,7 +130,7 @@ fn qualified_name_without_receiver() {
 fn start_line_and_end_line_reflect_span() {
     // Arrange
     let file = parse_file("fn foo() {\n    let x = 1;\n}").expect("parse source");
-    let syn::Item::Fn(item_fn) = &file.items[0] else {
+    let Item::Fn(item_fn) = &file.items[0] else {
         panic!("expected function")
     };
 
