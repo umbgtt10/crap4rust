@@ -4,13 +4,14 @@
 
 use crap4rust::analysis::complexity::cognitive_complexity;
 use syn::Block;
+use syn::Item;
 use syn::parse_file;
 
 fn parse_fn_block(source: &str) -> Block {
     let source = format!("fn f() {{ {} }}", source);
     let file = parse_file(&source).expect("parse source");
     let item_fn = match &file.items[0] {
-        syn::Item::Fn(f) => f,
+        Item::Fn(f) => f,
         _ => panic!("expected function"),
     };
     (*item_fn.block).clone()
