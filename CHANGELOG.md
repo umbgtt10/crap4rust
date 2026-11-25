@@ -6,6 +6,86 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.10.0] - 2026-11-25
+
+Scores change. A mutation-testing round -- sentinel4rust's survivors on
+f6f0ab7, answered -- reported five defects, and four of them change what is
+scored or how: a module named `build`, an `impl` in a function body, a
+decision point inside a condition, a guard, a cast or a `const` block, and
+duplicate coverage records. The command line, the report formats and the
+exit codes are unchanged. `crap4rust-core`'s API changes in two records --
+`PackageContext` gains a field, `WorkspaceDescription` loses one -- hence a
+minor release.
+
+### Fixed
+
+- A file named `build.rs` is scored unless it is the package's build script.
+  Every `build.rs` at any depth was left out, so a `src/build.rs` that
+  `mod build;` declares was never scored. The build script is the
+  `custom-build` target cargo metadata lists, compared by path key, so one
+  at a custom path (`build = "tools/gen.rs"`) under a source root is left out
+  too.
+- An `impl` written directly in a function body is scored, as one inside a
+  `mod` there always was: its methods' decision points count toward the
+  enclosing function, where they counted 0.
+- `if` and `while` conditions -- `if let` and `while let` included -- and
+  `match` guards are walked like any other expression, so a decision point
+  inside one is scored: the `match` an `if let` binds from, an `if` in a
+  call's argument. Only `&&` and `||` were counted there. A condition is
+  scored at its `if`'s or `while`'s nesting, a guard at its arm's; each `&&`
+  and `||` still counts once.
+- A cast's operand, a `const { .. }` block's body and a `&raw` borrow's place
+  are walked; they scored 0 whatever they held.
+- Duplicate coverage records for one `(file, line)` resolve to the record
+  with the most covered regions -- of two with as many, the one with fewer
+  regions -- in either arrival order; they are never summed. Summing was not
+  monotone: `3/5` beside a `0/5` ghost kept 0.6, beside a `1/5` duplicate it
+  fell to 0.4. Two non-zero duplicates no longer add up (`3/5` and `2/5` keep
+  `3/5`, not `5/10`), nor two zero ones (`0/3` and `0/2` keep `0/2`, not
+  `0/5`). `ADR-SymmetricDuplicateCoverageHandling` carries the amendment.
+
+### Changed
+
+- `invocation::package_context::PackageContext` gains `build_script:
+  Option<SourcePath>`, the `custom-build` target's source path, which
+  `CargoPackageResolver` fills. A `PackageContext` literal names it.
+- `invocation::workspace_description::WorkspaceDescription` loses
+  `root_package`: nothing read it. `CargoWorkspaceReader` no longer fills it.
+- `CargoPackageResolver` no longer picks the root package of a workspace of
+  one ahead of its members: under `cargo metadata --no-deps` they are the same
+  package, so the packages a run covers are unchanged.
+- Restated without their redundancy, with no change in behaviour: the
+  complexity walker's `Expr::Macro` arm, `ItemVisitor::visit_item`'s `Enum |
+  Struct` arm and a test in `ImplCollector::is_test_path` that its other
+  test implied. `logical_expr_score`, which scored conditions and guards, is
+  gone: the general walker scores them.
+
+### Added
+
+- Stage 2 ends with `cargo deny`: advisories, licences, bans and sources
+  against `deny.toml`, the advisory database fetched first and the check run
+  `--frozen`.
+- Stage 1 starts with `just sync`: `cargo update`, in the lock file only.
+  anyhow is at 1.0.104 there, past RUSTSEC-2026-0190.
+- Every commit message carries `core`'s grip and braintax, scored as staged
+  by the commit-msg hook in `.githooks/` (`cargo xtask grip-braintax`),
+  enabled once a clone by `just hooks`.
+- The mutation round's tests, each seen failing against its mutant: 46 for
+  the complexity walker, nine for file selection, test attributes, receivers
+  and path equality, six for coverage, configuration and verdict boundaries;
+  and the tests of each fix above.
+- `docs/OPEN_POINTS.md` records two items left open: retiring
+  `FileWalker::is_selected_relative_file`, the raw-path check the keyed one
+  repeats, and one shared "is this test code?" check for crap4rust and its
+  sibling tools -- `#[cfg(not(test))]` and `#[cfg_attr(test, ..)]` items are
+  still taken for test code and left unscored.
+
+### Removed
+
+- Five tests of records alone, in four files, each restating a derived
+  `Clone` or `PartialEq`; the records' fields stay checked where they are
+  produced.
+
 ## [0.9.0] - 2026-10-27
 
 The tool's behaviour and command line are unchanged -- its stdout, stderr and
