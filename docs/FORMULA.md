@@ -41,9 +41,10 @@ still found and scored.
 `if`, `while`, and `match` guard conditions are *not* walked by the general
 expression scorer for their `&&`/`\|\|` cost — they go through a dedicated
 `logical_expr_score`, which recurses only through `Expr::Binary` (adding `1`
-per `&&`/`\|\|` found, at any depth), `Expr::Paren`, and `Expr::Group`,
-returning `0` for anything else. `score_if`, `score_while`, and `score_arm`
-(match guards) each call `logical_expr_score` on their own condition/guard
+per `&&`/`\|\|` found, at any depth) and `Expr::Paren`, returning `0` for
+anything else — `Expr::Group` among them, which only a macro's expansion
+produces, never a parsed source file. `score_if`, `score_while`, and
+`score_arm` (match guards) each call `logical_expr_score` on their own condition/guard
 exactly once — calling the general expression scorer on the *same*
 condition as well, in addition to `logical_expr_score`, is what produced a
 real, since-fixed bug where `while`/match-guard conditions counted every

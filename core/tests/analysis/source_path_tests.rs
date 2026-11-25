@@ -47,6 +47,19 @@ fn components_of_an_absolute_path_skip_the_root_and_empty_segments() {
 }
 
 #[test]
+fn eq_of_two_different_paths_returns_false() {
+    // Arrange
+    let one = path("/p/src");
+    let other = path("/p/tests");
+
+    // Act
+    let same = one == other;
+
+    // Assert
+    assert!(!same);
+}
+
+#[test]
 fn eq_with_a_trailing_separator_is_the_same_path() {
     // Arrange
     let plain = path("/p/src");
@@ -222,6 +235,19 @@ fn parent_of_the_root_returns_none() {
 
     // Assert
     assert_eq!(parent, None);
+}
+
+#[test]
+fn partial_cmp_orders_paths_by_component_rather_than_by_byte() {
+    // Arrange
+    let nested = path("/a/b");
+    let sibling = path("/a-b");
+
+    // Act
+    let order = nested.partial_cmp(&sibling);
+
+    // Assert
+    assert_eq!(order, Some(Ordering::Less));
 }
 
 #[test]

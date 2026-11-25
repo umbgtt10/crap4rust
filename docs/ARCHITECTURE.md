@@ -72,7 +72,7 @@ are `Box<dyn Trait>` fields rather than generic parameters.
 
 | Trait | Implementation | Responsibility |
 |---|---|---|
-| `PackageResolver` | `CargoPackageResolver` (core, `cargo_package_resolver.rs`) | Apply cargo's rules to the workspace a `WorkspaceReader` describes -- the packages asked for, in that order; else the root package of a workspace of one; else every member -- and build each one's `PackageContext`: manifest dir, workspace root, and resolved source roots. |
+| `PackageResolver` | `CargoPackageResolver` (core, `cargo_package_resolver.rs`) | Apply cargo's rules to the workspace a `WorkspaceReader` describes -- the packages asked for, in that order; else every member -- and build each one's `PackageContext`: manifest dir, workspace root, and resolved source roots. |
 | `FunctionDiscovery` | `SourceFunctionDiscovery` (core, `source_function_discovery.rs`) | Walk a single package's source roots through a `SourceTree` and return every production `SourceFunction` found, complexity already computed. |
 | `CoverageProvider` | `ExportCoverageProvider` (core, `export_coverage_provider.rs`) | Take a `CoverageSource`'s export and turn each function in it into a `CoverageRecord`: its file's key, the line its first region starts on, and how many of its regions ran. |
 | `Scorer` | `DefaultScorer` (core, `default_scorer.rs`) | Turn discovered functions plus a `CoverageIndex` into scored, sorted `FunctionReport`s, and fold those into project-level `ProjectMetrics`. |

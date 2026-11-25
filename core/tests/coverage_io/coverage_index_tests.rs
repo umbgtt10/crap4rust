@@ -68,6 +68,23 @@ fn from_records_skips_zero_duplicate_when_nonzero_arrives_first() {
 }
 
 #[test]
+fn from_records_sums_duplicates_that_are_both_zero() {
+    // Arrange
+    let records = vec![
+        CoverageRecord::new(String::from("src/lib.rs"), 10, 0, 3),
+        CoverageRecord::new(String::from("src/lib.rs"), 10, 0, 2),
+    ];
+
+    // Act
+    let index = CoverageIndex::from_records(records);
+
+    // Assert
+    let record = index.get("src/lib.rs", 10).unwrap();
+    assert_eq!(record.covered_regions(), 0);
+    assert_eq!(record.total_regions(), 5);
+}
+
+#[test]
 fn match_function_coverage_aggregates_all_regions_within_span() {
     // Arrange
     let mut index = BTreeMap::new();

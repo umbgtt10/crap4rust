@@ -133,11 +133,9 @@ impl<'a> ImplCollector<'a> {
     }
 
     fn is_test_path(path: &SynPath) -> bool {
-        path.is_ident("test")
-            || path
-                .segments
-                .last()
-                .is_some_and(|segment| segment.ident == "test")
+        path.segments
+            .last()
+            .is_some_and(|segment| segment.ident == "test")
     }
 
     fn process_item(&self, item: &ImplItem, receiver: &str) -> Option<SourceFunction> {

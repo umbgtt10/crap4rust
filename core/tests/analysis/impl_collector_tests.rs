@@ -53,6 +53,45 @@ fn collect_excludes_test_attributed_methods() {
 }
 
 #[test]
+fn collect_of_an_impl_for_a_reference_names_the_referenced_type() {
+    // Arrange
+    let package = test_package();
+    let module_prefix: Vec<String> = vec![];
+    let inline_modules: Vec<String> = vec![];
+    let item_impl: ItemImpl = parse_quote! {
+        impl Display for &Foo {
+            fn fmt(&self) {}
+        }
+    };
+    let collector = ImplCollector::new(
+        &package,
+        "src/lib.rs",
+        "src/lib.rs",
+        &module_prefix,
+        &inline_modules,
+    );
+
+    // Act
+    let functions = collector.collect(&item_impl);
+
+    // Assert
+    assert_eq!(functions.len(), 1);
+    assert_eq!(functions[0].name, "Foo::fmt");
+}
+
+#[test]
+fn is_test_attrs_detects_a_test_attribute_under_a_path() {
+    // Arrange
+    let attrs: Vec<Attribute> = vec![parse_quote!(#[tokio::test])];
+
+    // Act
+    let result = ImplCollector::is_test_attrs(&attrs);
+
+    // Assert
+    assert!(result);
+}
+
+#[test]
 fn is_test_attrs_detects_cfg_test_attribute() {
     // Arrange
     let attrs: Vec<Attribute> = vec![parse_quote!(#[cfg(test)])];
@@ -141,6 +180,21 @@ fn start_line_and_end_line_reflect_span() {
     // Assert
     assert_eq!(start, 1);
     assert_eq!(end, 3);
+}
+
+#[test]
+fn start_line_of_a_function_below_the_first_line_returns_its_line() {
+    // Arrange
+    let file = parse_file("\n\nfn foo() {}").expect("parse source");
+    let Item::Fn(item_fn) = &file.items[0] else {
+        panic!("expected function")
+    };
+
+    // Act
+    let start = ImplCollector::start_line(item_fn.sig.ident.span());
+
+    // Assert
+    assert_eq!(start, 3);
 }
 
 #[test]

@@ -3,7 +3,6 @@
 // SPDX-License-Identifier: MIT
 
 use alloc::string::String;
-use alloc::vec;
 use alloc::vec::Vec;
 
 use crate::analysis::source_path::SourcePath;
@@ -17,8 +16,7 @@ use crate::traits::package_resolver::PackageResolver;
 use crate::traits::workspace_reader::WorkspaceReader;
 
 // Cargo's rules for which packages a run covers, applied to the workspace the
-// reader describes: the ones asked for, in the order asked; else the root
-// package of a workspace of one; else every member.
+// reader describes: the ones asked for, in the order asked; else every member.
 pub struct CargoPackageResolver<'a> {
     workspace_reader: &'a dyn WorkspaceReader,
 }
@@ -69,16 +67,6 @@ impl<'a> CargoPackageResolver<'a> {
                 selected.push(package);
             }
             return Ok(selected);
-        }
-
-        if let Some(root) = workspace.root_package.as_ref().and_then(|root| {
-            workspace
-                .packages
-                .iter()
-                .find(|package| &package.name == root)
-        }) && workspace.packages.len() <= 1
-        {
-            return Ok(vec![root]);
         }
 
         let selected = workspace.packages.iter().collect::<Vec<_>>();

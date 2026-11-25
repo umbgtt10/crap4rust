@@ -18,6 +18,558 @@ fn parse_fn_block(source: &str) -> Block {
 }
 
 #[test]
+fn cognitive_complexity_of_a_block_expression_returns_the_score_of_its_contents() {
+    // Arrange
+    let block = parse_fn_block("let _ = { a && b };");
+
+    // Act
+    let score = cognitive_complexity(&block);
+
+    // Assert
+    assert_eq!(score, 1);
+}
+
+#[test]
+fn cognitive_complexity_of_a_break_returns_the_score_of_its_value() {
+    // Arrange
+    let block = parse_fn_block("loop { break a && b; }");
+
+    // Act
+    let score = cognitive_complexity(&block);
+
+    // Assert
+    assert_eq!(score, 2);
+}
+
+#[test]
+fn cognitive_complexity_of_a_call_returns_the_score_of_its_arguments() {
+    // Arrange
+    let block = parse_fn_block("f(a && b);");
+
+    // Act
+    let score = cognitive_complexity(&block);
+
+    // Assert
+    assert_eq!(score, 1);
+}
+
+#[test]
+fn cognitive_complexity_of_a_closure_returns_the_score_of_its_body() {
+    // Arrange
+    let block = parse_fn_block("let _ = |x| a && b;");
+
+    // Act
+    let score = cognitive_complexity(&block);
+
+    // Assert
+    assert_eq!(score, 1);
+}
+
+#[test]
+fn cognitive_complexity_of_a_comparison_returns_the_scores_of_its_operands_alone() {
+    // Arrange
+    let block = parse_fn_block("let _ = f(a && b) == g(c && d);");
+
+    // Act
+    let score = cognitive_complexity(&block);
+
+    // Assert
+    assert_eq!(score, 2);
+}
+
+#[test]
+fn cognitive_complexity_of_a_condition_with_an_and_right_of_an_or_returns_both_operators() {
+    // Arrange
+    let block = parse_fn_block("if a || b && c { }");
+
+    // Act
+    let score = cognitive_complexity(&block);
+
+    // Assert
+    assert_eq!(score, 3);
+}
+
+#[test]
+fn cognitive_complexity_of_a_field_access_returns_the_score_of_its_base() {
+    // Arrange
+    let block = parse_fn_block("let _ = f(a && b).field;");
+
+    // Act
+    let score = cognitive_complexity(&block);
+
+    // Assert
+    assert_eq!(score, 1);
+}
+
+#[test]
+fn cognitive_complexity_of_a_for_loop_body_returns_its_score_one_level_deeper() {
+    // Arrange
+    let block = parse_fn_block("for _ in xs { if a { } }");
+
+    // Act
+    let score = cognitive_complexity(&block);
+
+    // Assert
+    assert_eq!(score, 3);
+}
+
+#[test]
+fn cognitive_complexity_of_a_for_loop_inside_an_if_returns_its_nesting() {
+    // Arrange
+    let block = parse_fn_block("if x { for _ in xs { } }");
+
+    // Act
+    let score = cognitive_complexity(&block);
+
+    // Assert
+    assert_eq!(score, 3);
+}
+
+#[test]
+fn cognitive_complexity_of_a_for_loop_over_an_or_pattern_returns_one_per_extra_case() {
+    // Arrange
+    let block = parse_fn_block("for Ok(x) | Err(x) in xs { }");
+
+    // Act
+    let score = cognitive_complexity(&block);
+
+    // Assert
+    assert_eq!(score, 2);
+}
+
+#[test]
+fn cognitive_complexity_of_a_for_loop_returns_the_score_of_its_iterator() {
+    // Arrange
+    let block = parse_fn_block("for _ in f(a && b) { }");
+
+    // Act
+    let score = cognitive_complexity(&block);
+
+    // Assert
+    assert_eq!(score, 2);
+}
+
+#[test]
+fn cognitive_complexity_of_a_function_in_a_nested_module_returns_the_score_of_its_body() {
+    // Arrange
+    let block = parse_fn_block("mod m { fn inner() { if a { if b { } } } }");
+
+    // Act
+    let score = cognitive_complexity(&block);
+
+    // Assert
+    assert_eq!(score, 3);
+}
+
+#[test]
+fn cognitive_complexity_of_a_let_else_returns_the_score_of_its_else_block() {
+    // Arrange
+    let block = parse_fn_block("let Some(x) = y else { return a && b; };");
+
+    // Act
+    let score = cognitive_complexity(&block);
+
+    // Assert
+    assert_eq!(score, 1);
+}
+
+#[test]
+fn cognitive_complexity_of_a_let_returns_the_score_of_its_initialiser() {
+    // Arrange
+    let block = parse_fn_block("let _ = a && b && c;");
+
+    // Act
+    let score = cognitive_complexity(&block);
+
+    // Assert
+    assert_eq!(score, 2);
+}
+
+#[test]
+fn cognitive_complexity_of_a_loop_body_returns_its_score_one_level_deeper() {
+    // Arrange
+    let block = parse_fn_block("loop { if a { break; } }");
+
+    // Act
+    let score = cognitive_complexity(&block);
+
+    // Assert
+    assert_eq!(score, 3);
+}
+
+#[test]
+fn cognitive_complexity_of_a_loop_inside_an_if_returns_its_nesting() {
+    // Arrange
+    let block = parse_fn_block("if x { loop { } }");
+
+    // Act
+    let score = cognitive_complexity(&block);
+
+    // Assert
+    assert_eq!(score, 3);
+}
+
+#[test]
+fn cognitive_complexity_of_a_match_arm_returns_its_score_one_level_deeper() {
+    // Arrange
+    let block = parse_fn_block("match x { _ => if a { } }");
+
+    // Act
+    let score = cognitive_complexity(&block);
+
+    // Assert
+    assert_eq!(score, 3);
+}
+
+#[test]
+fn cognitive_complexity_of_a_match_inside_an_if_returns_its_nesting() {
+    // Arrange
+    let block = parse_fn_block("if x { match y { _ => {} } }");
+
+    // Act
+    let score = cognitive_complexity(&block);
+
+    // Assert
+    assert_eq!(score, 3);
+}
+
+#[test]
+fn cognitive_complexity_of_a_match_returns_the_score_of_its_scrutinee() {
+    // Arrange
+    let block = parse_fn_block("match f(a && b) { _ => {} }");
+
+    // Act
+    let score = cognitive_complexity(&block);
+
+    // Assert
+    assert_eq!(score, 2);
+}
+
+#[test]
+fn cognitive_complexity_of_a_method_call_returns_the_score_of_its_arguments() {
+    // Arrange
+    let block = parse_fn_block("x.f(a && b);");
+
+    // Act
+    let score = cognitive_complexity(&block);
+
+    // Assert
+    assert_eq!(score, 1);
+}
+
+#[test]
+fn cognitive_complexity_of_a_method_in_a_nested_module_returns_the_score_of_its_body() {
+    // Arrange
+    let block = parse_fn_block("mod m { impl S { fn inner() { if a { } } } }");
+
+    // Act
+    let score = cognitive_complexity(&block);
+
+    // Assert
+    assert_eq!(score, 1);
+}
+
+#[test]
+fn cognitive_complexity_of_a_module_in_a_nested_module_returns_the_score_of_its_functions() {
+    // Arrange
+    let block = parse_fn_block("mod m { mod n { fn inner() { if a { } } } }");
+
+    // Act
+    let score = cognitive_complexity(&block);
+
+    // Assert
+    assert_eq!(score, 1);
+}
+
+#[test]
+fn cognitive_complexity_of_a_negation_returns_the_score_of_its_operand() {
+    // Arrange
+    let block = parse_fn_block("let _ = !f(a && b);");
+
+    // Act
+    let score = cognitive_complexity(&block);
+
+    // Assert
+    assert_eq!(score, 1);
+}
+
+#[test]
+fn cognitive_complexity_of_a_nested_function_returns_the_score_of_its_body() {
+    // Arrange
+    let block = parse_fn_block("fn inner() { if a { } }");
+
+    // Act
+    let score = cognitive_complexity(&block);
+
+    // Assert
+    assert_eq!(score, 1);
+}
+
+#[test]
+fn cognitive_complexity_of_a_parenthesised_condition_returns_its_operators() {
+    // Arrange
+    let block = parse_fn_block("if (a && b) || c { }");
+
+    // Act
+    let score = cognitive_complexity(&block);
+
+    // Assert
+    assert_eq!(score, 3);
+}
+
+#[test]
+fn cognitive_complexity_of_a_parenthesised_expression_returns_the_score_of_its_contents() {
+    // Arrange
+    let block = parse_fn_block("let _ = (a && b);");
+
+    // Act
+    let score = cognitive_complexity(&block);
+
+    // Assert
+    assert_eq!(score, 1);
+}
+
+#[test]
+fn cognitive_complexity_of_a_question_mark_returns_the_score_of_its_operand() {
+    // Arrange
+    let block = parse_fn_block("f(a && b)?;");
+
+    // Act
+    let score = cognitive_complexity(&block);
+
+    // Assert
+    assert_eq!(score, 1);
+}
+
+#[test]
+fn cognitive_complexity_of_a_range_returns_the_score_of_its_end() {
+    // Arrange
+    let block = parse_fn_block("let _ = 0..f(a && b);");
+
+    // Act
+    let score = cognitive_complexity(&block);
+
+    // Assert
+    assert_eq!(score, 1);
+}
+
+#[test]
+fn cognitive_complexity_of_a_reference_returns_the_score_of_its_operand() {
+    // Arrange
+    let block = parse_fn_block("let _ = &f(a && b);");
+
+    // Act
+    let score = cognitive_complexity(&block);
+
+    // Assert
+    assert_eq!(score, 1);
+}
+
+#[test]
+fn cognitive_complexity_of_a_repeat_returns_the_score_of_its_length() {
+    // Arrange
+    let block = parse_fn_block("let _ = [0; f(a && b)];");
+
+    // Act
+    let score = cognitive_complexity(&block);
+
+    // Assert
+    assert_eq!(score, 1);
+}
+
+#[test]
+fn cognitive_complexity_of_a_return_returns_the_score_of_its_value() {
+    // Arrange
+    let block = parse_fn_block("return a && b;");
+
+    // Act
+    let score = cognitive_complexity(&block);
+
+    // Assert
+    assert_eq!(score, 1);
+}
+
+#[test]
+fn cognitive_complexity_of_a_struct_literal_returns_the_score_of_its_base() {
+    // Arrange
+    let block = parse_fn_block("let _ = S { x: 0, ..f(a && b) };");
+
+    // Act
+    let score = cognitive_complexity(&block);
+
+    // Assert
+    assert_eq!(score, 1);
+}
+
+#[test]
+fn cognitive_complexity_of_a_try_block_body_returns_its_score_one_level_deeper() {
+    // Arrange
+    let block = parse_fn_block("let _ = try { if a { } };");
+
+    // Act
+    let score = cognitive_complexity(&block);
+
+    // Assert
+    assert_eq!(score, 3);
+}
+
+#[test]
+fn cognitive_complexity_of_a_try_block_inside_an_if_returns_its_nesting() {
+    // Arrange
+    let block = parse_fn_block("if x { let _ = try { }; }");
+
+    // Act
+    let score = cognitive_complexity(&block);
+
+    // Assert
+    assert_eq!(score, 3);
+}
+
+#[test]
+fn cognitive_complexity_of_a_tuple_returns_the_score_of_its_elements() {
+    // Arrange
+    let block = parse_fn_block("let _ = (a && b, 0);");
+
+    // Act
+    let score = cognitive_complexity(&block);
+
+    // Assert
+    assert_eq!(score, 1);
+}
+
+#[test]
+fn cognitive_complexity_of_a_while_body_returns_its_score_one_level_deeper() {
+    // Arrange
+    let block = parse_fn_block("while a { if b { } }");
+
+    // Act
+    let score = cognitive_complexity(&block);
+
+    // Assert
+    assert_eq!(score, 3);
+}
+
+#[test]
+fn cognitive_complexity_of_a_while_inside_an_if_returns_its_nesting() {
+    // Arrange
+    let block = parse_fn_block("if x { while a { } }");
+
+    // Act
+    let score = cognitive_complexity(&block);
+
+    // Assert
+    assert_eq!(score, 3);
+}
+
+#[test]
+fn cognitive_complexity_of_a_yield_returns_the_score_of_its_value() {
+    // Arrange
+    let block = parse_fn_block("yield a && b;");
+
+    // Act
+    let score = cognitive_complexity(&block);
+
+    // Assert
+    assert_eq!(score, 1);
+}
+
+#[test]
+fn cognitive_complexity_of_an_array_returns_the_score_of_its_elements() {
+    // Arrange
+    let block = parse_fn_block("let _ = [a && b];");
+
+    // Act
+    let score = cognitive_complexity(&block);
+
+    // Assert
+    assert_eq!(score, 1);
+}
+
+#[test]
+fn cognitive_complexity_of_an_assignment_returns_the_score_of_its_value() {
+    // Arrange
+    let block = parse_fn_block("x = a && b;");
+
+    // Act
+    let score = cognitive_complexity(&block);
+
+    // Assert
+    assert_eq!(score, 1);
+}
+
+#[test]
+fn cognitive_complexity_of_an_async_block_returns_the_score_of_its_body() {
+    // Arrange
+    let block = parse_fn_block("let _ = async { a && b };");
+
+    // Act
+    let score = cognitive_complexity(&block);
+
+    // Assert
+    assert_eq!(score, 1);
+}
+
+#[test]
+fn cognitive_complexity_of_an_await_returns_the_score_of_its_base() {
+    // Arrange
+    let block = parse_fn_block("f(a && b).await;");
+
+    // Act
+    let score = cognitive_complexity(&block);
+
+    // Assert
+    assert_eq!(score, 1);
+}
+
+#[test]
+fn cognitive_complexity_of_an_else_block_returns_its_score_one_level_deeper() {
+    // Arrange
+    let block = parse_fn_block("if a { } else { if b { } }");
+
+    // Act
+    let score = cognitive_complexity(&block);
+
+    // Assert
+    assert_eq!(score, 3);
+}
+
+#[test]
+fn cognitive_complexity_of_an_else_if_returns_the_score_of_both_conditions() {
+    // Arrange
+    let block = parse_fn_block("if a { } else if b { }");
+
+    // Act
+    let score = cognitive_complexity(&block);
+
+    // Assert
+    assert_eq!(score, 2);
+}
+
+#[test]
+fn cognitive_complexity_of_an_index_returns_the_score_of_its_index() {
+    // Arrange
+    let block = parse_fn_block("let _ = x[a && b];");
+
+    // Act
+    let score = cognitive_complexity(&block);
+
+    // Assert
+    assert_eq!(score, 1);
+}
+
+#[test]
+fn cognitive_complexity_of_an_unsafe_block_returns_the_score_of_its_body() {
+    // Arrange
+    let block = parse_fn_block("unsafe { a && b };");
+
+    // Act
+    let score = cognitive_complexity(&block);
+
+    // Assert
+    assert_eq!(score, 1);
+}
+
+#[test]
 fn empty_function_returns_zero() {
     // Arrange
     let block = parse_fn_block("");

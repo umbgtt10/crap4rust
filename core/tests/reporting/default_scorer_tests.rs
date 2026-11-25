@@ -102,6 +102,23 @@ fn project_metrics_exceeding_project_threshold_returns_crappy_verdict() {
 }
 
 #[test]
+fn project_metrics_with_crappy_function_below_project_threshold_returns_warn_verdict() {
+    // Arrange
+    let scorer = DefaultScorer::new();
+    let config = test_config(5.0, 2.0, false, 100.0);
+    let index = coverage(&[(10, 0, 1), (20, 1, 1)]);
+    let functions = vec![function("risky", 10, 10), function("ok", 1, 20)];
+    let reports = scorer.score_functions(functions, &index, &config);
+
+    // Act
+    let metrics = scorer.project_metrics(&reports, &config);
+
+    // Assert
+    assert_eq!(metrics.crappy_functions, 1);
+    assert_eq!(metrics.verdict, Verdict::Warn);
+}
+
+#[test]
 fn project_metrics_with_warn_function_returns_warn_verdict() {
     // Arrange
     let scorer = DefaultScorer::new();
