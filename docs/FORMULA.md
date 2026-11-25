@@ -22,19 +22,21 @@ source ever disagree, the source is right and this file is stale.
 |---|---|---|
 | `if` (including each `else if` in a chain) | `1 + nesting` | yes |
 | plain `else { ... }` block (no further `if`) | cost of whatever is inside it, scored at `nesting + 1` | yes |
-| `match` | `1 + nesting` | arms scored at `nesting + 1` |
+| `match` | `1 + nesting` | arms, guards included, scored at `nesting + 1` |
 | `for` | `1 + nesting` | yes |
 | `while` | `1 + nesting` | yes |
 | `loop` | `1 + nesting` | yes |
 | `try { ... }` block (nightly `#![feature(try_blocks)]` syntax) | `1 + nesting` | yes |
 | `?` (the `Try` operator) | `0` — recurses into the wrapped expression only | — |
-| each `&&` or `\|\|` inside a condition or guard | `1` each | no |
+| each `&&` or `\|\|`, in a condition, a guard or any other expression | `1` each | no |
 | `\|`-separated or-pattern in a `for` loop's binding (`Pat::Or`) | `cases.len() - 1` | no |
 
-Everything else `syn` can produce (calls, field access, literals, `unsafe`
-blocks, closures, and so on) contributes `0` directly but is still walked
-recursively, so a decision point nested inside a closure or call argument is
-still found and scored.
+Everything else `syn` parses from a source file (calls, casts, field
+access, literals, `unsafe` and `const` blocks, closures, `&raw` borrows, and
+so on) contributes `0` directly but is still walked recursively, so a
+decision point nested inside a closure, a call argument or a cast is still
+found and scored. A macro invocation is not expanded: what its arguments
+hold is not scored.
 
 Items declared inside a body are walked the same way wherever they sit: a
 nested `fn`'s body, the methods of an `impl` and an inline `mod`'s items,
@@ -42,30 +44,28 @@ recursively, each scored at the nesting of the statement that declares them.
 An `impl` written directly in a function body counts as it does inside a
 `mod` there: one path, `score_nested_item`, scores both.
 
-### Conditions and guards: `logical_expr_score`
+### Conditions and guards
 
-`if`, `while`, and `match` guard conditions are *not* walked by the general
-expression scorer for their `&&`/`\|\|` cost — they go through a dedicated
-`logical_expr_score`, which recurses only through `Expr::Binary` (adding `1`
-per `&&`/`\|\|` found, at any depth) and `Expr::Paren`, returning `0` for
-anything else — `Expr::Group` among them, which only a macro's expansion
-produces, never a parsed source file. `score_if`, `score_while`, and
-`score_arm` (match guards) each call `logical_expr_score` on their own condition/guard
-exactly once — calling the general expression scorer on the *same*
-condition as well, in addition to `logical_expr_score`, is what produced a
-real, since-fixed bug where `while`/match-guard conditions counted every
-`&&`/`\|\|` twice while a textually identical `if` condition counted it once;
-see `docs/ADRs/` — no ADR was written for this one specifically since it is
-a straightforward symmetry fix, not a design decision, but
-`tests/complexity_tests.rs`'s `while_with_*`/`match_guard_with_*` tests pin
-it.
+`if` and `while` conditions -- `if let` and `while let` included -- and
+`match` guards are walked by the general expression walker, `score_expr`,
+like any other expression. Each `&&`/`\|\|` in them costs `1`, once, through
+the walker's own `Expr::Binary` arm, exactly as in a function whose body is
+just `a && b`; and a decision point inside them -- an `if` in a call's
+argument, a `match` an `if let` binds from -- is found and scored. A
+condition is scored at the `nesting` of the `if` or `while` it belongs to,
+as a `match`'s scrutinee and a `for` loop's iterator are; a guard at the
+nesting of its arm, one deeper than its `match`, as the arm's body is.
 
-A logical expression appearing *outside* any condition — a function whose
-body is just `a && b`, for instance — is scored by the general expression
-walker's own `Expr::Binary` handling instead, which adds the same `1` per
-operator on its own; the two paths are mutually exclusive per expression,
-not additive, because `if`/`while`/match-guard conditions are never handed
-to the general walker at all.
+`score_if`, `score_while` and `score_arm` each hand their condition or guard
+to `score_expr` exactly once, and to nothing else. Conditions once went
+through a scorer of their own, `logical_expr_score`, which counted only
+`&&`/`\|\|` and lost every other decision point in them; and calling both
+scorers on the same condition is what once counted each `&&`/`\|\|` twice in
+`while` conditions and match guards but once in `if`.
+`core/tests/analysis/complexity_tests.rs` pins both: `if_with_*`,
+`while_with_*` and `match_guard_with_*` count each operator once, and the
+`cognitive_complexity_of_*_condition_*` and `*_match_guard_*` tests score a
+decision point inside one.
 
 ### Worked examples
 
@@ -77,6 +77,11 @@ to the general walker at all.
 | `a && b \|\| c` (as a bare expression, no `if`) | `2` | one `&&` + one `\|\|`, via the general walker |
 | `if a && b { }` | `2` | `1` for the `if` + `1` for the `&&` |
 | `while a && b { }` | `2` | `1` for the `while` + `1` for the `&&` — same shape as the `if` case above |
+| `if f(if a { 1 } else { 2 }) { }` | `2` | `1` for the outer `if` + `1` for the `if` in its condition, at the outer `if`'s nesting `0` |
+| `if let Some(x) = match y { _ => z } { }` | `2` | `1` for the `if` + `1` for the `match` its condition binds from |
+| `match x { n if f(if a { 1 } else { 2 }) => 1, _ => 0 }` | `3` | `1` for the `match` + `1 + 1` for the `if` in the guard, at the arm's nesting `1` |
+| `let _ = (if a { 1 } else { 2 }) as u8;` | `1` | the cast's operand is walked |
+| `let _ = const { if A { 1 } else { 2 } };` | `1` | the `const` block's body is walked |
 | `let _ = try { 1 };` | `1` | `try` **block** syntax costs `1`; contrast with `?` below |
 | `let val = x?;` | `0` | the `?` operator itself is free — see below |
 

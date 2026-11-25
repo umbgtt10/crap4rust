@@ -54,6 +54,18 @@ fn cognitive_complexity_of_a_call_returns_the_score_of_its_arguments() {
 }
 
 #[test]
+fn cognitive_complexity_of_a_cast_returns_the_score_of_its_operand() {
+    // Arrange
+    let block = parse_fn_block("let _ = f(a && b) as u8;");
+
+    // Act
+    let score = cognitive_complexity(&block);
+
+    // Assert
+    assert_eq!(score, 1);
+}
+
+#[test]
 fn cognitive_complexity_of_a_closure_returns_the_score_of_its_body() {
     // Arrange
     let block = parse_fn_block("let _ = |x| a && b;");
@@ -87,6 +99,18 @@ fn cognitive_complexity_of_a_condition_with_an_and_right_of_an_or_returns_both_o
 
     // Assert
     assert_eq!(score, 3);
+}
+
+#[test]
+fn cognitive_complexity_of_a_const_block_returns_the_score_of_its_body() {
+    // Arrange
+    let block = parse_fn_block("let _ = const { A && B };");
+
+    // Act
+    let score = cognitive_complexity(&block);
+
+    // Assert
+    assert_eq!(score, 1);
 }
 
 #[test]
@@ -213,6 +237,18 @@ fn cognitive_complexity_of_a_loop_inside_an_if_returns_its_nesting() {
 fn cognitive_complexity_of_a_match_arm_returns_its_score_one_level_deeper() {
     // Arrange
     let block = parse_fn_block("match x { _ => if a { } }");
+
+    // Act
+    let score = cognitive_complexity(&block);
+
+    // Assert
+    assert_eq!(score, 3);
+}
+
+#[test]
+fn cognitive_complexity_of_a_match_guard_returns_the_score_of_an_if_in_it_one_level_deeper() {
+    // Arrange
+    let block = parse_fn_block("match x { n if f(if a { 1 } else { 2 }) => 1, _ => 0 };");
 
     // Act
     let score = cognitive_complexity(&block);
@@ -366,6 +402,18 @@ fn cognitive_complexity_of_a_range_returns_the_score_of_its_end() {
 }
 
 #[test]
+fn cognitive_complexity_of_a_raw_address_returns_the_score_of_its_place() {
+    // Arrange
+    let block = parse_fn_block("let _ = &raw const x[f(a && b)];");
+
+    // Act
+    let score = cognitive_complexity(&block);
+
+    // Assert
+    assert_eq!(score, 1);
+}
+
+#[test]
 fn cognitive_complexity_of_a_reference_returns_the_score_of_its_operand() {
     // Arrange
     let block = parse_fn_block("let _ = &f(a && b);");
@@ -462,6 +510,18 @@ fn cognitive_complexity_of_a_while_body_returns_its_score_one_level_deeper() {
 }
 
 #[test]
+fn cognitive_complexity_of_a_while_condition_returns_the_score_of_an_if_in_it() {
+    // Arrange
+    let block = parse_fn_block("while f(if a { 1 } else { 2 }) { }");
+
+    // Act
+    let score = cognitive_complexity(&block);
+
+    // Assert
+    assert_eq!(score, 2);
+}
+
+#[test]
 fn cognitive_complexity_of_a_while_inside_an_if_returns_its_nesting() {
     // Arrange
     let block = parse_fn_block("if x { while a { } }");
@@ -471,6 +531,18 @@ fn cognitive_complexity_of_a_while_inside_an_if_returns_its_nesting() {
 
     // Assert
     assert_eq!(score, 3);
+}
+
+#[test]
+fn cognitive_complexity_of_a_while_let_condition_returns_the_score_of_a_match_in_it() {
+    // Arrange
+    let block = parse_fn_block("while let Some(x) = match y { _ => z } { }");
+
+    // Act
+    let score = cognitive_complexity(&block);
+
+    // Assert
+    assert_eq!(score, 2);
 }
 
 #[test]
@@ -549,6 +621,42 @@ fn cognitive_complexity_of_an_else_block_returns_its_score_one_level_deeper() {
 fn cognitive_complexity_of_an_else_if_returns_the_score_of_both_conditions() {
     // Arrange
     let block = parse_fn_block("if a { } else if b { }");
+
+    // Act
+    let score = cognitive_complexity(&block);
+
+    // Assert
+    assert_eq!(score, 2);
+}
+
+#[test]
+fn cognitive_complexity_of_an_if_condition_inside_an_if_returns_its_nesting() {
+    // Arrange
+    let block = parse_fn_block("if x { if f(if a { 1 } else { 2 }) { } }");
+
+    // Act
+    let score = cognitive_complexity(&block);
+
+    // Assert
+    assert_eq!(score, 5);
+}
+
+#[test]
+fn cognitive_complexity_of_an_if_condition_returns_the_score_of_an_if_in_it() {
+    // Arrange
+    let block = parse_fn_block("if f(if a { 1 } else { 2 }) { }");
+
+    // Act
+    let score = cognitive_complexity(&block);
+
+    // Assert
+    assert_eq!(score, 2);
+}
+
+#[test]
+fn cognitive_complexity_of_an_if_let_condition_returns_the_score_of_a_match_in_it() {
+    // Arrange
+    let block = parse_fn_block("if let Some(x) = match y { _ => z } { }");
 
     // Act
     let score = cognitive_complexity(&block);
