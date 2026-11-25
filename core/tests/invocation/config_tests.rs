@@ -25,6 +25,18 @@ fn fails_non_strict_above_threshold_returns_true() {
 }
 
 #[test]
+fn fails_non_strict_at_threshold_returns_false() {
+    // Arrange
+    let config = test_config(false, 5.0);
+
+    // Act
+    let result = config.fails(1, 5.0);
+
+    // Assert
+    assert!(!result);
+}
+
+#[test]
 fn fails_non_strict_below_threshold_returns_false() {
     // Arrange
     let config = test_config(false, 5.0);
@@ -58,6 +70,30 @@ fn fails_strict_with_zero_crappy_returns_false() {
 
     // Assert
     assert!(!result);
+}
+
+#[test]
+fn include_test_targets_of_a_default_config_returns_false() {
+    // Arrange
+    let config = Config::default();
+
+    // Act
+    let include_test_targets = config.include_test_targets();
+
+    // Assert
+    assert!(!include_test_targets);
+}
+
+#[test]
+fn strict_of_a_default_config_returns_false() {
+    // Arrange
+    let config = Config::default();
+
+    // Act
+    let strict = config.strict();
+
+    // Assert
+    assert!(!strict);
 }
 
 #[test]

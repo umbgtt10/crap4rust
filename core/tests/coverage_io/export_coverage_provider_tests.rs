@@ -56,6 +56,24 @@ fn provide_handles_multiple_data_chunks() {
 }
 
 #[test]
+fn provide_keeps_a_function_whose_first_region_ends_at_its_count() {
+    // Arrange
+    let source = InMemoryCoverageSource::new(export_of(vec![vec![exported_function(
+        &["src/lib.rs"],
+        &[&[10, 1, 20, 2, 5]],
+    )]]));
+
+    // Act
+    let records = ExportCoverageProvider::new(&source, &VerbatimPathKeys)
+        .provide(&[])
+        .expect("load coverage records");
+
+    // Assert
+    assert_eq!(records.len(), 1);
+    assert_eq!(records[0].covered_regions(), 1);
+}
+
+#[test]
 fn provide_keys_each_record_by_its_file_and_first_line() {
     // Arrange
     let source = InMemoryCoverageSource::new(export_of(vec![vec![exported_function(
