@@ -106,10 +106,20 @@ impl<'a> FileWalker<'a> {
         Ok(parsed_files)
     }
 
+    fn is_build_script(&self, file_path: &SourcePath) -> bool {
+        self.package
+            .build_script
+            .as_ref()
+            .is_some_and(|build_script| {
+                self.path_keys.key_of(build_script) == self.path_keys.key_of(file_path)
+            })
+    }
+
     fn is_selected(&self, file_path: &SourcePath) -> bool {
         let relative_file = Self::relative_file(&self.package.manifest_dir, file_path);
         Self::is_selected_relative_file(&relative_file, self.include_test_targets)
             && self.is_selected_source_file(file_path)
+            && !self.is_build_script(file_path)
             && !Self::is_excluded_relative_file(&relative_file, self.exclude_paths)
     }
 
@@ -121,20 +131,11 @@ impl<'a> FileWalker<'a> {
         };
         let relative = relative.strip_prefix('/').unwrap_or(relative);
 
-        let mut components = relative.split('/');
-        let Some(first) = components.next() else {
-            return true;
-        };
-
-        if matches!(first, "examples" | "benches") {
-            return false;
+        match relative.split('/').next() {
+            Some("examples" | "benches") => false,
+            Some("tests") => self.include_test_targets,
+            _ => true,
         }
-
-        if first == "tests" {
-            return self.include_test_targets;
-        }
-
-        !relative.ends_with("/build.rs") && relative != "build.rs"
     }
 
     fn module_prefix(source_root: &SourcePath, file_path: &SourcePath) -> Vec<String> {

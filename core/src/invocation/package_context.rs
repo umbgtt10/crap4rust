@@ -13,6 +13,7 @@ pub struct PackageContext {
     pub manifest_dir: SourcePath,
     pub workspace_root: SourcePath,
     pub source_roots: Vec<SourcePath>,
+    pub build_script: Option<SourcePath>,
     pub include_test_targets: bool,
     pub exclude_paths: Vec<String>,
 }

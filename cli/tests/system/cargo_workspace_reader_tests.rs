@@ -40,6 +40,28 @@ fn test_config() -> Config {
 }
 
 #[test]
+fn resolve_at_a_package_with_a_build_script_carries_its_path() {
+    // Arrange
+    let temp_dir = TempDir::new().expect("temp dir");
+    let manifest_path = solo_package_manifest(&temp_dir);
+    fs::write(temp_dir.path().join("build.rs"), "fn main() {}\n").expect("write build.rs");
+    let config = test_config().with_packages(vec![]);
+
+    // Act
+    let packages = resolve(manifest_path, &config).expect("resolve packages");
+
+    // Assert
+    let build_script = packages[0]
+        .build_script
+        .as_ref()
+        .expect("cargo names the build script");
+    assert_eq!(
+        build_script.strip_prefix(&packages[0].manifest_dir),
+        Some("build.rs")
+    );
+}
+
+#[test]
 fn resolve_at_a_single_package_manifest_without_packages_selects_the_root() {
     // Arrange
     let temp_dir = TempDir::new().expect("temp dir");

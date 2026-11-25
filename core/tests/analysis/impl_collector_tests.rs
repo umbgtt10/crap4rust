@@ -18,6 +18,7 @@ fn test_package() -> PackageContext {
         manifest_dir: SourcePath::new(String::from("/project")),
         workspace_root: SourcePath::new(String::from("/project")),
         source_roots: Vec::new(),
+        build_script: None,
         include_test_targets: false,
         exclude_paths: Vec::new(),
     }

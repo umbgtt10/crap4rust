@@ -16,6 +16,7 @@ fn package(root: &str) -> PackageContext {
         manifest_dir: root.clone(),
         workspace_root: root.clone(),
         source_roots: vec![root.join("src")],
+        build_script: Some(root.join("build.rs")),
         include_test_targets: false,
         exclude_paths: vec![],
     }
@@ -116,6 +117,27 @@ fn is_selected_relative_file_without_test_targets_excludes_tests() {
 }
 
 #[test]
+fn process_source_root_finds_the_functions_of_a_module_named_build() {
+    // Arrange
+    let source_tree = InMemorySourceTree::new()
+        .with_file("/probe/src/lib.rs", "mod build;\n\npub fn alpha() {}\n")
+        .with_file("/probe/src/build.rs", "pub fn beta() {}\n");
+    let package = package("/probe");
+
+    // Act
+    let functions = FileWalker::new(&package, &source_tree, &VerbatimPathKeys)
+        .process_source_root(&path("/probe/src"))
+        .expect("walks");
+
+    // Assert
+    let names: Vec<&str> = functions
+        .iter()
+        .map(|function| function.name.as_str())
+        .collect();
+    assert_eq!(names, vec!["build::beta", "alpha"]);
+}
+
+#[test]
 fn process_source_root_finds_the_functions_of_its_files() {
     // Arrange
     let source_tree = InMemorySourceTree::new().with_file(
@@ -190,6 +212,30 @@ fn process_source_root_leaves_out_a_test_target_the_keys_name() {
     // Act
     let functions = FileWalker::new(&package, &source_tree, &CaseFoldingPathKeys)
         .process_source_root(&path("/probe"))
+        .expect("walks");
+
+    // Assert
+    let names: Vec<&str> = functions
+        .iter()
+        .map(|function| function.name.as_str())
+        .collect();
+    assert_eq!(names, vec!["alpha"]);
+}
+
+#[test]
+fn process_source_root_leaves_out_the_build_script_cargo_names() {
+    // Arrange
+    let source_tree = InMemorySourceTree::new()
+        .with_file("/probe/src/lib.rs", "pub fn alpha() {}\n")
+        .with_file("/probe/src/generate.rs", "fn main() {}\n");
+    let package = PackageContext {
+        build_script: Some(path("/probe/src/generate.rs")),
+        ..package("/probe")
+    };
+
+    // Act
+    let functions = FileWalker::new(&package, &source_tree, &VerbatimPathKeys)
+        .process_source_root(&path("/probe/src"))
         .expect("walks");
 
     // Assert

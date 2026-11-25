@@ -23,16 +23,7 @@ fn score_block(block: &Block, nesting: u32) -> u32 {
 fn score_stmt(stmt: &Stmt, nesting: u32) -> u32 {
     match stmt {
         Stmt::Local(local) => score_local_init(&local.init, nesting),
-        Stmt::Item(item) => match item {
-            Item::Fn(item_fn) => score_block(&item_fn.block, nesting),
-            Item::Mod(item_mod) => item_mod.content.as_ref().map_or(0, |(_, items)| {
-                items
-                    .iter()
-                    .map(|item| score_nested_item(item, nesting))
-                    .sum()
-            }),
-            _ => 0,
-        },
+        Stmt::Item(item) => score_nested_item(item, nesting),
         Stmt::Expr(expr, _) => score_expr(expr, nesting),
         Stmt::Macro(_) => 0,
     }
@@ -98,7 +89,9 @@ fn score_expr(expr: &Expr, nesting: u32) -> u32 {
                     .map(|argument| score_expr(argument, nesting))
                     .sum::<u32>()
         }
+        Expr::Cast(expr_cast) => score_expr(&expr_cast.expr, nesting),
         Expr::Closure(expr_closure) => score_expr(&expr_closure.body, nesting),
+        Expr::Const(expr_const) => score_block(&expr_const.block, nesting),
         Expr::Async(expr_async) => score_block(&expr_async.block, nesting),
         Expr::Await(expr_await) => score_expr(&expr_await.base, nesting),
         Expr::Try(expr_try) => score_expr(&expr_try.expr, nesting),
@@ -129,6 +122,7 @@ fn score_expr(expr: &Expr, nesting: u32) -> u32 {
             score_expr(&expr_index.expr, nesting) + score_expr(&expr_index.index, nesting)
         }
         Expr::Let(expr_let) => score_expr(&expr_let.expr, nesting),
+        Expr::RawAddr(expr_raw_addr) => score_expr(&expr_raw_addr.expr, nesting),
         Expr::Range(expr_range) => {
             expr_range
                 .start
@@ -170,7 +164,7 @@ fn score_expr(expr: &Expr, nesting: u32) -> u32 {
 fn score_if(expr_if: &ExprIf, nesting: u32) -> u32 {
     let mut score = 1
         + nesting
-        + logical_expr_score(&expr_if.cond)
+        + score_expr(&expr_if.cond, nesting)
         + score_block(&expr_if.then_branch, nesting + 1);
     if let Some((_, else_branch)) = &expr_if.else_branch {
         score += match else_branch.as_ref() {
@@ -194,7 +188,7 @@ fn score_match(expr_match: &ExprMatch, nesting: u32) -> u32 {
 fn score_arm(arm: &Arm, nesting: u32) -> u32 {
     arm.guard
         .as_ref()
-        .map_or(0, |(_, expr)| logical_expr_score(expr))
+        .map_or(0, |(_, expr)| score_expr(expr, nesting))
         + score_expr(&arm.body, nesting)
 }
 
@@ -206,7 +200,7 @@ fn score_for(expr_for: &ExprForLoop, nesting: u32) -> u32 {
 }
 
 fn score_while(expr_while: &ExprWhile, nesting: u32) -> u32 {
-    1 + nesting + logical_expr_score(&expr_while.cond) + score_block(&expr_while.body, nesting + 1)
+    1 + nesting + score_expr(&expr_while.cond, nesting) + score_block(&expr_while.body, nesting + 1)
 }
 
 fn score_loop(expr_loop: &ExprLoop, nesting: u32) -> u32 {
@@ -216,17 +210,6 @@ fn score_loop(expr_loop: &ExprLoop, nesting: u32) -> u32 {
 fn pattern_complexity(pattern: &Pat) -> u32 {
     match pattern {
         Pat::Or(pattern_or) => pattern_or.cases.len().saturating_sub(1) as u32,
-        _ => 0,
-    }
-}
-
-fn logical_expr_score(expr: &Expr) -> u32 {
-    match expr {
-        Expr::Binary(binary) => {
-            let current = logical_ops(binary);
-            current + logical_expr_score(&binary.left) + logical_expr_score(&binary.right)
-        }
-        Expr::Paren(paren) => logical_expr_score(&paren.expr),
         _ => 0,
     }
 }

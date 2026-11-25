@@ -52,9 +52,6 @@ impl CargoWorkspaceReader {
                 .into_iter()
                 .map(Self::package)
                 .collect(),
-            root_package: metadata
-                .root_package()
-                .map(|package| package.name.to_string()),
         }
     }
 }

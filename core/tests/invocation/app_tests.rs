@@ -85,6 +85,7 @@ fn sample_package() -> PackageContext {
         manifest_dir: SourcePath::new(String::from("/probe")),
         workspace_root: SourcePath::new(String::from("/probe")),
         source_roots: vec![],
+        build_script: None,
         include_test_targets: false,
         exclude_paths: vec![],
     }

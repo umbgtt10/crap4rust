@@ -5,6 +5,8 @@
 use alloc::collections::BTreeMap;
 use alloc::string::{String, ToString};
 use alloc::vec::Vec;
+use core::cmp;
+use core::cmp::Reverse;
 
 use crate::analysis::source_function::SourceFunction;
 use crate::coverage_io::coverage_record::CoverageRecord;
@@ -68,17 +70,8 @@ impl CoverageIndex {
     }
 
     fn merge_duplicate(existing: CoverageRecord, incoming: CoverageRecord) -> CoverageRecord {
-        if incoming.covered_regions() == 0 && existing.covered_regions() > 0 {
-            return existing;
-        }
-        if existing.covered_regions() == 0 && incoming.covered_regions() > 0 {
-            return incoming;
-        }
-        CoverageRecord::new(
-            existing.path_key().to_string(),
-            existing.line(),
-            existing.covered_regions() + incoming.covered_regions(),
-            existing.total_regions() + incoming.total_regions(),
-        )
+        cmp::max_by_key(existing, incoming, |record| {
+            (record.covered_regions(), Reverse(record.total_regions()))
+        })
     }
 }

@@ -97,6 +97,41 @@ tested, `from_records_aggregates_duplicate_entries`) behavior for that case.
 `tests/fixtures/fixture_tests.rs` at the CLI level through the
 `aggregation_fixture` crate.
 
+## Amendment (2026-11-25)
+
+The sum is gone. `merge_duplicate` keeps one of the two records: the one
+with the most covered regions, and of two with as many, the one with fewer
+regions in all -- the higher ratio of the two. `core::cmp::max_by_key` picks
+it on `(covered_regions, Reverse(total_regions))`, so the choice still does
+not depend on arrival order, which is what this decision exists for.
+
+Summing was not monotone: one more covered region in a duplicate could
+lower the merged ratio. A `3/5` record beside a `0/5` ghost merged to `3/5`
+(0.6), the ghost discarded; beside a `1/5` duplicate the two were summed, to
+`4/10` (0.4). sentinel4rust's round on f6f0ab7 (2026-11-25) found it. Keeping
+the better-covered record makes a ghost a case of the rule rather than an
+exception to it, and the merge monotone in either record's covered regions
+when both count the same regions -- the same function compiled twice, which
+is what a duplicate is.
+
+What changes. Two non-zero duplicates no longer sum: `3/5` and `2/5` keep
+`3/5`, where they made `5/10`. Two zero duplicates keep the smaller: `0/3`
+and `0/2` keep `0/2`, where they made `0/5`. A function whose duplicates
+both ran, or both never ran, counts its regions once in `match_function`'s
+sum over its span, not twice. Two genuinely distinct functions starting on
+one line, which the sum added up, now count as the better covered of the
+two: the index keys a record by line, with no column to tell them apart.
+
+The Decision, Consequences and Enforcement above stand except where they say
+the two are summed. In `core/tests/coverage_io/coverage_index_tests.rs`,
+`from_records_aggregates_duplicate_entries` is now
+`from_records_keeps_the_duplicate_with_more_covered_regions` (0.6, was
+0.5), and `from_records_sums_duplicates_that_are_both_zero` is now
+`from_records_keeps_the_smaller_of_two_duplicates_that_are_both_zero` (`0/2`,
+was `0/5`); `from_records_keeps_the_duplicate_with_more_covered_regions_when_it_arrives_second`
+and the two `from_records_of_equally_covered_duplicates_keeps_the_smaller*`
+tests pin the rest, each in both arrival orders.
+
 ## Related
 
 - `CHANGELOG.md`'s `[0.6.1]`/`[0.6.2]` entries — the two earlier, narrower
