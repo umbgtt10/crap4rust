@@ -2,7 +2,6 @@
 // Licensed under the MIT License
 // SPDX-License-Identifier: MIT
 
-use alloc::string::String;
 use alloc::vec::Vec;
 
 use crate::analysis::source_path::SourcePath;
@@ -14,5 +13,4 @@ use crate::invocation::package_description::PackageDescription;
 pub struct WorkspaceDescription {
     pub workspace_root: SourcePath,
     pub packages: Vec<PackageDescription>,
-    pub root_package: Option<String>,
 }

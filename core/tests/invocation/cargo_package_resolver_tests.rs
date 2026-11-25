@@ -26,22 +26,17 @@ fn path(text: &str) -> SourcePath {
     SourcePath::new(String::from(text))
 }
 
-fn workspace(
-    packages: Vec<PackageDescription>,
-    root_package: Option<&str>,
-) -> WorkspaceDescription {
+fn workspace(packages: Vec<PackageDescription>) -> WorkspaceDescription {
     WorkspaceDescription {
         workspace_root: path("/ws"),
         packages,
-        root_package: root_package.map(String::from),
     }
 }
 
 #[test]
 fn resolve_a_package_carries_its_directory_the_workspace_root_and_the_run_options() {
     // Arrange
-    let reader =
-        InMemoryWorkspaceReader::new(workspace(vec![library_package("solo", "/ws/solo")], None));
+    let reader = InMemoryWorkspaceReader::new(workspace(vec![library_package("solo", "/ws/solo")]));
     let config = Config::default()
         .with_include_test_targets(true)
         .with_exclude_paths(vec![String::from("src/generated")]);
@@ -70,7 +65,7 @@ fn resolve_a_package_whose_manifest_has_no_parent_returns_an_error() {
         manifest_path: path(""),
         targets: vec![],
     };
-    let reader = InMemoryWorkspaceReader::new(workspace(vec![package], None));
+    let reader = InMemoryWorkspaceReader::new(workspace(vec![package]));
 
     // Act
     let result = CargoPackageResolver::new(&reader).resolve(&Config::default());
@@ -100,7 +95,7 @@ fn resolve_a_package_with_a_build_script_carries_its_path() {
             },
         ],
     };
-    let reader = InMemoryWorkspaceReader::new(workspace(vec![package], None));
+    let reader = InMemoryWorkspaceReader::new(workspace(vec![package]));
 
     // Act
     let packages = CargoPackageResolver::new(&reader)
@@ -125,7 +120,7 @@ fn resolve_a_package_with_no_production_target_falls_back_to_its_src() {
             src_path: path("/ws/bare/benches/b.rs"),
         }],
     };
-    let reader = InMemoryWorkspaceReader::new(workspace(vec![package], None));
+    let reader = InMemoryWorkspaceReader::new(workspace(vec![package]));
 
     // Act
     let packages = CargoPackageResolver::new(&reader)
@@ -139,8 +134,7 @@ fn resolve_a_package_with_no_production_target_falls_back_to_its_src() {
 #[test]
 fn resolve_a_package_without_a_build_script_carries_none() {
     // Arrange
-    let reader =
-        InMemoryWorkspaceReader::new(workspace(vec![library_package("solo", "/ws/solo")], None));
+    let reader = InMemoryWorkspaceReader::new(workspace(vec![library_package("solo", "/ws/solo")]));
 
     // Act
     let packages = CargoPackageResolver::new(&reader)
@@ -167,8 +161,7 @@ fn resolve_with_a_workspace_that_cannot_be_read_returns_the_error() {
 #[test]
 fn resolve_with_an_unknown_package_names_it() {
     // Arrange
-    let reader =
-        InMemoryWorkspaceReader::new(workspace(vec![library_package("solo", "/ws/solo")], None));
+    let reader = InMemoryWorkspaceReader::new(workspace(vec![library_package("solo", "/ws/solo")]));
     let config = Config::default().with_packages(vec![String::from("no-such-package")]);
 
     // Act
@@ -185,7 +178,7 @@ fn resolve_with_an_unknown_package_names_it() {
 #[test]
 fn resolve_with_no_members_returns_an_error() {
     // Arrange
-    let reader = InMemoryWorkspaceReader::new(workspace(vec![], None));
+    let reader = InMemoryWorkspaceReader::new(workspace(vec![]));
 
     // Act
     let result = CargoPackageResolver::new(&reader).resolve(&Config::default());
@@ -202,10 +195,10 @@ fn resolve_with_no_members_returns_an_error() {
 fn resolve_with_requested_packages_returns_them_in_request_order() {
     // Arrange
     let config = Config::default().with_packages(vec![String::from("b"), String::from("a")]);
-    let workspace = workspace(
-        vec![library_package("a", "/ws/a"), library_package("b", "/ws/b")],
-        None,
-    );
+    let workspace = workspace(vec![
+        library_package("a", "/ws/a"),
+        library_package("b", "/ws/b"),
+    ]);
 
     // Act
     let names = names(&config, workspace);
@@ -217,7 +210,7 @@ fn resolve_with_requested_packages_returns_them_in_request_order() {
 #[test]
 fn resolve_without_packages_in_a_workspace_of_one_selects_its_root() {
     // Arrange
-    let workspace = workspace(vec![library_package("solo", "/ws")], Some("solo"));
+    let workspace = workspace(vec![library_package("solo", "/ws")]);
 
     // Act
     let names = names(&Config::default(), workspace);
@@ -229,13 +222,10 @@ fn resolve_without_packages_in_a_workspace_of_one_selects_its_root() {
 #[test]
 fn resolve_without_packages_in_a_workspace_with_a_root_and_members_selects_every_member() {
     // Arrange
-    let workspace = workspace(
-        vec![
-            library_package("root", "/ws"),
-            library_package("member", "/ws/member"),
-        ],
-        Some("root"),
-    );
+    let workspace = workspace(vec![
+        library_package("root", "/ws"),
+        library_package("member", "/ws/member"),
+    ]);
 
     // Act
     let names = names(&Config::default(), workspace);

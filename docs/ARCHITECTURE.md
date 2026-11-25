@@ -91,7 +91,7 @@ memory by core's tests:
 |---|---|---|
 | `SourceTree` | `WalkdirSourceTree` | the `.rs` files under a root, and a file's text |
 | `PathKeys` | `CanonicalPathKeys` | the key a source file and a coverage record are matched by: the canonical path, with `/` separators, lower case on Windows |
-| `WorkspaceReader` | `CargoWorkspaceReader` | the workspace's members, their targets and its root package, from `cargo metadata --no-deps` |
+| `WorkspaceReader` | `CargoWorkspaceReader` | the workspace's root and members, with their targets, from `cargo metadata --no-deps` |
 | `CoverageSource` | `LlvmCovSource` | cargo-llvm-cov's export for the selected packages: the `--coverage` file, or one generated under `target/crap4rust/` through `LlvmCovBuilder` -- whose failures `LlvmCovFailure` describes, telling an absent `cargo-llvm-cov` from a coverage run that genuinely failed -- read and parsed from JSON |
 
 The line runs between the coverage arithmetic and its technology: cli runs
@@ -149,9 +149,9 @@ entire file-based submodule.
 
 | Type | Scope | Carries |
 |---|---|---|
-| `WorkspaceDescription`, `PackageDescription`, `TargetDescription` | the workspace as a `WorkspaceReader` describes it | its root, its members' names, manifests and targets (kinds and source paths), and the root package |
+| `WorkspaceDescription`, `PackageDescription`, `TargetDescription` | the workspace as a `WorkspaceReader` describes it | its root, and its members' names, manifests and targets (kinds and source paths) |
 | `Export`, `ExportChunk`, `ExportFunction` | one coverage export, as a `CoverageSource` hands it over | each function's file names and regions, as cargo-llvm-cov wrote them |
-| `PackageContext` | one resolved Cargo package | name, manifest dir, workspace root, resolved source roots, and the `include_test_targets`/`exclude_paths` settings that applied when it was built |
+| `PackageContext` | one resolved Cargo package | name, manifest dir, workspace root, resolved source roots, its build script if cargo names one, and the `include_test_targets`/`exclude_paths` settings that applied when it was built |
 | `SourceFunction` | one discovered function | qualified name, file path (both a normalized `path_key` for coverage matching and a human-readable `relative_file`), `[line, end_line]` span, and its own `complexity` |
 | `CoverageRecord` | one llvm-cov region (post-merge) | `path_key`, `line`, `covered_regions`/`total_regions` |
 | `FunctionReport` | one scored function | everything `SourceFunction` carries, plus `coverage`, `crap_score`, and `verdict` |
