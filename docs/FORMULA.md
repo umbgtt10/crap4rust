@@ -197,12 +197,17 @@ coverage in `DefaultScorer::score_function`, not to being skipped.
 
 Duplicate records for the same `(path_key, line)` — which `cargo-llvm-cov`
 emits when a function compiles into more than one object file, one of them
-a zero-count "ghost" instantiation — are resolved symmetrically regardless
-of which one arrives first: whichever side has `covered_regions == 0` is
-discarded in favor of the other if exactly one side is zero; otherwise
-(both zero, or both non-zero) the two are summed. See
-`docs/ADRs/ADR-SymmetricDuplicateCoverageHandling.md` for why this has to
-be order-independent and the bug that motivated it.
+often a zero-count "ghost" instantiation — are resolved by keeping one of
+them, the same one whichever arrives first: the record with the most
+covered regions; of two with as many, the one with fewer regions in all,
+whose ratio is the higher. Two duplicates that are both zero are such a
+tie: `0/3` and `0/2` keep `0/2`. Nothing is summed, so a ghost is the rule's
+case rather than its exception, and one more covered region in either
+duplicate never lowers the result when the two count the same regions:
+`3/5` beside `0/5` and `3/5` beside `1/5` both keep `3/5`. See
+`docs/ADRs/ADR-SymmetricDuplicateCoverageHandling.md`, and its amendment of
+2026-11-25, for why this has to be order-independent and the bugs that
+motivated it.
 
 ---
 
