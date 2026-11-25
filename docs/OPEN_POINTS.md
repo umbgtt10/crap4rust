@@ -39,3 +39,24 @@ at the package root that is not the build script (`build = false`, or
 function, its `pub` surface and its six tests in `file_walker_tests.rs` --
 waits for the owner's word, since it removes tests. Found by sentinel4rust's
 round on f6f0ab7 (2026-11-25).
+
+## One shared "is this test code?" check
+
+Deferred by the owner 2026-11-25. `ImplCollector::is_test_attr` takes any
+attribute to mark test code when its path, or a path one or two levels
+inside its arguments, ends in `test`: so `#[cfg(not(test))]` -- code that
+exists only *outside* tests -- and `#[cfg_attr(test, derive(..))]` -- code
+that exists in every build -- are both left out of discovery as test code,
+and their functions are never scored. sentinel4rust's round on f6f0ab7
+(2026-11-25) reported it.
+
+The same defect exists in crap4rust, grip4rust, braintax4rust, iceberg4rust
+and slotgate, so it is not fixed here alone: the check is to be written once
+with shared test vectors and adopted by every tool. The vectors:
+
+- an attribute whose path ends in `test` (`#[test]`, `#[tokio::test]`) marks
+  test code;
+- `cfg(P)` is test-only when `P` is test-only: `test` is; `all(..)` is when
+  any of its parts is; `any(..)` is when every one of its parts is; `not(..)`
+  never is;
+- `cfg_attr(..)` never makes an item test-only.
