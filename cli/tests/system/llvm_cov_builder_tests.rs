@@ -23,6 +23,7 @@ fn package(name: &str) -> PackageContext {
         manifest_dir: SourcePath::new(String::from(".")),
         workspace_root: SourcePath::new(String::from(".")),
         source_roots: vec![],
+        build_script: None,
         include_test_targets: false,
         exclude_paths: vec![],
     }

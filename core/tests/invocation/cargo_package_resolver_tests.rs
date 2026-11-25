@@ -84,6 +84,37 @@ fn resolve_a_package_whose_manifest_has_no_parent_returns_an_error() {
 }
 
 #[test]
+fn resolve_a_package_with_a_build_script_carries_its_path() {
+    // Arrange
+    let package = PackageDescription {
+        name: String::from("built"),
+        manifest_path: path("/ws/built/Cargo.toml"),
+        targets: vec![
+            TargetDescription {
+                kinds: vec![String::from("lib")],
+                src_path: path("/ws/built/src/lib.rs"),
+            },
+            TargetDescription {
+                kinds: vec![String::from("custom-build")],
+                src_path: path("/ws/built/tools/generate.rs"),
+            },
+        ],
+    };
+    let reader = InMemoryWorkspaceReader::new(workspace(vec![package], None));
+
+    // Act
+    let packages = CargoPackageResolver::new(&reader)
+        .resolve(&Config::default())
+        .expect("resolve packages");
+
+    // Assert
+    assert_eq!(
+        packages[0].build_script,
+        Some(path("/ws/built/tools/generate.rs"))
+    );
+}
+
+#[test]
 fn resolve_a_package_with_no_production_target_falls_back_to_its_src() {
     // Arrange
     let package = PackageDescription {
@@ -103,6 +134,21 @@ fn resolve_a_package_with_no_production_target_falls_back_to_its_src() {
 
     // Assert
     assert_eq!(packages[0].source_roots, vec![path("/ws/bare/src")]);
+}
+
+#[test]
+fn resolve_a_package_without_a_build_script_carries_none() {
+    // Arrange
+    let reader =
+        InMemoryWorkspaceReader::new(workspace(vec![library_package("solo", "/ws/solo")], None));
+
+    // Act
+    let packages = CargoPackageResolver::new(&reader)
+        .resolve(&Config::default())
+        .expect("resolve packages");
+
+    // Assert
+    assert_eq!(packages[0].build_script, None);
 }
 
 #[test]

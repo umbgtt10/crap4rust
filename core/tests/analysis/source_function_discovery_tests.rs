@@ -16,6 +16,7 @@ fn package() -> PackageContext {
         manifest_dir: root.clone(),
         workspace_root: root.clone(),
         source_roots: vec![root.join("src")],
+        build_script: None,
         include_test_targets: false,
         exclude_paths: vec![],
     }

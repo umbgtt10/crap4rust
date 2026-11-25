@@ -47,9 +47,18 @@ impl<'a> CargoPackageResolver<'a> {
             manifest_dir,
             workspace_root: workspace_root.clone(),
             source_roots,
+            build_script: Self::build_script(package),
             include_test_targets,
             exclude_paths,
         })
+    }
+
+    fn build_script(package: &PackageDescription) -> Option<SourcePath> {
+        package
+            .targets
+            .iter()
+            .find(|target| target.kinds.iter().any(|kind| kind == "custom-build"))
+            .map(|target| target.src_path.clone())
     }
 
     fn select_packages<'w>(

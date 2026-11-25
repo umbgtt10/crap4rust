@@ -108,8 +108,11 @@ which runs in two phases per source root:
 1. **`collect_parsed_files`** — take every `.rs` file the `SourceTree` lists
    under the source root, apply the path-based selection rules (`is_selected_relative_file`,
    `is_selected_source_file`, `is_excluded_relative_file` — `examples/`,
-   `benches/`, `build.rs`, and, unless `--include-test-targets`, `tests/`),
-   read and `syn::parse_file` every file that survives, and return the
+   `benches/`, `build.rs` at the package root, and, unless
+   `--include-test-targets`, `tests/`), leave out the package's build script
+   -- the `custom-build` target cargo names, `PackageContext::build_script`,
+   compared by `PathKeys` key, so a `src/build.rs` that is a module is
+   scored -- read and `syn::parse_file` every file that survives, and return the
    whole `Vec<(SourcePath, syn::File)>` — nothing is scored yet.
 2. **`TestModuleRegistry::build`** runs once over that same in-memory set,
    resolving every file-based `#[cfg(test)] mod name;` declaration (inline

@@ -24,3 +24,18 @@ real-world coverage file exercised so far has `kind == 0` (Code) throughout,
 so this has not been observed to produce an incorrect ratio, and changing it
 without a concrete, reproduced discrepancy would be speculative. Not
 started; flagged here rather than silently assumed correct.
+
+## `is_selected_relative_file` repeats `is_selected_source_file`
+
+`FileWalker::is_selected` asks `is_selected_relative_file` -- the raw path's
+`examples/`, `benches/`, `tests/` and `build.rs` at the package root -- and
+then `is_selected_source_file`, the same questions asked of the `PathKeys`
+keys, which answer every case the raw path does and the spellings it misses
+(`Tests/` on a file system that ignores case). The build script is left out
+by `is_build_script`, against the `custom-build` target cargo names. So the
+raw check decides nothing of its own but one case it gets wrong: a `build.rs`
+at the package root that is not the build script (`build = false`, or
+`build = "other.rs"`), which it still leaves out. Its retirement -- the
+function, its `pub` surface and its six tests in `file_walker_tests.rs` --
+waits for the owner's word, since it removes tests. Found by sentinel4rust's
+round on f6f0ab7 (2026-11-25).
