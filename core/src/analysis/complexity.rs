@@ -129,7 +129,6 @@ fn score_expr(expr: &Expr, nesting: u32) -> u32 {
             score_expr(&expr_index.expr, nesting) + score_expr(&expr_index.index, nesting)
         }
         Expr::Let(expr_let) => score_expr(&expr_let.expr, nesting),
-        Expr::Macro(_) => 0,
         Expr::Range(expr_range) => {
             expr_range
                 .start
@@ -228,7 +227,6 @@ fn logical_expr_score(expr: &Expr) -> u32 {
             current + logical_expr_score(&binary.left) + logical_expr_score(&binary.right)
         }
         Expr::Paren(paren) => logical_expr_score(&paren.expr),
-        Expr::Group(group) => logical_expr_score(&group.expr),
         _ => 0,
     }
 }
