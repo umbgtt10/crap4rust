@@ -23,16 +23,7 @@ fn score_block(block: &Block, nesting: u32) -> u32 {
 fn score_stmt(stmt: &Stmt, nesting: u32) -> u32 {
     match stmt {
         Stmt::Local(local) => score_local_init(&local.init, nesting),
-        Stmt::Item(item) => match item {
-            Item::Fn(item_fn) => score_block(&item_fn.block, nesting),
-            Item::Mod(item_mod) => item_mod.content.as_ref().map_or(0, |(_, items)| {
-                items
-                    .iter()
-                    .map(|item| score_nested_item(item, nesting))
-                    .sum()
-            }),
-            _ => 0,
-        },
+        Stmt::Item(item) => score_nested_item(item, nesting),
         Stmt::Expr(expr, _) => score_expr(expr, nesting),
         Stmt::Macro(_) => 0,
     }

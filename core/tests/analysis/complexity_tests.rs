@@ -270,6 +270,18 @@ fn cognitive_complexity_of_a_method_in_a_nested_module_returns_the_score_of_its_
 }
 
 #[test]
+fn cognitive_complexity_of_a_method_in_an_impl_in_the_body_returns_the_score_of_its_body() {
+    // Arrange
+    let block = parse_fn_block("impl S { fn inner() { if a { } } }");
+
+    // Act
+    let score = cognitive_complexity(&block);
+
+    // Assert
+    assert_eq!(score, 1);
+}
+
+#[test]
 fn cognitive_complexity_of_a_module_in_a_nested_module_returns_the_score_of_its_functions() {
     // Arrange
     let block = parse_fn_block("mod m { mod n { fn inner() { if a { } } } }");

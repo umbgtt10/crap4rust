@@ -36,6 +36,12 @@ blocks, closures, and so on) contributes `0` directly but is still walked
 recursively, so a decision point nested inside a closure or call argument is
 still found and scored.
 
+Items declared inside a body are walked the same way wherever they sit: a
+nested `fn`'s body, the methods of an `impl` and an inline `mod`'s items,
+recursively, each scored at the nesting of the statement that declares them.
+An `impl` written directly in a function body counts as it does inside a
+`mod` there: one path, `score_nested_item`, scores both.
+
 ### Conditions and guards: `logical_expr_score`
 
 `if`, `while`, and `match` guard conditions are *not* walked by the general
