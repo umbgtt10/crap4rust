@@ -7,7 +7,7 @@ use alloc::vec::Vec;
 use core::iter;
 
 use syn::spanned::Spanned;
-use syn::{File, Item, ItemEnum, ItemFn, ItemMod, ItemStruct};
+use syn::{File, Item, ItemFn, ItemMod};
 
 use crate::analysis::complexity::cognitive_complexity;
 use crate::analysis::impl_collector::ImplCollector;
@@ -90,7 +90,6 @@ impl<'a> ItemVisitor<'a> {
             Item::Mod(item_mod) if !ImplCollector::is_test_attrs(&item_mod.attrs) => {
                 self.visit_module(item_mod, inline_modules)
             }
-            Item::Enum(ItemEnum { .. }) | Item::Struct(ItemStruct { .. }) => Vec::new(),
             _ => Vec::new(),
         }
     }

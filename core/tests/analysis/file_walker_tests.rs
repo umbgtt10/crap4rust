@@ -2,6 +2,7 @@
 // Licensed under the MIT License
 // SPDX-License-Identifier: MIT
 
+use crate::support::case_folding_path_keys::CaseFoldingPathKeys;
 use crate::support::in_memory_source_tree::InMemorySourceTree;
 use crate::support::verbatim_path_keys::VerbatimPathKeys;
 use crap4rust::analysis::file_walker::FileWalker;
@@ -134,6 +135,69 @@ fn process_source_root_finds_the_functions_of_its_files() {
         .map(|function| function.name.as_str())
         .collect();
     assert_eq!(names, vec!["alpha", "beta"]);
+}
+
+#[test]
+fn process_source_root_leaves_out_a_build_script_the_keys_name() {
+    // Arrange
+    let source_tree = InMemorySourceTree::new()
+        .with_file("/probe/lib.rs", "pub fn alpha() {}\n")
+        .with_file("/probe/Build.rs", "fn main() {}\n");
+    let package = package("/probe");
+
+    // Act
+    let functions = FileWalker::new(&package, &source_tree, &CaseFoldingPathKeys)
+        .process_source_root(&path("/probe"))
+        .expect("walks");
+
+    // Assert
+    let names: Vec<&str> = functions
+        .iter()
+        .map(|function| function.name.as_str())
+        .collect();
+    assert_eq!(names, vec!["alpha"]);
+}
+
+#[test]
+fn process_source_root_leaves_out_a_test_target_file() {
+    // Arrange
+    let source_tree = InMemorySourceTree::new()
+        .with_file("/probe/lib.rs", "pub fn alpha() {}\n")
+        .with_file("/probe/tests/check.rs", "fn check() {}\n");
+    let package = package("/probe");
+
+    // Act
+    let functions = FileWalker::new(&package, &source_tree, &VerbatimPathKeys)
+        .process_source_root(&path("/probe"))
+        .expect("walks");
+
+    // Assert
+    let names: Vec<&str> = functions
+        .iter()
+        .map(|function| function.name.as_str())
+        .collect();
+    assert_eq!(names, vec!["alpha"]);
+}
+
+#[test]
+fn process_source_root_leaves_out_a_test_target_the_keys_name() {
+    // Arrange
+    let source_tree = InMemorySourceTree::new()
+        .with_file("/probe/lib.rs", "pub fn alpha() {}\n")
+        .with_file("/probe/Tests/check.rs", "fn check() {}\n");
+    let package = package("/probe");
+
+    // Act
+    let functions = FileWalker::new(&package, &source_tree, &CaseFoldingPathKeys)
+        .process_source_root(&path("/probe"))
+        .expect("walks");
+
+    // Assert
+    let names: Vec<&str> = functions
+        .iter()
+        .map(|function| function.name.as_str())
+        .collect();
+    assert_eq!(names, vec!["alpha"]);
 }
 
 // A package without the directory has nothing there to score, which is not a

@@ -35,6 +35,21 @@ fn visit_items_delegates_impl_blocks_to_impl_collector() {
 }
 
 #[test]
+fn visit_items_excludes_cfg_test_impl_block() {
+    // Arrange
+    let package = test_package();
+    let file = parse_file("struct Foo;\n#[cfg(test)]\nimpl Foo {\n    fn helper(&self) {}\n}")
+        .expect("parse source");
+    let visitor = ItemVisitor::new(&package, "src/lib.rs", "src/lib.rs", &[]);
+
+    // Act
+    let functions = visitor.visit_items(&file, &[]);
+
+    // Assert
+    assert!(functions.is_empty());
+}
+
+#[test]
 fn visit_items_excludes_cfg_test_module() {
     // Arrange
     let package = test_package();
