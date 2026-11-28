@@ -6,27 +6,12 @@ license = "MIT"
 description = "Gate orchestration for the crap4rust workspace"
 publish = false
 
-autotests = false
-
-[lib]
-name = "xtask"
-path = "src/lib.rs"
-
 [[bin]]
 name = "xtask"
 path = "src/main.rs"
 
-[[test]]
-name = "all_tests"
-path = "tests/all_tests.rs"
-
 [dependencies]
-serde = { workspace = true }
-serde_json = { workspace = true }
-syn = { workspace = true }
-
-[dev-dependencies]
-tempfile = { workspace = true }
+serge4rust = { workspace = true }
 
 [lints]
 workspace = true
