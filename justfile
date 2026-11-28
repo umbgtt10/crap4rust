@@ -31,15 +31,18 @@ hooks:
 sync:
     cargo xtask sync
 
-# Formatting, clippy and tests -- cargo built-ins only, so it works on a fresh
-# checkout with none of the house tools installed.
+# The lock synced, then formatting, clippy and tests -- cargo built-ins plus
+# cargo-llvm-cov, none of the house tools: crap4rust is the coverage tool, and
+# its validation tests drive the built binary through the path that runs it.
 stage1: sync
     cargo fmt {{fmt_mode}}
     cargo clippy --workspace --all-targets -- -D warnings
     cargo test --workspace
 
-# House rules, duplication, CRAP, mirrored tests and file risk, run in that
-# order.
+# The technology-free core, house rules, unused dependencies, duplication,
+# CRAP, mirrored tests, file risk and the dependencies' advisories, licences
+# and sources, run in that order: serge4rust's gates, configured in
+# xtask/src/main.rs.
 stage2:
     cargo xtask stage2
 

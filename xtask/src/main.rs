@@ -68,8 +68,9 @@ const DRY_BASELINE: &str = "dry4rust-baseline.json";
 const DRY_MIN_NODES: &str = "25";
 const DENY_FETCH_ATTEMPTS: usize = 3;
 
-// Reading the real process argv and wiring the concrete runner are the two
-// things no test can reach, so they are all this binary does.
+// Reading the real process argv and wiring the concrete runner into
+// serge4rust's gates, with this repository's constants, are all this binary
+// does: the gates and their tests are serge4rust's.
 fn main() -> ExitCode {
     match args().nth(1).as_deref() {
         Some("stage2") => run_stage2(),
@@ -125,10 +126,10 @@ fn run_stage2() -> ExitCode {
 
     // First: core stays free of technology -- only its allowed crates in its
     // manifest, `no_std` and `forbid(unsafe_code)` on its root, and no file
-    // system, process, environment or stdout in its tests -- so mutation testing
-    // it needs nothing but its own tests. A breach is fixed by moving code into
-    // cli, which changes what every later gate, stern4rust's included, measures;
-    // and it costs a second.
+    // system, process, environment or stdout in its sources and tests -- so
+    // mutation testing it needs nothing but its own tests. A breach is fixed by
+    // moving code into cli, which changes what every later gate, stern4rust's
+    // included, measures; and it costs a second.
     let root = workspace_root();
     let sources = DiskSourceFiles::new();
     let dependencies = PackageDependencies::new();

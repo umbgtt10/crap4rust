@@ -124,12 +124,12 @@ constructors, bridging until dry4rust left them out: `App::new`,
 and `ItemVisitor::new` the other. On 0.5.0 both matched nothing, and
 `cargo dry4rust cleanup` removed them as stale.
 
-All twenty-four of its rules apply to every workspace member, with nothing
-skipped, nothing selected and nothing unconfigured: `stern4rust.toml` holds no
-`skip`, no `rules` and no per-package section. `docs/header.txt` holds the
-three-line header every `.rs` file carries and `stern4rust.toml` names it -- in
-the config rather than the gate script, so a hand-run of `cargo stern4rust`
-checks exactly what the gate checks. The gate passes all four members by name,
+All thirty-nine of stern4rust's rules (cargo-stern4rust 0.24.0) apply to every
+workspace member, with nothing skipped, nothing selected and nothing
+unconfigured: `stern4rust.toml` holds no `skip`, no `rules` and no per-package
+section. `docs/header.txt` holds the three-line header every `.rs` file carries
+and `stern4rust.toml` names it -- in the config rather than the gate script, so
+a hand-run of `cargo stern4rust` checks exactly what the gate checks. The gate passes all four members by name,
 which is the same set a bare `cargo stern4rust` at the root scans.
 
 cargo-deny runs **last**, and is the one gate that can turn red with nothing
@@ -168,10 +168,11 @@ answers with the install line, instead of the bare
 
 The gates are a `justfile` plus an `xtask` workspace member, not scripts: one
 entry point that behaves the same on Linux, Windows and macOS, and gate
-orchestration in Rust rather than shell text-parsing. `xtask` reads crap4rust's
-`--output-format json` instead of matching a regex against its table, and names
-every offending function when it fails. `.github/workflows/ci.yml` runs both
-stages on all three platforms for every pull request and every push to `main`.
+orchestration in Rust rather than shell text-parsing. The CRAP gate reads
+crap4rust's `--output-format json` instead of matching a regex against its
+table, and names every offending function when it fails.
+`.github/workflows/ci.yml` runs both stages on all three platforms for every
+pull request and every push to `main`.
 
 The CRAP gate measures this repository with the *published* crap4rust rather
 than the binary in the working tree, which is what the PowerShell gate did and

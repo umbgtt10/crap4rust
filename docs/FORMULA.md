@@ -103,10 +103,10 @@ like any other nested block-with-a-cost (`1 + nesting`), since unlike bare
 
 ## Per-function: the CRAP score
 
-`CrapFormula` (`crap_formula.rs`) is a stateless struct with two methods,
-mirroring `grip`'s own `ContributionSchedule`/braintax's own formula
-structs: a plain-data struct wrapping the formula's constants, not a bag of
-free functions.
+`CrapFormula` (`crap_formula.rs`) is a stateless unit struct whose two
+methods, `score` and `classify`, are the formula, mirroring `grip`'s own
+`ContributionSchedule`/braintax's own formula structs: a struct, not a bag
+of free functions.
 
 ```
 CrapFormula::score(complexity, coverage) =
@@ -184,15 +184,17 @@ overall counts) is true.
 
 ## Coverage matching
 
-`CoverageIndex` (`coverage_index.rs`) indexes every `CoverageRecord` parsed
-from `cargo-llvm-cov`'s JSON export (`coverage.rs::load_coverage_records`)
-by `(path_key, line)`. `match_function_coverage` then looks up every
-coverage record whose `line` falls within a given function's own
-`[line, end_line]` span (not just its start line — a function with multiple
-coverage regions, e.g. an `if let`/`else if`/`else` chain, gets every region
-inside its span summed) and returns the aggregate `covered_regions /
-total_regions` ratio, or `None` if nothing in the index falls inside that
-span — a function with no matching coverage data at all defaults to `0.0`
+`ExportCoverageProvider` (`export_coverage_provider.rs`) turns each function
+of `cargo-llvm-cov`'s JSON export into a `CoverageRecord`: its file's key,
+the line its first region starts on, and how many of its regions ran at
+least once out of how many it has. `CoverageIndex` (`coverage_index.rs`)
+indexes those records by `(path_key, line)`. `match_function_coverage` then
+looks up every coverage record whose `line` falls within a given function's
+own `[line, end_line]` span (not just its start line — a closure or a nested
+function inside the span is a function of its own in the export, with a
+record of its own, and every record inside the span is summed) and returns
+the aggregate `covered_regions / total_regions` ratio, or `None` if nothing
+in the index falls inside that span — a function with no matching coverage data at all defaults to `0.0`
 coverage in `DefaultScorer::score_function`, not to being skipped.
 
 Duplicate records for the same `(path_key, line)` — which `cargo-llvm-cov`

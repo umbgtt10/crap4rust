@@ -6,6 +6,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Changed
+
+- The gates come from serge4rust 0.3.2, the house's gates as a library,
+  declared in `[workspace.dependencies]`: every gate, the stage that runs them
+  in order, the command runner, crap4rust's JSON report and the commit
+  scoring. `xtask` keeps `src/main.rs` alone, configuring them with this
+  repository's constants, and its own copies and their tests are gone. Every
+  argument, streamed line and verdict of both stages is unchanged, but for two
+  failure messages: an exit code a tool does not document reads "could not
+  run, exit code Some(n)", and a single crappy function "1 crappy function
+  detected".
+
+### Added
+
+- The root `Cargo.toml` declares both stages as the gates an upgrade must
+  pass, `[workspace.metadata.ripe4rust] gates = ["just stage1", "just
+  stage2"]`, and `just ripe` prints `cargo ripe4rust plan`'s plan, applying
+  nothing.
+
 ### Removed
 
 - `.dry4rust-ignore.toml`. Its two fingerprints held plain constructors --

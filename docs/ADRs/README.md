@@ -2,9 +2,9 @@
 
 Each ADR documents one load-bearing decision behind `cargo-crap4rust` —
 succinct, self-contained, citable on its own. Unlike the larger `etheram`
-ecosystem repos, these are not priority-tiered; `crap4rust` is a
-single-crate CLI tool with a small enough decision surface that a flat list
-is sufficient.
+ecosystem repos, these are not priority-tiered; `crap4rust` is a small
+tool -- an analysis crate and the command built on it -- with a decision
+surface small enough that a flat list is sufficient.
 
 ## Index
 
