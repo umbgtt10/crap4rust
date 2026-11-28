@@ -51,7 +51,7 @@ seven installed cargo subcommands, in this order:
 Every gate, the stage that runs them in order and stops at the first failure,
 the command runner, the failures they report, crap4rust's JSON report and the
 commit scoring come from serge4rust, the house's gates as a library: crates.io
-`serge4rust = "0.3.2"`, declared in `[workspace.dependencies]`. `xtask` keeps
+`serge4rust = "0.3.3"`, declared in `[workspace.dependencies]`. `xtask` keeps
 `src/main.rs` alone -- which gates each stage runs, in what order, and this
 repository's constants: the packages, the thresholds, the boundary's rule,
 dry4rust's exclusions, baseline and floor, cargo-deny's three fetches. A gate
@@ -108,30 +108,28 @@ not.
 It counts only code units of 25 AST nodes or more, the floor the family gates
 at. The baseline holds no group. The one it was recorded with --
 `App::with_deps`, now `App::new`, and `ImplCollector::new`, two constructors
-that each store their arguments field by field -- no longer matches:
-`ProjectReport::new` joined it, and the three are the first ignore entry below.
+that each store their arguments field by field -- is a plain constructor,
+`Self { a, b, c, d }`, and the installed dry4rust (0.5.0) leaves plain
+constructors out of what it compares (ADR-PlainConstructorsAreTheStructsShape,
+in dry4rust): each is its struct's shape, not copied logic.
 
 Re-record the baseline only to drop groups that are gone, never to admit new
 ones, and at the same floor -- a baseline matches only at the floor it was
 recorded at: `cargo dry4rust --path "$PWD" --exclude "$PWD/xtask" --exclude "$PWD/validation" --exclude "$PWD/fixture" --exclude "$PWD/core/tests" --exclude "$PWD/cli/tests" --min-nodes 25 --baseline "$PWD/dry4rust-baseline.json" baseline`.
 
-`.dry4rust-ignore.toml`, at the root dry4rust scans from -- the only place it
-reads one -- holds two fingerprints, with their reason:
-plain constructors -- `Self { a, b, c, d }` -- which look alike when they fill
-as many fields. What is left of them belongs to objects: stern4rust's
-`records-and-objects` lets an object keep its constructor and builds a record
-by literal. `App::new`, `ImplCollector::new` and `ProjectReport::new` are one
-group, `CoverageRecord::new` and `ItemVisitor::new` the other. dry4rust
-leaves plain constructors out from its next release
-(ADR-PlainConstructorsAreTheStructsShape, in dry4rust); until the gate installs
-it, these entries bridge, and the file goes when the release does.
+No `.dry4rust-ignore.toml` is kept. The one there was, at the root dry4rust
+scans from -- the only place it reads one -- held two fingerprints of plain
+constructors, bridging until dry4rust left them out: `App::new`,
+`ImplCollector::new` and `ProjectReport::new` one group, `CoverageRecord::new`
+and `ItemVisitor::new` the other. On 0.5.0 both matched nothing, and
+`cargo dry4rust cleanup` removed them as stale.
 
-All twenty-four of its rules apply to every workspace member, with nothing
-skipped, nothing selected and nothing unconfigured: `stern4rust.toml` holds no
-`skip`, no `rules` and no per-package section. `docs/header.txt` holds the
-three-line header every `.rs` file carries and `stern4rust.toml` names it -- in
-the config rather than the gate script, so a hand-run of `cargo stern4rust`
-checks exactly what the gate checks. The gate passes all four members by name,
+All thirty-nine of stern4rust's rules (cargo-stern4rust 0.24.0) apply to every
+workspace member, with nothing skipped, nothing selected and nothing
+unconfigured: `stern4rust.toml` holds no `skip`, no `rules` and no per-package
+section. `docs/header.txt` holds the three-line header every `.rs` file carries
+and `stern4rust.toml` names it -- in the config rather than the gate script, so
+a hand-run of `cargo stern4rust` checks exactly what the gate checks. The gate passes all four members by name,
 which is the same set a bare `cargo stern4rust` at the root scans.
 
 cargo-deny runs **last**, and is the one gate that can turn red with nothing
@@ -170,10 +168,11 @@ answers with the install line, instead of the bare
 
 The gates are a `justfile` plus an `xtask` workspace member, not scripts: one
 entry point that behaves the same on Linux, Windows and macOS, and gate
-orchestration in Rust rather than shell text-parsing. `xtask` reads crap4rust's
-`--output-format json` instead of matching a regex against its table, and names
-every offending function when it fails. `.github/workflows/ci.yml` runs both
-stages on all three platforms for every pull request and every push to `main`.
+orchestration in Rust rather than shell text-parsing. The CRAP gate reads
+crap4rust's `--output-format json` instead of matching a regex against its
+table, and names every offending function when it fails.
+`.github/workflows/ci.yml` runs both stages on all three platforms for every
+pull request and every push to `main`.
 
 The CRAP gate measures this repository with the *published* crap4rust rather
 than the binary in the working tree, which is what the PowerShell gate did and
@@ -193,9 +192,15 @@ rule.
   file in `core/` or `cli/`, so the measuring gates leave it alone; the binary
   they drive is cli's. Its `src/` is the
   apparatus those tests share -- `Fixture` locates a crate under `fixture/`,
-  `Source` finds the line a fixture function starts on -- and each test file is
-  named for the apparatus it is built on, which is what lets `paired-test-file`
-  hold there without the skip it used to need.
+  `Source` finds the line a fixture function starts on, `Binary` finds the
+  built `cargo-crap4rust` -- and each test file is named for the apparatus it
+  is built on, which is what lets `paired-test-file` hold there without the
+  skip it used to need. `Binary` reads the target directory from
+  `CARGO_TARGET_TMPDIR`, its `tmp` directory, and takes the binary from the
+  profile's directory beside it, failing with the build to run if it is not
+  there: cargo sets `CARGO_BIN_EXE_<name>` only for the binary's own package,
+  and cargo 1.100 moved the test executables, so neither is read. `cargo test
+  --workspace` builds the binary before any test runs.
 
 ### The stages are ripe4rust's gates
 
@@ -203,7 +208,13 @@ The root `Cargo.toml` declares both stages as the gates an upgrade must pass,
 so ripe4rust can judge an upgrade ripe rather than ask:
 `[workspace.metadata.ripe4rust] gates = ["just stage1", "just stage2"]`.
 `just ripe` runs `cargo ripe4rust plan`, which reports the plan and applies
-nothing: an upgrade being available is no breakage.
+nothing: an upgrade being available is no breakage. An upgrade held back is a
+pin in `[workspace.metadata.ripe4rust.pins]`, at the end of the root
+`Cargo.toml`, with its reason and the day to look at it again, as
+`cargo ripe4rust hold` prints it; none is held today. Beside the gates,
+`published = ["crap4rust-core"]` names the crates others depend on as
+libraries: `crap4rust-core` alone, for `cargo-crap4rust`'s library,
+`crap4rust_cli`, is a subcommand's, kept for its own tests.
 
 `cargo install cargo-ripe4rust`
 

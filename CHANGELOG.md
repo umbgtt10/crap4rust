@@ -6,6 +6,52 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Changed
+
+- `crap4rust-core` depends on syn 3 (3.0.10) where it depended on syn 2, so
+  the syntax tree it reads is syn 3's. What the tool reports does not move:
+  over this repository and three others, 1,378 functions in all, its human
+  and JSON reports are byte for byte those of the syn 2 build. A `match`
+  guard is read from the arm's pattern, a `Pat::Guard` in syn 3, where syn 2
+  held it in a field of the arm. The library's API moves with it:
+  `cognitive_complexity` takes syn 3's `Block`, `ImplCollector` its
+  `ItemImpl` and `Attribute`, `ItemVisitor::visit_items` and
+  `TestModuleRegistry::build` its `File`, and `DiscoveryFailure::Parse`
+  holds its `Error`, so a dependent handing them syn 2's types moves to syn 3
+  with it.
+- The gates come from serge4rust 0.3.3, the house's gates as a library,
+  declared in `[workspace.dependencies]`: every gate, the stage that runs them
+  in order, the command runner, crap4rust's JSON report and the commit
+  scoring. `xtask` keeps `src/main.rs` alone, configuring them with this
+  repository's constants, and its own copies and their tests are gone. Every
+  argument, streamed line and verdict of both stages is unchanged, but for how
+  a few failures read: a tool ending with an exit code it does not document
+  "could not run, exit code 2", one ended by a signal "could not run,
+  terminated by signal", a report that cannot be read with the run's
+  "(exit code 101)", and a single crappy function "1 crappy function
+  detected".
+- The validation tests find the built `cargo-crap4rust` through
+  `validation::binary::Binary`: in the target directory cargo names to them as
+  `CARGO_TARGET_TMPDIR`, under the profile's directory, failing with the build
+  to run when it is not there. assert_cmd's `Command::cargo_bin`, which they
+  used, looks beside the test executable for a binary of another package, and
+  cargo 1.100 runs test executables from elsewhere.
+
+### Added
+
+- The root `Cargo.toml` declares both stages as the gates an upgrade must
+  pass, `[workspace.metadata.ripe4rust] gates = ["just stage1", "just
+  stage2"]`, and `just ripe` prints `cargo ripe4rust plan`'s plan, applying
+  nothing. `published = ["crap4rust-core"]` beside them names the crate others
+  depend on as a library.
+
+### Removed
+
+- `.dry4rust-ignore.toml`. Its two fingerprints held plain constructors --
+  `Self { a, b, c, d }` -- out of the duplication gate until dry4rust left
+  them out itself; under dry4rust 0.5.0 both matched nothing, and
+  `cargo dry4rust cleanup` removed them as stale.
+
 ## [0.10.0] - 2026-11-25
 
 Scores change. A mutation-testing round -- sentinel4rust's survivors on

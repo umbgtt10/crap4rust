@@ -15,8 +15,8 @@ nested custom-accessor trust. Not started; the dominant real-world shape
 
 ## Coverage region "kind" is not distinguished
 
-`coverage.rs::load_coverage_records` treats every region in
-`cargo-llvm-cov`'s JSON export identically when computing
+`ExportCoverageProvider` (`export_coverage_provider.rs`) treats every region
+in `cargo-llvm-cov`'s JSON export identically when computing
 `covered_regions`/`total_regions` — it does not read each region's `kind`
 field (index 7 of the 8-element region array; `cargo-llvm-cov`'s own format
 distinguishes Code/Expansion/Skipped/Gap/Branch regions). Every fixture and

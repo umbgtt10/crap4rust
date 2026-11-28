@@ -120,10 +120,11 @@ which runs in two phases per source root:
    file it would compile to -- `name.rs` beside the declaring file, else
    `name/mod.rs`, whichever the tree listed, compared by `PathKeys` key --
    before any file's functions are recorded. The
-   main loop then skips any parsed file the registry resolved to, and
-   `visit_items`/`visit_item`/`visit_module` walk everything else, each
-   *returning* the `Vec<SourceFunction>` it found rather than writing into a
-   shared accumulator. See `docs/ADRs/ADR-CrossFileTestModuleExclusion.md`
+   main loop then skips any parsed file the registry resolved to, and walks
+   everything else through an `ItemVisitor` (`item_visitor.rs`) per file,
+   whose `visit_items`/`visit_item`/`visit_module` each *return* the
+   `Vec<SourceFunction>` they found rather than writing into a shared
+   accumulator. See `docs/ADRs/ADR-CrossFileTestModuleExclusion.md`
    for why this needs to be a project-wide pass rather than a per-file
    check, and its scope boundary (single-level, non-recursive across
    files).
@@ -134,16 +135,17 @@ and the actual function walk both operate on the same already-parsed
 
 ## Per-impl-block discovery: `ImplCollector`
 
-`ImplCollector` (`impl_collector.rs`) handles the one case `FileWalker`'s
-own AST walk delegates out: an `impl Type { ... }` block's methods, each
+`ImplCollector` (`impl_collector.rs`) handles the one case `ItemVisitor`'s
+AST walk delegates out: an `impl Type { ... }` block's methods, each
 qualified with the type's own name (`impl_type_name`) so `Foo::bar` and
 `Baz::bar` are reported as distinct functions even when their method names
-collide. `is_test_attrs`/`is_test_path` (also in this file) recognize
-`#[test]` and `#[cfg(test)]` — by trailing path segment, so
-`#[tokio::test]`-style attributes are caught too — and are shared by both
-`FileWalker` and `ImplCollector` so a test function is excluded identically
-whether it is a free function, a method, or (via `TestModuleRegistry`) an
-entire file-based submodule.
+collide. `is_test_attrs` (also in this file) recognizes test code by an
+attribute whose path, or a path one or two levels inside its arguments, ends
+in `test` — so `#[test]`, `#[tokio::test]` and `#[cfg(test)]` are all caught
+(and `#[cfg(not(test))]` too, which `docs/OPEN_POINTS.md` records) — and is
+shared by `ItemVisitor`, `ImplCollector` and `TestModuleRegistry`, so a test
+function is excluded identically whether it is a free function, a method, or
+an entire file-based submodule.
 
 ## Data model
 
@@ -153,7 +155,7 @@ entire file-based submodule.
 | `Export`, `ExportChunk`, `ExportFunction` | one coverage export, as a `CoverageSource` hands it over | each function's file names and regions, as cargo-llvm-cov wrote them |
 | `PackageContext` | one resolved Cargo package | name, manifest dir, workspace root, resolved source roots, its build script if cargo names one, and the `include_test_targets`/`exclude_paths` settings that applied when it was built |
 | `SourceFunction` | one discovered function | qualified name, file path (both a normalized `path_key` for coverage matching and a human-readable `relative_file`), `[line, end_line]` span, and its own `complexity` |
-| `CoverageRecord` | one llvm-cov region (post-merge) | `path_key`, `line`, `covered_regions`/`total_regions` |
+| `CoverageRecord` | one function of the coverage export, duplicates for one `(path_key, line)` resolved to one | `path_key`, `line` (where its first region starts), `covered_regions`/`total_regions` |
 | `FunctionReport` | one scored function | everything `SourceFunction` carries, plus `coverage`, `crap_score`, and `verdict` |
 | `ProjectMetrics` | one `App::run()` invocation | `total_functions`, `crappy_functions`, `crappy_percent`, project-level `verdict` |
 | `ProjectReport` | one `App::run()` invocation | `scope_name` (every scored package's name, joined) plus every field `ProjectMetrics` carries, plus the full `Vec<FunctionReport>` |

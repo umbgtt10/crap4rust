@@ -8,7 +8,9 @@ use serde_json::to_vec;
 use std::fs;
 use std::path::{Path, PathBuf};
 use tempfile::TempDir;
+use validation::binary::Binary;
 use validation::fixture::Fixture;
+use validation::profile_constants::PROFILE;
 use validation::source::Source;
 
 const FUNCTION_NAMES: &[&str] = &[
@@ -65,8 +67,7 @@ fn fixture_dir() -> PathBuf {
 fn run_report(coverage_path: &Path, threshold: &str) -> String {
     let manifest_path = fixture_dir().join("Cargo.toml");
 
-    let output = Command::cargo_bin("cargo-crap4rust")
-        .expect("binary")
+    let output = Command::new(Binary::new(Path::new(env!("CARGO_TARGET_TMPDIR")), PROFILE).path())
         .arg("--manifest-path")
         .arg(&manifest_path)
         .arg("--coverage")

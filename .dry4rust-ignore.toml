@@ -1,7 +1,0 @@
-[[ignore]]
-fingerprint = "7fa185b962625f1c"
-reason = "Plain constructors, Self { a, b, c, d }: what is left of them belongs to objects, which stern4rust's records-and-objects (R035) lets keep a constructor, and each is its struct's shape, not copied logic. dry4rust leaves plain constructors out from its next release (ADR-PlainConstructorsAreTheStructsShape); delete this entry then."
-
-[[ignore]]
-fingerprint = "caa15ffaa74a66ae"
-reason = "Plain constructors, Self { a, b, c, d }: what is left of them belongs to objects, which stern4rust's records-and-objects (R035) lets keep a constructor, and each is its struct's shape, not copied logic. dry4rust leaves plain constructors out from its next release (ADR-PlainConstructorsAreTheStructsShape); delete this entry then."

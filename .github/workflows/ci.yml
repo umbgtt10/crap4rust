@@ -38,9 +38,8 @@ jobs:
 
       # Both stages, not just stage 2. crap4rust is the coverage tool, so its
       # own validation tests drive the built binary through the path that
-      # shells out to cargo llvm-cov -- without it, stage 1 fails with
-      # `cargo llvm-cov failed with exit code Some(101)` and nothing about the
-      # message says an install is missing.
+      # shells out to cargo llvm-cov -- without it, stage 1 fails, the
+      # binary's error naming the missing install.
       - name: Install cargo-llvm-cov
         run: cargo install --locked cargo-llvm-cov
 

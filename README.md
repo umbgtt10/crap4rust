@@ -48,16 +48,20 @@ just stage1
 just stage2
 ```
 
-Both must be green before a change is complete. Stage 1 is formatting, clippy
-and tests; stage 2 is `cargo xtask stage2`, which runs, in order: the xtask's
-own technology-free gate (the analysis crate depends on `proc-macro2` and `syn`
+Both must be green before a change is complete. Stage 1 brings the lock file
+to the newest compatible versions (`cargo update`), then runs formatting, clippy
+and tests; stage 2 is `cargo xtask stage2`, which runs, in order: serge4rust's
+technology-free gate (the analysis crate depends on `proc-macro2` and `syn`
 only, is `no_std`, and its sources and tests reach no file system, process,
 environment or stdout), `cargo stern4rust` (house coding rules, every one of
 them, on every workspace member), `cargo shear` (every declared dependency
 used), `cargo dry4rust` (no duplication beyond `dry4rust-baseline.json`, one
 run over both published crates' sources), `cargo crap4rust` (complexity
 against coverage), `cargo twin4rust` (every source file has a mirrored test
-file) and `cargo iceberg4rust` (file risk).
+file), `cargo iceberg4rust` (file risk) and `cargo deny` (no advisory, refused
+licence or foreign source among the dependencies). Every gate comes from
+[`serge4rust`](https://crates.io/crates/serge4rust), the house's gates as a
+library; `xtask/src/main.rs` configures them for this repository.
 
 The workspace has four members: `core/`, the analysis, published as
 `crap4rust-core` (library `crap4rust`), technology-free and `no_std`; `cli/`,
@@ -84,6 +88,7 @@ Everything the two stages need, none of which ships with cargo:
 | `cargo-twin4rust` | `cargo install cargo-twin4rust` | stage 2 |
 | `cargo-iceberg4rust` | `cargo install cargo-iceberg4rust` | stage 2 |
 | [`cargo-shear`](https://github.com/Boshen/cargo-shear) | `cargo install --locked cargo-shear --version 1.14.0` | stage 2 |
+| [`cargo-deny`](https://github.com/EmbarkStudios/cargo-deny) | `cargo install --locked cargo-deny --version 0.20.2` | stage 2 |
 
 `cargo-llvm-cov` is needed by **stage 1 as well**, not only by the gate: this
 repository is the coverage tool, so its own validation tests drive the built

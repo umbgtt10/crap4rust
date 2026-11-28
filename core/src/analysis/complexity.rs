@@ -186,10 +186,11 @@ fn score_match(expr_match: &ExprMatch, nesting: u32) -> u32 {
 }
 
 fn score_arm(arm: &Arm, nesting: u32) -> u32 {
-    arm.guard
-        .as_ref()
-        .map_or(0, |(_, expr)| score_expr(expr, nesting))
-        + score_expr(&arm.body, nesting)
+    let guard = match &arm.pat {
+        Pat::Guard(pattern_guard) => score_expr(&pattern_guard.guard, nesting),
+        _ => 0,
+    };
+    guard + score_expr(&arm.body, nesting)
 }
 
 fn score_for(expr_for: &ExprForLoop, nesting: u32) -> u32 {

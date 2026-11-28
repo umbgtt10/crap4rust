@@ -2,5 +2,7 @@
 // Licensed under the MIT License
 // SPDX-License-Identifier: MIT
 
+pub mod binary;
 pub mod fixture;
+pub mod profile_constants;
 pub mod source;

@@ -246,6 +246,18 @@ fn cognitive_complexity_of_a_match_arm_returns_its_score_one_level_deeper() {
 }
 
 #[test]
+fn cognitive_complexity_of_a_match_guard_on_an_or_pattern_returns_the_score_of_its_condition() {
+    // Arrange
+    let block = parse_fn_block("match x { 1 | 2 if a && b => 1, _ => 0 };");
+
+    // Act
+    let score = cognitive_complexity(&block);
+
+    // Assert
+    assert_eq!(score, 2);
+}
+
+#[test]
 fn cognitive_complexity_of_a_match_guard_returns_the_score_of_an_if_in_it_one_level_deeper() {
     // Arrange
     let block = parse_fn_block("match x { n if f(if a { 1 } else { 2 }) => 1, _ => 0 };");

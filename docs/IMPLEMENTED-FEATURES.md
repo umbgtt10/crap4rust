@@ -1,6 +1,52 @@
 # Implemented Features
 
-This document describes the feature set currently shipped by `cargo-crap4rust`.
+This document describes the feature set currently shipped by `cargo-crap4rust`,
+release by release: each section is what that release added or changed, and a
+later section can supersede an earlier one.
+
+## Version 0.10.0
+
+### Correctness Fixes
+
+- A file named `build.rs` is scored unless it is the package's build script --
+  the `custom-build` target cargo metadata names -- so a `src/build.rs` that
+  `mod build;` declares is scored, and a build script at a custom path is left
+  out
+- An `impl` written directly in a function body is scored as one inside a
+  `mod` there is: its methods' decision points count toward the enclosing
+  function
+- A decision point inside an `if` or `while` condition (`if let` and
+  `while let` included) or a `match` guard is scored, each `&&`/`||` still
+  once; a cast's operand, a `const { .. }` block's body and a `&raw` borrow's
+  place are walked
+- Duplicate coverage records for one `(file, line)` resolve to the record with
+  the most covered regions -- of two with as many, the one with fewer regions
+  -- in either arrival order, and are never summed
+
+### Library
+
+- `PackageContext` gains `build_script`; `WorkspaceDescription` loses
+  `root_package`
+
+## Version 0.9.0
+
+### Packaging
+
+- The analysis is a crate of its own, `crap4rust-core` (library `crap4rust`):
+  `#![no_std]`, depending on `proc-macro2` and `syn` only, and reaching the
+  machine through four ports -- `SourceTree`, `PathKeys`, `WorkspaceReader`
+  and `CoverageSource` -- that `cargo-crap4rust`, now the command and the
+  library `crap4rust_cli`, implements
+- The core fails with error types of its own, `RunFailure` and
+  `DiscoveryFailure` among them, whose messages are the ones anyhow printed
+- The command line, output and exit codes are unchanged, but for a `.rs` file
+  whose path is not UTF-8, which fails the run naming the file
+
+## Version 0.8.x
+
+- An absent `cargo-llvm-cov` is reported by name and with the install command;
+  any other failed coverage run carries `cargo llvm-cov`'s own stderr (0.8.0)
+- The crates.io page shows the README (0.8.1)
 
 ## Version 0.7.0
 
@@ -44,7 +90,7 @@ This document describes the feature set currently shipped by `cargo-crap4rust`.
   genuinely shared across multiple structs' files (`normalize_path`,
   `qualified_name`, `start_line`, `end_line`, `is_test_attrs`) deliberately
   stay free functions (`normalize_path` has since become the cli crate's
-  `CanonicalPathKeys`; see the CHANGELOG's `[Unreleased]`)
+  `CanonicalPathKeys`; see the CHANGELOG's 0.9.0)
 
 See [CHANGELOG.md](../CHANGELOG.md) for the full entry.
 
@@ -144,7 +190,7 @@ The first release focuses on a minimal, usable CRAP workflow for Rust workspaces
 
 ## Not Yet Implemented
 
-These capabilities are planned but are not part of `0.6.x`:
+These capabilities are planned but are not part of `0.10.x`:
 
 - Additional output formats such as HTML, Markdown, XML, or SARIF
 - Configuration file support
