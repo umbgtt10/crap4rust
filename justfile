@@ -42,3 +42,7 @@ stage1: sync
 # order.
 stage2:
     cargo xtask stage2
+
+# The upgrades ripe4rust judges ripe against both stages: a plan, none applied.
+ripe:
+    cargo ripe4rust plan

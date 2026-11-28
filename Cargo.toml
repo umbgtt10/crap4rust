@@ -26,6 +26,7 @@ crap4rust-core = { path = "core", version = "0.10.0" }
 proc-macro2 = { version = "1.0.95", features = ["span-locations"] }
 serde = { version = "1.0.219", features = ["derive"] }
 serde_json = "1.0.140"
+serge4rust = "0.3.2"
 syn = { version = "2.0.101", features = ["full", "visit"] }
 walkdir = "2.5.0"
 assert_cmd = "2.0.17"
@@ -36,3 +37,8 @@ tempfile = "3.20.0"
 # says so at its crate root as well.
 [workspace.lints.rust]
 unsafe_code = "forbid"
+
+# The gates an upgrade must pass, for ripe4rust: the two stages a change here
+# passes, so `cargo ripe4rust plan` can judge an upgrade ripe rather than ask.
+[workspace.metadata.ripe4rust]
+gates = ["just stage1", "just stage2"]

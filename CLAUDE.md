@@ -34,7 +34,7 @@ Stage 1 is formatting, clippy and tests. It is cargo built-ins plus
 `cargo-llvm-cov`: this repository is the coverage tool, so its validation tests
 drive the built binary through the path that generates coverage, and a checkout
 without that install fails stage 1 rather than stage 2. Stage 2 is
-`cargo xtask stage2`, which runs the xtask's own technology-free gate and then
+`cargo xtask stage2`, which runs serge4rust's technology-free gate and then
 seven installed cargo subcommands, in this order:
 
 | gate | asks |
@@ -48,13 +48,23 @@ seven installed cargo subcommands, in this order:
 | `cargo iceberg4rust` | is any file's private implementation risk too high |
 | `cargo deny` | do the dependencies carry an advisory, a refused licence or a foreign source |
 
+Every gate, the stage that runs them in order and stops at the first failure,
+the command runner, the failures they report, crap4rust's JSON report and the
+commit scoring come from serge4rust, the house's gates as a library: crates.io
+`serge4rust = "0.3.2"`, declared in `[workspace.dependencies]`. `xtask` keeps
+`src/main.rs` alone -- which gates each stage runs, in what order, and this
+repository's constants: the packages, the thresholds, the boundary's rule,
+dry4rust's exclusions, baseline and floor, cargo-deny's three fetches. A gate
+that needs a change is changed in serge4rust and released, then taken here by
+its version; it is never patched in place.
+
 `just stage1` starts with `just sync`: `cargo update`, every dependency to its
 newest compatible version, in the lock file only, while the tools are in
 development. It needs the network. A requirement in a manifest never moves, so a
 published crate's users can still resolve what they could; what it moves is
 committed on its own. Breaking versions are a separate decision, not taken here.
 
-The technology-free gate runs **first**. It is the xtask's own -- no tool to
+The technology-free gate runs **first**. It is serge4rust's -- no tool to
 install -- and asks three things of `core`: that its manifest names only
 `proc-macro2` and `syn`, in any section (read from `cargo metadata --no-deps`;
 a package missing from the metadata fails); that `core/src/lib.rs` carries
@@ -186,6 +196,16 @@ rule.
   `Source` finds the line a fixture function starts on -- and each test file is
   named for the apparatus it is built on, which is what lets `paired-test-file`
   hold there without the skip it used to need.
+
+### The stages are ripe4rust's gates
+
+The root `Cargo.toml` declares both stages as the gates an upgrade must pass,
+so ripe4rust can judge an upgrade ripe rather than ask:
+`[workspace.metadata.ripe4rust] gates = ["just stage1", "just stage2"]`.
+`just ripe` runs `cargo ripe4rust plan`, which reports the plan and applies
+nothing: an upgrade being available is no breakage.
+
+`cargo install cargo-ripe4rust`
 
 ### Every commit carries core's scores
 
