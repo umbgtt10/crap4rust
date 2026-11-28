@@ -57,6 +57,12 @@ fn locate_for_a_package_whose_build_directory_is_moved_returns_its_target_direct
     // Arrange
     let package =
         scratch_package("[build]\ntarget-dir = \"artefacts\"\nbuild-dir = \"intermediate\"\n");
+    let artefacts = package.path().join("artefacts");
+    fs::create_dir_all(&artefacts).expect("artefacts dir");
+    // Cargo names the directory from its working directory as the system
+    // resolves it, /private/var for macOS's /var, and Windows canonicalizes to
+    // a verbatim path, so the two are compared canonicalized.
+    let expected = fs::canonicalize(&artefacts).expect("canonical artefacts dir");
     let target_directory = TargetDirectory::new(
         PathBuf::from(env!("CARGO")),
         package.path().join("Cargo.toml"),
@@ -66,7 +72,10 @@ fn locate_for_a_package_whose_build_directory_is_moved_returns_its_target_direct
     let located = target_directory.locate();
 
     // Assert
-    assert_eq!(located, package.path().join("artefacts"));
+    assert_eq!(
+        fs::canonicalize(&located).expect("the located directory exists"),
+        expected
+    );
 }
 
 #[test]

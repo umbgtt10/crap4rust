@@ -4,6 +4,17 @@ This document describes the feature set currently shipped by `cargo-crap4rust`,
 release by release: each section is what that release added or changed, and a
 later section can supersede an earlier one.
 
+## Version 0.11.0
+
+### Library
+
+- `crap4rust-core` reads Rust with syn 3: `cognitive_complexity`,
+  `ImplCollector`, `ItemVisitor::visit_items` and `TestModuleRegistry::build`
+  take syn 3's types and `DiscoveryFailure::Parse` holds its `Error`
+- Scores are unchanged: a `match` guard is read from the arm's pattern, a
+  `Pat::Guard` in syn 3, and the human and JSON reports match the syn 2
+  build's byte for byte
+
 ## Version 0.10.0
 
 ### Correctness Fixes
@@ -190,7 +201,7 @@ The first release focuses on a minimal, usable CRAP workflow for Rust workspaces
 
 ## Not Yet Implemented
 
-These capabilities are planned but are not part of `0.10.x`:
+These capabilities are planned but are not part of `0.11.x`:
 
 - Additional output formats such as HTML, Markdown, XML, or SARIF
 - Configuration file support

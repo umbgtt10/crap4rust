@@ -6,6 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.11.0] - 2026-11-28
+
+Breaking for the library: `crap4rust-core` reads Rust with syn 3 where it
+read syn 2, and the syn types its API takes and returns are syn 3's, so a
+dependent handing it syn 2's moves to syn 3 with it. The scores do not move:
+a `match` guard is scored from the arm's pattern, where syn 3 holds it, and
+over this repository and three others, 1,378 functions in all, the human and
+JSON reports are byte for byte those of the syn 2 build. The command line,
+the report formats and the exit codes are unchanged. The rest of the release
+is how the repository gates itself: every gate from serge4rust, both stages
+declared to ripe4rust, and validation tests that find the built binary
+wherever cargo puts it.
+
 ### Changed
 
 - `crap4rust-core` depends on syn 3 (3.0.10) where it depended on syn 2, so
@@ -598,7 +611,10 @@ First public release.
 
 - Initial crates.io release of `cargo-crap4rust`
 
-[Unreleased]: https://github.com/umbgtt10/crap4rust/compare/v0.8.2...HEAD
+[Unreleased]: https://github.com/umbgtt10/crap4rust/compare/v0.11.0...HEAD
+[0.11.0]: https://github.com/umbgtt10/crap4rust/releases/tag/v0.11.0
+[0.10.0]: https://github.com/umbgtt10/crap4rust/releases/tag/v0.10.0
+[0.9.0]: https://github.com/umbgtt10/crap4rust/releases/tag/v0.9.0
 [0.8.2]: https://github.com/umbgtt10/crap4rust/releases/tag/v0.8.2
 [0.8.1]: https://github.com/umbgtt10/crap4rust/releases/tag/v0.8.1
 [0.8.0]: https://github.com/umbgtt10/crap4rust/releases/tag/v0.8.0
