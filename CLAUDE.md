@@ -108,23 +108,21 @@ not.
 It counts only code units of 25 AST nodes or more, the floor the family gates
 at. The baseline holds no group. The one it was recorded with --
 `App::with_deps`, now `App::new`, and `ImplCollector::new`, two constructors
-that each store their arguments field by field -- no longer matches:
-`ProjectReport::new` joined it, and the three are the first ignore entry below.
+that each store their arguments field by field -- is a plain constructor,
+`Self { a, b, c, d }`, and the installed dry4rust (0.5.0) leaves plain
+constructors out of what it compares (ADR-PlainConstructorsAreTheStructsShape,
+in dry4rust): each is its struct's shape, not copied logic.
 
 Re-record the baseline only to drop groups that are gone, never to admit new
 ones, and at the same floor -- a baseline matches only at the floor it was
 recorded at: `cargo dry4rust --path "$PWD" --exclude "$PWD/xtask" --exclude "$PWD/validation" --exclude "$PWD/fixture" --exclude "$PWD/core/tests" --exclude "$PWD/cli/tests" --min-nodes 25 --baseline "$PWD/dry4rust-baseline.json" baseline`.
 
-`.dry4rust-ignore.toml`, at the root dry4rust scans from -- the only place it
-reads one -- holds two fingerprints, with their reason:
-plain constructors -- `Self { a, b, c, d }` -- which look alike when they fill
-as many fields. What is left of them belongs to objects: stern4rust's
-`records-and-objects` lets an object keep its constructor and builds a record
-by literal. `App::new`, `ImplCollector::new` and `ProjectReport::new` are one
-group, `CoverageRecord::new` and `ItemVisitor::new` the other. dry4rust
-leaves plain constructors out from its next release
-(ADR-PlainConstructorsAreTheStructsShape, in dry4rust); until the gate installs
-it, these entries bridge, and the file goes when the release does.
+No `.dry4rust-ignore.toml` is kept. The one there was, at the root dry4rust
+scans from -- the only place it reads one -- held two fingerprints of plain
+constructors, bridging until dry4rust left them out: `App::new`,
+`ImplCollector::new` and `ProjectReport::new` one group, `CoverageRecord::new`
+and `ItemVisitor::new` the other. On 0.5.0 both matched nothing, and
+`cargo dry4rust cleanup` removed them as stale.
 
 All twenty-four of its rules apply to every workspace member, with nothing
 skipped, nothing selected and nothing unconfigured: `stern4rust.toml` holds no

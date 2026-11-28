@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Removed
+
+- `.dry4rust-ignore.toml`. Its two fingerprints held plain constructors --
+  `Self { a, b, c, d }` -- out of the duplication gate until dry4rust left
+  them out itself; under dry4rust 0.5.0 both matched nothing, and
+  `cargo dry4rust cleanup` removed them as stale.
+
 ## [0.10.0] - 2026-11-25
 
 Scores change. A mutation-testing round -- sentinel4rust's survivors on
