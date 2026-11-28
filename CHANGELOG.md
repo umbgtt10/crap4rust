@@ -19,14 +19,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   `TestModuleRegistry::build` its `File`, and `DiscoveryFailure::Parse`
   holds its `Error`, so a dependent handing them syn 2's types moves to syn 3
   with it.
-- The gates come from serge4rust 0.3.2, the house's gates as a library,
+- The gates come from serge4rust 0.3.3, the house's gates as a library,
   declared in `[workspace.dependencies]`: every gate, the stage that runs them
   in order, the command runner, crap4rust's JSON report and the commit
   scoring. `xtask` keeps `src/main.rs` alone, configuring them with this
   repository's constants, and its own copies and their tests are gone. Every
-  argument, streamed line and verdict of both stages is unchanged, but for two
-  failure messages: an exit code a tool does not document reads "could not
-  run, exit code Some(n)", and a single crappy function "1 crappy function
+  argument, streamed line and verdict of both stages is unchanged, but for how
+  a few failures read: a tool ending with an exit code it does not document
+  "could not run, exit code 2", one ended by a signal "could not run,
+  terminated by signal", a report that cannot be read with the run's
+  "(exit code 101)", and a single crappy function "1 crappy function
   detected".
 
 ### Added

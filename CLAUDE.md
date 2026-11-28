@@ -51,7 +51,7 @@ seven installed cargo subcommands, in this order:
 Every gate, the stage that runs them in order and stops at the first failure,
 the command runner, the failures they report, crap4rust's JSON report and the
 commit scoring come from serge4rust, the house's gates as a library: crates.io
-`serge4rust = "0.3.2"`, declared in `[workspace.dependencies]`. `xtask` keeps
+`serge4rust = "0.3.3"`, declared in `[workspace.dependencies]`. `xtask` keeps
 `src/main.rs` alone -- which gates each stage runs, in what order, and this
 repository's constants: the packages, the thresholds, the boundary's rule,
 dry4rust's exclusions, baseline and floor, cargo-deny's three fetches. A gate
