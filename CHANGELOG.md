@@ -42,7 +42,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - The root `Cargo.toml` declares both stages as the gates an upgrade must
   pass, `[workspace.metadata.ripe4rust] gates = ["just stage1", "just
   stage2"]`, and `just ripe` prints `cargo ripe4rust plan`'s plan, applying
-  nothing.
+  nothing. `published = ["crap4rust-core"]` beside them names the crate others
+  depend on as a library.
 
 ### Removed
 

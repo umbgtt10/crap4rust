@@ -211,7 +211,10 @@ so ripe4rust can judge an upgrade ripe rather than ask:
 nothing: an upgrade being available is no breakage. An upgrade held back is a
 pin in `[workspace.metadata.ripe4rust.pins]`, at the end of the root
 `Cargo.toml`, with its reason and the day to look at it again, as
-`cargo ripe4rust hold` prints it; none is held today.
+`cargo ripe4rust hold` prints it; none is held today. Beside the gates,
+`published = ["crap4rust-core"]` names the crates others depend on as
+libraries: `crap4rust-core` alone, for `cargo-crap4rust`'s library,
+`crap4rust_cli`, is a subcommand's, kept for its own tests.
 
 `cargo install cargo-ripe4rust`
 
