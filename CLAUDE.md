@@ -195,12 +195,15 @@ rule.
   `Source` finds the line a fixture function starts on, `Binary` finds the
   built `cargo-crap4rust` -- and each test file is named for the apparatus it
   is built on, which is what lets `paired-test-file` hold there without the
-  skip it used to need. `Binary` reads the target directory from
-  `CARGO_TARGET_TMPDIR`, its `tmp` directory, and takes the binary from the
-  profile's directory beside it, failing with the build to run if it is not
-  there: cargo sets `CARGO_BIN_EXE_<name>` only for the binary's own package,
-  and cargo 1.100 moved the test executables, so neither is read. `cargo test
-  --workspace` builds the binary before any test runs.
+  skip it used to need. `Binary` takes the binary from the profile's
+  directory in the target directory, failing with the build to run if it is
+  not there; `TargetDirectory` asks `cargo metadata --no-deps` -- through
+  `$CARGO`, else `cargo` -- for that directory, once per test process
+  (`target_constants::TARGET_DIRECTORY`). cargo sets `CARGO_BIN_EXE_<name>`
+  only for the binary's own package, cargo 1.100 moved the test executables,
+  and `CARGO_TARGET_TMPDIR` is in the build directory, which
+  `build.build-dir` can move away from the target directory, so none of them
+  is read. `cargo test --workspace` builds the binary before any test runs.
 
 ### The stages are ripe4rust's gates
 

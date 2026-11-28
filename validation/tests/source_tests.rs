@@ -12,6 +12,7 @@ use validation::binary::Binary;
 use validation::fixture::Fixture;
 use validation::profile_constants::PROFILE;
 use validation::source::Source;
+use validation::target_constants::TARGET_DIRECTORY;
 
 const FUNCTION_NAMES: &[&str] = &[
     "empty_function",
@@ -67,7 +68,7 @@ fn fixture_dir() -> PathBuf {
 fn run_report(coverage_path: &Path, threshold: &str) -> String {
     let manifest_path = fixture_dir().join("Cargo.toml");
 
-    let output = Command::new(Binary::new(Path::new(env!("CARGO_TARGET_TMPDIR")), PROFILE).path())
+    let output = Command::new(Binary::new(&TARGET_DIRECTORY, PROFILE).path())
         .arg("--manifest-path")
         .arg(&manifest_path)
         .arg("--coverage")

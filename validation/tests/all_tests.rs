@@ -5,3 +5,4 @@
 pub mod binary_tests;
 pub mod fixture_tests;
 pub mod source_tests;
+pub mod target_directory_tests;

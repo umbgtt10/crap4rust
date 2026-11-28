@@ -6,8 +6,9 @@
 # what paired-test-file kept reporting while they lived there.
 #
 # src/ holds the apparatus the tests share: `Fixture` locates a crate under
-# fixture/, `Source` finds the line a fixture function starts on and `Binary`
-# finds the built cargo-crap4rust in the target directory. Each test file is
+# fixture/, `Source` finds the line a fixture function starts on, `Binary`
+# finds the built cargo-crap4rust in the target directory and
+# `TargetDirectory` asks `cargo metadata` where that is. Each test file is
 # named for the apparatus it is built on, so paired-test-file holds here
 # without a skip, and the house rules gate this package like any other.
 #
@@ -32,10 +33,12 @@ path = "src/lib.rs"
 name = "all_tests"
 path = "tests/all_tests.rs"
 
+[dependencies]
+serde_json = { workspace = true }
+
 [dev-dependencies]
 assert_cmd = { workspace = true }
 predicates = { workspace = true }
-serde_json = { workspace = true }
 tempfile = { workspace = true }
 
 [lints]

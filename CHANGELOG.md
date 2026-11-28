@@ -31,11 +31,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   "(exit code 101)", and a single crappy function "1 crappy function
   detected".
 - The validation tests find the built `cargo-crap4rust` through
-  `validation::binary::Binary`: in the target directory cargo names to them as
-  `CARGO_TARGET_TMPDIR`, under the profile's directory, failing with the build
-  to run when it is not there. assert_cmd's `Command::cargo_bin`, which they
-  used, looks beside the test executable for a binary of another package, and
-  cargo 1.100 runs test executables from elsewhere.
+  `validation::binary::Binary`: under the profile's directory in the target
+  directory `cargo metadata` names, asked once per test process, failing with
+  the build to run when it is not there. assert_cmd's `Command::cargo_bin`,
+  which they used, looks beside the test executable for a binary of another
+  package, and cargo 1.100 runs test executables from elsewhere;
+  `CARGO_TARGET_TMPDIR`, read for a while instead, is in the build directory,
+  which `build.build-dir` can move away from the target directory.
 
 ### Added
 

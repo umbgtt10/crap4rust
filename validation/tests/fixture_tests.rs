@@ -14,9 +14,10 @@ use validation::binary::Binary;
 use validation::fixture::Fixture;
 use validation::profile_constants::PROFILE;
 use validation::source::Source;
+use validation::target_constants::TARGET_DIRECTORY;
 
 fn crap4rust_command() -> Command {
-    Command::new(Binary::new(Path::new(env!("CARGO_TARGET_TMPDIR")), PROFILE).path())
+    Command::new(Binary::new(&TARGET_DIRECTORY, PROFILE).path())
 }
 
 fn write_coverage_file(temp_dir: &Path, entries: &[(PathBuf, usize, u64)]) -> PathBuf {
