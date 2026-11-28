@@ -37,3 +37,8 @@ tempfile = "3.20.0"
 # says so at its crate root as well.
 [workspace.lints.rust]
 unsafe_code = "forbid"
+
+# The gates an upgrade must pass, for ripe4rust: the two stages a change here
+# passes, so `cargo ripe4rust plan` can judge an upgrade ripe rather than ask.
+[workspace.metadata.ripe4rust]
+gates = ["just stage1", "just stage2"]

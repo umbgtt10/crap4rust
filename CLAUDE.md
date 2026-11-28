@@ -197,6 +197,16 @@ rule.
   named for the apparatus it is built on, which is what lets `paired-test-file`
   hold there without the skip it used to need.
 
+### The stages are ripe4rust's gates
+
+The root `Cargo.toml` declares both stages as the gates an upgrade must pass,
+so ripe4rust can judge an upgrade ripe rather than ask:
+`[workspace.metadata.ripe4rust] gates = ["just stage1", "just stage2"]`.
+`just ripe` runs `cargo ripe4rust plan`, which reports the plan and applies
+nothing: an upgrade being available is no breakage.
+
+`cargo install cargo-ripe4rust`
+
 ### Every commit carries core's scores
 
 The owner's rule of 2026-11-11: every commit message carries the grip and
