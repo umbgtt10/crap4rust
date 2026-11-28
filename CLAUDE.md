@@ -211,7 +211,7 @@ so ripe4rust can judge an upgrade ripe rather than ask:
 nothing: an upgrade being available is no breakage. An upgrade held back is a
 pin in `[workspace.metadata.ripe4rust.pins]`, at the end of the root
 `Cargo.toml`, with its reason and the day to look at it again, as
-`cargo ripe4rust hold` prints it.
+`cargo ripe4rust hold` prints it; none is held today.
 
 `cargo install cargo-ripe4rust`
 
