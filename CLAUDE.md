@@ -202,7 +202,10 @@ The root `Cargo.toml` declares both stages as the gates an upgrade must pass,
 so ripe4rust can judge an upgrade ripe rather than ask:
 `[workspace.metadata.ripe4rust] gates = ["just stage1", "just stage2"]`.
 `just ripe` runs `cargo ripe4rust plan`, which reports the plan and applies
-nothing: an upgrade being available is no breakage.
+nothing: an upgrade being available is no breakage. An upgrade held back is a
+pin in `[workspace.metadata.ripe4rust.pins]`, at the end of the root
+`Cargo.toml`, with its reason and the day to look at it again, as
+`cargo ripe4rust hold` prints it.
 
 `cargo install cargo-ripe4rust`
 

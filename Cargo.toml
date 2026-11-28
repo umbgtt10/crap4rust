@@ -42,3 +42,8 @@ unsafe_code = "forbid"
 # passes, so `cargo ripe4rust plan` can judge an upgrade ripe rather than ask.
 [workspace.metadata.ripe4rust]
 gates = ["just stage1", "just stage2"]
+
+# Upgrades held back, each with its reason and the day to look at it again, as
+# `cargo ripe4rust hold` prints them.
+[workspace.metadata.ripe4rust.pins]
+rust = { reason = "just stage1 red on 1.100.1: all 41 validation tests panic in assert_cmd's Command::cargo_bin: CARGO_BIN_EXE_cargo-crap4rust is unset (cargo 1.100 puts test binaries under target/debug/build/<package>/<hash>/out/, and validation is not the binary's package)", review = "2026-12-12" }
