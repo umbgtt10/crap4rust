@@ -48,8 +48,7 @@ just stage1
 just stage2
 ```
 
-Both must be green before a change is complete. Stage 1 brings the lock file
-to the newest compatible versions (`cargo update`), then runs formatting, clippy
+Both must be green before a change is complete. Stage 1 runs formatting, clippy
 and tests; stage 2 is `cargo xtask stage2`, which runs, in order: serge4rust's
 technology-free gate (the analysis crate depends on `proc-macro2` and `syn`
 only, is `no_std`, and its sources and tests reach no file system, process,

@@ -25,16 +25,10 @@ default:
 hooks:
     git config core.hooksPath .githooks
 
-# The lock file to the newest compatible version of every dependency, while
-# the tools are in development. A cargo built-in, so stage 1 still needs none of
-# the house tools; it does need the network. Commit what it moves on its own.
-sync:
-    cargo xtask sync
-
-# The lock synced, then formatting, clippy and tests -- cargo built-ins plus
+# Formatting, clippy and tests -- cargo built-ins plus
 # cargo-llvm-cov, none of the house tools: crap4rust is the coverage tool, and
 # its validation tests drive the built binary through the path that runs it.
-stage1: sync
+stage1:
     cargo fmt {{fmt_mode}}
     cargo clippy --workspace --all-targets -- -D warnings
     cargo test --workspace
