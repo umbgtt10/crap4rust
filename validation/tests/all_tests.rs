@@ -2,5 +2,6 @@
 // Licensed under the MIT License
 // SPDX-License-Identifier: MIT
 
+pub mod binary_tests;
 pub mod fixture_tests;
 pub mod source_tests;

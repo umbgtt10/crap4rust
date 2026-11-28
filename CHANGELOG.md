@@ -30,6 +30,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   terminated by signal", a report that cannot be read with the run's
   "(exit code 101)", and a single crappy function "1 crappy function
   detected".
+- The validation tests find the built `cargo-crap4rust` through
+  `validation::binary::Binary`: in the target directory cargo names to them as
+  `CARGO_TARGET_TMPDIR`, under the profile's directory, failing with the build
+  to run when it is not there. assert_cmd's `Command::cargo_bin`, which they
+  used, looks beside the test executable for a binary of another package, and
+  cargo 1.100 runs test executables from elsewhere.
 
 ### Added
 

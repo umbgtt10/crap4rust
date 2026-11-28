@@ -192,9 +192,15 @@ rule.
   file in `core/` or `cli/`, so the measuring gates leave it alone; the binary
   they drive is cli's. Its `src/` is the
   apparatus those tests share -- `Fixture` locates a crate under `fixture/`,
-  `Source` finds the line a fixture function starts on -- and each test file is
-  named for the apparatus it is built on, which is what lets `paired-test-file`
-  hold there without the skip it used to need.
+  `Source` finds the line a fixture function starts on, `Binary` finds the
+  built `cargo-crap4rust` -- and each test file is named for the apparatus it
+  is built on, which is what lets `paired-test-file` hold there without the
+  skip it used to need. `Binary` reads the target directory from
+  `CARGO_TARGET_TMPDIR`, its `tmp` directory, and takes the binary from the
+  profile's directory beside it, failing with the build to run if it is not
+  there: cargo sets `CARGO_BIN_EXE_<name>` only for the binary's own package,
+  and cargo 1.100 moved the test executables, so neither is read. `cargo test
+  --workspace` builds the binary before any test runs.
 
 ### The stages are ripe4rust's gates
 

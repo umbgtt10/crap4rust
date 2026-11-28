@@ -10,8 +10,14 @@ use serde_json::to_vec;
 use std::fs;
 use std::path::{Path, PathBuf};
 use tempfile::TempDir;
+use validation::binary::Binary;
 use validation::fixture::Fixture;
+use validation::profile_constants::PROFILE;
 use validation::source::Source;
+
+fn crap4rust_command() -> Command {
+    Command::new(Binary::new(Path::new(env!("CARGO_TARGET_TMPDIR")), PROFILE).path())
+}
 
 fn write_coverage_file(temp_dir: &Path, entries: &[(PathBuf, usize, u64)]) -> PathBuf {
     let coverage_path = temp_dir.join("coverage.json");
@@ -70,7 +76,7 @@ fn all_features_flag_is_accepted_with_precomputed_coverage() {
     let temp_dir = TempDir::new().expect("temp dir");
     let coverage_path = write_coverage_file(temp_dir.path(), &[(source_path, function_line, 0)]);
 
-    let mut command = Command::cargo_bin("cargo-crap4rust").expect("binary");
+    let mut command = crap4rust_command();
     command
         .arg("--manifest-path")
         .arg(&manifest_path)
@@ -97,7 +103,7 @@ fn cargo_subcommand_forwards_arguments_to_crap4rust_binary() {
     let temp_dir = TempDir::new().expect("temp dir");
     let coverage_path = write_coverage_file(temp_dir.path(), &[(source_path, function_line, 0)]);
 
-    let mut command = Command::cargo_bin("cargo-crap4rust").expect("binary");
+    let mut command = crap4rust_command();
     command
         .arg("crap4rust")
         .arg("--manifest-path")
@@ -131,7 +137,7 @@ fn cfg_test_file_based_mod_declaration_is_excluded_from_discovery() {
         &[(target_path, shipped_line, 0), (tests_path, helper_line, 0)],
     );
 
-    let mut command = Command::cargo_bin("cargo-crap4rust").expect("binary");
+    let mut command = crap4rust_command();
     command
         .arg("--manifest-path")
         .arg(&manifest_path)
@@ -169,7 +175,7 @@ fn cfg_test_modules_inside_src_are_excluded_from_discovery() {
         ],
     );
 
-    let mut command = Command::cargo_bin("cargo-crap4rust").expect("binary");
+    let mut command = crap4rust_command();
     command
         .arg("--manifest-path")
         .arg(&manifest_path)
@@ -198,7 +204,7 @@ fn coverage_that_does_not_match_any_function_returns_error() {
     let coverage_path =
         write_coverage_file(temp_dir.path(), &[(source_path, function_line + 100, 1)]);
 
-    let mut command = Command::cargo_bin("cargo-crap4rust").expect("binary");
+    let mut command = crap4rust_command();
     command
         .arg("--manifest-path")
         .arg(&manifest_path)
@@ -221,7 +227,7 @@ fn custom_warn_threshold_appears_in_output_message() {
     let temp_dir = TempDir::new().expect("temp dir");
     let coverage_path = write_coverage_file(temp_dir.path(), &[(source_path, function_line, 1)]);
 
-    let mut command = Command::cargo_bin("cargo-crap4rust").expect("binary");
+    let mut command = crap4rust_command();
     command
         .arg("--manifest-path")
         .arg(&manifest_path)
@@ -258,7 +264,7 @@ fn duplicate_coverage_entries_discard_zero_ghost_keeping_real_coverage() {
         ],
     );
 
-    let mut command = Command::cargo_bin("cargo-crap4rust").expect("binary");
+    let mut command = crap4rust_command();
     command
         .arg("--manifest-path")
         .arg(&manifest_path)
@@ -291,7 +297,7 @@ fn duplicate_coverage_entries_discard_zero_ghost_regardless_of_arrival_order() {
         ],
     );
 
-    let mut command = Command::cargo_bin("cargo-crap4rust").expect("binary");
+    let mut command = crap4rust_command();
     command
         .arg("--manifest-path")
         .arg(&manifest_path)
@@ -321,7 +327,7 @@ fn exclude_path_omits_matching_files_from_report() {
     let temp_dir = TempDir::new().expect("temp dir");
     let coverage_path = write_coverage_file(temp_dir.path(), &[(source_path, function_line, 0)]);
 
-    let mut command = Command::cargo_bin("cargo-crap4rust").expect("binary");
+    let mut command = crap4rust_command();
     command
         .arg("--manifest-path")
         .arg(&manifest_path)
@@ -349,7 +355,7 @@ fn exclude_path_only_omits_matching_prefix_leaving_other_files_intact() {
     let temp_dir = TempDir::new().expect("temp dir");
     let coverage_path = write_coverage_file(temp_dir.path(), &[(source_path, source_line, 0)]);
 
-    let mut command = Command::cargo_bin("cargo-crap4rust").expect("binary");
+    let mut command = crap4rust_command();
     command
         .arg("--manifest-path")
         .arg(&manifest_path)
@@ -376,7 +382,7 @@ fn explicit_package_in_root_workspace_overrides_all_members_default() {
     let temp_dir = TempDir::new().expect("temp dir");
     let coverage_path = write_coverage_file(temp_dir.path(), &[(source_path, function_line, 0)]);
 
-    let mut command = Command::cargo_bin("cargo-crap4rust").expect("binary");
+    let mut command = crap4rust_command();
     command
         .arg("--manifest-path")
         .arg(&manifest_path)
@@ -404,7 +410,7 @@ fn features_flag_is_accepted_with_precomputed_coverage() {
     let temp_dir = TempDir::new().expect("temp dir");
     let coverage_path = write_coverage_file(temp_dir.path(), &[(source_path, function_line, 0)]);
 
-    let mut command = Command::cargo_bin("cargo-crap4rust").expect("binary");
+    let mut command = crap4rust_command();
     command
         .arg("--manifest-path")
         .arg(&manifest_path)
@@ -432,7 +438,7 @@ fn full_coverage_keeps_crap_score_below_warning_threshold() {
     let temp_dir = TempDir::new().expect("temp dir");
     let coverage_path = write_coverage_file(temp_dir.path(), &[(source_path, function_line, 1)]);
 
-    let mut command = Command::cargo_bin("cargo-crap4rust").expect("binary");
+    let mut command = crap4rust_command();
     command
         .arg("--manifest-path")
         .arg(&manifest_path)
@@ -461,7 +467,7 @@ fn json_output_format_produces_valid_json() {
     let temp_dir = TempDir::new().expect("temp dir");
     let coverage_path = write_coverage_file(temp_dir.path(), &[(source_path, function_line, 0)]);
 
-    let mut command = Command::cargo_bin("cargo-crap4rust").expect("binary");
+    let mut command = crap4rust_command();
     command
         .arg("--manifest-path")
         .arg(&manifest_path)
@@ -500,7 +506,7 @@ fn multiple_packages_produce_single_aggregate_report() {
         ],
     );
 
-    let mut command = Command::cargo_bin("cargo-crap4rust").expect("binary");
+    let mut command = crap4rust_command();
     command
         .arg("--manifest-path")
         .arg(&manifest_path)
@@ -535,7 +541,7 @@ fn multiple_packages_without_coverage_generate_aggregate_coverage_automatically(
         fs::remove_file(&generated_coverage_path).expect("remove stale aggregate coverage file");
     }
 
-    let mut command = Command::cargo_bin("cargo-crap4rust").expect("binary");
+    let mut command = crap4rust_command();
     command
         .arg("--manifest-path")
         .arg(&manifest_path)
@@ -567,7 +573,7 @@ fn no_default_features_flag_is_accepted_with_precomputed_coverage() {
     let temp_dir = TempDir::new().expect("temp dir");
     let coverage_path = write_coverage_file(temp_dir.path(), &[(source_path, function_line, 0)]);
 
-    let mut command = Command::cargo_bin("cargo-crap4rust").expect("binary");
+    let mut command = crap4rust_command();
     command
         .arg("--manifest-path")
         .arg(&manifest_path)
@@ -592,7 +598,7 @@ fn package_without_functions_returns_error() {
     let temp_dir = TempDir::new().expect("temp dir");
     let coverage_path = write_empty_coverage_file(temp_dir.path());
 
-    let mut command = Command::cargo_bin("cargo-crap4rust").expect("binary");
+    let mut command = crap4rust_command();
     command
         .arg("--manifest-path")
         .arg(&manifest_path)
@@ -626,7 +632,7 @@ fn root_workspace_defaults_to_all_workspace_members_when_no_package_is_provided(
         ],
     );
 
-    let mut command = Command::cargo_bin("cargo-crap4rust").expect("binary");
+    let mut command = crap4rust_command();
     command
         .arg("--manifest-path")
         .arg(&manifest_path)
@@ -667,7 +673,7 @@ fn root_workspace_without_coverage_generates_coverage_for_all_workspace_members(
             .expect("remove stale workspace coverage file (b)");
     }
 
-    let mut command = Command::cargo_bin("cargo-crap4rust").expect("binary");
+    let mut command = crap4rust_command();
     command.arg("--manifest-path").arg(&manifest_path);
 
     // Act & Assert
@@ -692,7 +698,7 @@ fn single_package_with_precomputed_coverage_prints_report() {
     let temp_dir = TempDir::new().expect("temp dir");
     let coverage_path = write_coverage_file(temp_dir.path(), &[(source_path, function_line, 0)]);
 
-    let mut command = Command::cargo_bin("cargo-crap4rust").expect("binary");
+    let mut command = crap4rust_command();
     command
         .arg("--manifest-path")
         .arg(&manifest_path)
@@ -722,7 +728,7 @@ fn single_package_without_coverage_generates_coverage_automatically() {
         fs::remove_file(&generated_coverage_path).expect("remove stale coverage file");
     }
 
-    let mut command = Command::cargo_bin("cargo-crap4rust").expect("binary");
+    let mut command = crap4rust_command();
     command.arg("--manifest-path").arg(&manifest_path);
 
     // Act & Assert
@@ -748,7 +754,7 @@ fn strict_mode_fails_when_project_threshold_would_otherwise_pass() {
     let temp_dir = TempDir::new().expect("temp dir");
     let coverage_path = write_coverage_file(temp_dir.path(), &[(source_path, function_line, 0)]);
 
-    let mut command = Command::cargo_bin("cargo-crap4rust").expect("binary");
+    let mut command = crap4rust_command();
     command
         .arg("--manifest-path")
         .arg(&manifest_path)
@@ -785,7 +791,7 @@ fn test_targets_are_excluded_from_discovery_by_default() {
         ],
     );
 
-    let mut command = Command::cargo_bin("cargo-crap4rust").expect("binary");
+    let mut command = crap4rust_command();
     command
         .arg("--manifest-path")
         .arg(&manifest_path)
@@ -812,7 +818,7 @@ fn threshold_boundary_at_thirty_is_warn_not_crappy() {
     let temp_dir = TempDir::new().expect("temp dir");
     let coverage_path = write_coverage_file(temp_dir.path(), &[(source_path, function_line, 0)]);
 
-    let mut command = Command::cargo_bin("cargo-crap4rust").expect("binary");
+    let mut command = crap4rust_command();
     command
         .arg("--manifest-path")
         .arg(&manifest_path)
@@ -837,7 +843,7 @@ fn unknown_package_returns_error() {
     let fixture_dir = Fixture::new(&["workspace_fixture"]).directory();
     let manifest_path = fixture_dir.join("Cargo.toml");
 
-    let mut command = Command::cargo_bin("cargo-crap4rust").expect("binary");
+    let mut command = crap4rust_command();
     command
         .arg("--manifest-path")
         .arg(&manifest_path)
@@ -863,7 +869,7 @@ fn validation_only_package_with_optional_test_target_discovery_prints_report() {
     let temp_dir = TempDir::new().expect("temp dir");
     let coverage_path = write_coverage_file(temp_dir.path(), &[(source_path, function_line, 0)]);
 
-    let mut command = Command::cargo_bin("cargo-crap4rust").expect("binary");
+    let mut command = crap4rust_command();
     command
         .arg("--manifest-path")
         .arg(&manifest_path)
@@ -893,7 +899,7 @@ fn warn_only_succeeds_even_when_thresholds_are_exceeded() {
     let temp_dir = TempDir::new().expect("temp dir");
     let coverage_path = write_coverage_file(temp_dir.path(), &[(source_path, function_line, 0)]);
 
-    let mut command = Command::cargo_bin("cargo-crap4rust").expect("binary");
+    let mut command = crap4rust_command();
     command
         .arg("--manifest-path")
         .arg(&manifest_path)
@@ -933,7 +939,7 @@ fn workspace_without_selected_package_selects_all_workspace_members() {
         ],
     );
 
-    let mut command = Command::cargo_bin("cargo-crap4rust").expect("binary");
+    let mut command = crap4rust_command();
     command
         .arg("--manifest-path")
         .arg(&manifest_path)
@@ -962,7 +968,7 @@ fn zero_coverage_produces_fixture_expected_crap_score() {
     let temp_dir = TempDir::new().expect("temp dir");
     let coverage_path = write_coverage_file(temp_dir.path(), &[(source_path, function_line, 0)]);
 
-    let mut command = Command::cargo_bin("cargo-crap4rust").expect("binary");
+    let mut command = crap4rust_command();
     command
         .arg("--manifest-path")
         .arg(&manifest_path)
