@@ -8,6 +8,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- `crap4rust-core` depends on syn 3 (3.0.10) where it depended on syn 2, so
+  the syntax tree it reads is syn 3's. What the tool reports does not move:
+  over this repository and three others, 1,378 functions in all, its human
+  and JSON reports are byte for byte those of the syn 2 build. A `match`
+  guard is read from the arm's pattern, a `Pat::Guard` in syn 3, where syn 2
+  held it in a field of the arm. The library's API moves with it:
+  `cognitive_complexity` takes syn 3's `Block`, `ImplCollector` its
+  `ItemImpl` and `Attribute`, `ItemVisitor::visit_items` and
+  `TestModuleRegistry::build` its `File`, and `DiscoveryFailure::Parse`
+  holds its `Error`, so a dependent handing them syn 2's types moves to syn 3
+  with it.
 - The gates come from serge4rust 0.3.2, the house's gates as a library,
   declared in `[workspace.dependencies]`: every gate, the stage that runs them
   in order, the command runner, crap4rust's JSON report and the commit

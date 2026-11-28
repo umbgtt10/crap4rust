@@ -54,7 +54,9 @@ just `a && b`; and a decision point inside them -- an `if` in a call's
 argument, a `match` an `if let` binds from -- is found and scored. A
 condition is scored at the `nesting` of the `if` or `while` it belongs to,
 as a `match`'s scrutinee and a `for` loop's iterator are; a guard at the
-nesting of its arm, one deeper than its `match`, as the arm's body is.
+nesting of its arm, one deeper than its `match`, as the arm's body is. syn
+holds a guard in its arm's pattern, as a `Pat::Guard` around the pattern it
+guards -- an or-pattern's included -- and `score_arm` takes it from there.
 
 `score_if`, `score_while` and `score_arm` each hand their condition or guard
 to `score_expr` exactly once, and to nothing else. Conditions once went
